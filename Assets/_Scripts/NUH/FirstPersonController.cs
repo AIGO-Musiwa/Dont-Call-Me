@@ -1,103 +1,212 @@
 using Fusion;
 using UnityEngine;
+
 /// <summary>
-/// 1인칭 이동/시야/앉기를 담당하는 핵심 컨트롤러입니다.
+/// 1인칭 이동 / 시야 / 앉기를 담당하는 플레이어 컨트롤러.
 ///
-/// 중요한 설계 포인트:
-/// - 실제 이동 계산은 FixedUpdateNetwork에서 수행
-/// - 로컬 플레이어만 입력을 사용
-/// - 원격 플레이어는 [Networked] 값으로 부드럽게 보간해서 보임
+/// 이 버전의 핵심 구조:
+/// 1. 로컬 시야는 LateUpdate()에서 프레임 단위로 즉시 반응
+/// 2. 네트워크 시뮬레이션용 yaw / pitch는 FixedUpdateNetwork()에서 GetInput()로 처리
+/// 3. 원격 플레이어는 Render()에서 [Networked] 값 보간
+///
+/// 왜 이렇게 나누는가?
+/// - 로컬 화면은 마우스 움직임에 즉시 반응해야 덜 끊겨 보임
+/// - 하지만 네트워크 상태는 틱 단위로 확정되어야 예측/동기화가 안정적임
+/// - 원격 플레이어는 Render 보간으로 충분히 자연스럽게 보일 수 있음
 /// </summary>
 [RequireComponent(typeof(CharacterController))]
 public class FirstPersonController : NetworkBehaviour
 {
+    // ------------------------------------------------------------
+    // Inspector 설정값
+    // ------------------------------------------------------------
     [Header("이동 속도")]
-    [SerializeField] private float walkSpeed = 4f; // 기본 걷기 속도
-    [SerializeField] private float runSpeed = 7f; // 달리기 속도
-    [SerializeField] private float crouchSpeed = 2f; // 앉아서 이동하는 속도
+    [SerializeField] private float walkSpeed = 4f;
+    [SerializeField] private float runSpeed = 6f;
+    [SerializeField] private float crouchSpeed = 2f;
+
     [Header("시야")]
-    [SerializeField] private float mouseSensitivity = 2f; // 마우스 민감도
-    [SerializeField] private float pitchMin = -85f; // 위아래 회전 최소 각도
-    [SerializeField] private float pitchMax = 85f; // 위아래 회전 최대 각도
+    [SerializeField] private float mouseSensitivity = 0.2f;
+    [SerializeField] private float pitchMin = -80f;
+    [SerializeField] private float pitchMax = 80f;
+
     [Header("물리")]
-    [SerializeField] private float gravity = -20f; // 중력 가속도
+    [SerializeField] private float gravity = -20f;
+    [SerializeField] private float groundedStickForce = -2f;
 
-    [Header("앉기")]
-    [SerializeField] private float standHeight = 1.8f; // 서 있을 때 캡슐 높이
-    [SerializeField] private float crouchHeight = 0.9f; // 앉았을 때 캡슐 높이
-    [SerializeField] private float crouchCenterY_Stand = 0.9f; // 서 있을 때 center.y
-    [SerializeField] private float crouchCenterY_Crouch = 0.45f; // 앉았을 때 center.y
+    [Header("플레이어 높이")]
+    [SerializeField] private float standHeight = 2f;
+    [SerializeField] private float crouchHeight = 1f;
+    [SerializeField] private float standCenterY = 1f;
+    [SerializeField] private float crouchCenterY = 0.5f;
+
     [Header("레퍼런스")]
-    [SerializeField] private Transform cameraHolder; // 카메라 상하 회전 피벗
-    [SerializeField] private Transform cameraLightRoot; // 손전등 라이트가 붙을 자리
+    [SerializeField] private Transform cameraHolder;
+    [SerializeField] private Camera playerCamera;
+    [SerializeField] private Transform cameraLightRoot;
+    [SerializeField] private float eyeOffset = 0.1f;
 
-
-    // 원격 플레이어를 보여주기 위한 네트워크 동기화 값
+    // ------------------------------------------------------------
+    // [Networked] 동기화 값
+    // ------------------------------------------------------------
     [Networked] private Vector3 NetworkPosition { get; set; }
     [Networked] private Quaternion NetworkYaw { get; set; }
     [Networked] private float NetworkPitch { get; set; }
 
+    [Networked] public bool IsCrouching { get; set; }
+    [Networked] public bool IsMovementLocked { get; set; }
+    [Networked] public bool IsLookLocked { get; set; }
 
-    // 게임 규칙 상태
-    [Networked] public bool IsCrouching { get; private set; }
-    [Networked] public bool IsMovementLocked { get; set; } // 포획/숨기 등으로 이동 잠금
-    [Networked] public bool IsLookLocked { get; set; } // 시야 잠금 여부
+    // ------------------------------------------------------------
+    // 런타임 캐시
+    // ------------------------------------------------------------
+    private CharacterController _cc;
+    private InputHandler _inputHandler;
 
+    /// <summary>
+    /// 중력 누적 속도.
+    /// CharacterController는 Rigidbody가 아니므로 직접 누적해야 한다.
+    /// </summary>
+    private float _verticalVelocity;
 
-    private CharacterController _cc; // Unity CharacterController 캐시
-    private float _verticalVelocity; // 중력 누적 속도
-    private float _pitch; // 로컬 상하 회전 누적값
+    /// <summary>
+    /// 틱 시뮬레이션용 yaw / pitch.
+    /// 이동 방향, 네트워크 복제, 원격 표시 기준으로 사용된다.
+    /// </summary>
+    private float _simYaw;
+    private float _simPitch;
 
+    /// <summary>
+    /// 로컬 렌더용 yaw / pitch.
+    /// LateUpdate()에서 프레임 단위로 즉시 반응하는 값이다.
+    /// </summary>
+    private float _renderYaw;
+    private float _renderPitch;
+
+    // ------------------------------------------------------------
+    // 외부 접근용 프로퍼티
+    // ------------------------------------------------------------
     public Transform CameraLightRoot => cameraLightRoot;
+    public bool CCEnabled => _cc != null && _cc.enabled;
 
-    public bool CCEnabled => _cc.enabled;
-
-
+    // ------------------------------------------------------------
+    // Fusion 생명주기
+    // ------------------------------------------------------------
     public override void Spawned()
     {
         _cc = GetComponent<CharacterController>();
+
+        if (playerCamera == null && cameraHolder != null)
+            playerCamera = cameraHolder.GetComponentInChildren<Camera>(true);
+
+        if (HasInputAuthority && Runner != null)
+            _inputHandler = Runner.GetComponent<InputHandler>();
+
+        if (cameraHolder == null)
+            Debug.LogError("[FirstPersonController] cameraHolder가 비어 있습니다.", this);
+
+        // 초기 시뮬레이션 회전값 설정
+        _simYaw = NormalizeAngle(transform.eulerAngles.y);
+        _simPitch = 0f;
+
+        // 로컬 렌더값도 동일하게 시작
+        _renderYaw = _simYaw;
+        _renderPitch = _simPitch;
+
+        ApplyCrouchState(false);
+
+        if (playerCamera != null)
+            playerCamera.enabled = HasInputAuthority;
+
         if (HasInputAuthority)
         {
-            // 로컬 플레이어만 자신의 카메라를 켭니다.
-            // 다른 사람 캐릭터 카메라까지 켜지면 화면이 꼬입니다.
-            Camera cam = cameraHolder.GetComponentInChildren<Camera>();
-            if (cam != null) cam.enabled = true;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
-        ApplyCrouchState(false);
+
+        NetworkPosition = transform.position;
+        NetworkYaw = Quaternion.Euler(0f, _simYaw, 0f);
+        NetworkPitch = _simPitch;
     }
+
+    /// <summary>
+    /// 네트워크 틱마다 호출.
+    /// 이동 / 중력 / 네트워크용 회전은 여기서 처리한다.
+    /// </summary>
     public override void FixedUpdateNetwork()
     {
-        if (!GetInput(out PlayerNetworkInput input)) return;
+        if (!GetInput(out PlayerNetworkInput input))
+            return;
 
-        // 이동이 허용될 때만 이동/앉기 처리
+        // 네트워크용 회전은 반드시 틱에서 처리
+        if (!IsLookLocked)
+            ApplySimulationLook(input.LookInput);
+
+        // 이동은 네트워크용 yaw 기준
         if (!IsMovementLocked)
         {
-            HandleMovement(input);
             HandleCrouch(input.Buttons.IsSet(InputButtons.Crouch));
-        }
-
-        // 시야가 허용될 때만 마우스 회전 처리
-        if (!IsLookLocked)
-        {
-            HandleLook(input);
+            HandleMovement(input);
         }
 
         ApplyGravity();
 
-        // 현재 결과를 [Networked] 값에 기록해 원격 플레이어가 볼 수 있게 함
+        // 시뮬레이션 결과를 transform과 [Networked] 값에 반영
+        transform.rotation = Quaternion.Euler(0f, _simYaw, 0f);
+
         NetworkPosition = transform.position;
         NetworkYaw = transform.rotation;
-        NetworkPitch = _pitch;
+        NetworkPitch = _simPitch;
+
+        // 로컬 렌더값과 시뮬레이션값이 너무 벌어졌으면 보정
+        // (일시적인 드리프트 누적 방지)
+        if (HasInputAuthority)
+        {
+            if (Mathf.Abs(Mathf.DeltaAngle(_renderYaw, _simYaw)) > 20f)
+                _renderYaw = _simYaw;
+
+            if (Mathf.Abs(_renderPitch - _simPitch) > 20f)
+                _renderPitch = _simPitch;
+        }
     }
+
+    /// <summary>
+    /// 로컬 플레이어는 LateUpdate에서 즉시 시야 반응을 준다.
+    /// 
+    /// 이유:
+    /// - InputHandler.Update()가 이번 프레임의 FrameLookDelta를 갱신함
+    /// - LateUpdate는 모든 Update 이후에 호출되므로,
+    ///   가장 최신 프레임 마우스 델타를 안정적으로 읽을 수 있음
+    /// </summary>
+    private void LateUpdate()
+    {
+        if (!HasInputAuthority)
+            return;
+
+        if (IsLookLocked)
+            return;
+
+        if (_inputHandler == null)
+            return;
+
+        Vector2 frameLook = _inputHandler.FrameLookDelta;
+
+        // 로컬 렌더용 회전은 프레임마다 즉시 반응
+        _renderYaw += frameLook.x * mouseSensitivity;
+        _renderPitch -= frameLook.y * mouseSensitivity;
+        _renderPitch = Mathf.Clamp(_renderPitch, pitchMin, pitchMax);
+
+        ApplyRenderLook(_renderYaw, _renderPitch);
+    }
+
+    /// <summary>
+    /// 원격 플레이어는 [Networked] 값을 프레임 보간으로 보여준다.
+    /// </summary>
     public override void Render()
     {
-        // 내 로컬 플레이어는 이미 직접 입력으로 움직이고 있으니
-        // 여기서 다시 보간하면 오히려 이중 적용이 됩니다.
-        if (HasInputAuthority) return;
+        if (HasInputAuthority)
+            return;
 
-        // 원격 플레이어만 부드럽게 보간해서 표시
         transform.position = Vector3.Lerp(transform.position, NetworkPosition, Runner.DeltaTime * 15f);
         transform.rotation = Quaternion.Slerp(transform.rotation, NetworkYaw, Runner.DeltaTime * 15f);
 
@@ -105,41 +214,58 @@ public class FirstPersonController : NetworkBehaviour
             cameraHolder.localRotation = Quaternion.Euler(NetworkPitch, 0f, 0f);
     }
 
+    // ------------------------------------------------------------
+    // 이동 처리
+    // ------------------------------------------------------------
     private void HandleMovement(PlayerNetworkInput input)
     {
-        if (!_cc.enabled) return;
+        if (_cc == null || !_cc.enabled)
+            return;
 
-        float speed = GetCurrentSpeed(input);
+        float currentSpeed = GetCurrentSpeed(input);
 
-        // 로컬 입력을 월드 이동 방향으로 변환
-        Vector3 moveDir = transform.right * input.MoveInput.x
-        + transform.forward * input.MoveInput.y;
+        // 이동 방향은 "현재 transform.forward"가 아니라
+        // 시뮬레이션 yaw 기준으로 계산해야 local render yaw와 분리할 수 있다.
+        Quaternion simRotation = Quaternion.Euler(0f, _simYaw, 0f);
 
-        moveDir = moveDir.normalized * speed;
-        moveDir.y = _verticalVelocity;
+        Vector3 move = (simRotation * Vector3.right) * input.MoveInput.x +
+                       (simRotation * Vector3.forward) * input.MoveInput.y;
 
-        _cc.Move(moveDir * Runner.DeltaTime);
+        move = move.normalized * currentSpeed;
+        move.y = _verticalVelocity;
+
+        _cc.Move(move * Runner.DeltaTime);
     }
 
-    private void HandleLook(PlayerNetworkInput input)
+    // ------------------------------------------------------------
+    // 틱 시뮬레이션용 시야 처리
+    // ------------------------------------------------------------
+    private void ApplySimulationLook(Vector2 lookDelta)
     {
-        if (!HasInputAuthority) return;
-
-        float yaw = input.LookInput.x * mouseSensitivity;
-        _pitch -= input.LookInput.y * mouseSensitivity;
-        _pitch = Mathf.Clamp(_pitch, pitchMin, pitchMax);
-
-        // 몸체는 좌우(yaw) 회전
-        transform.Rotate(Vector3.up * yaw);
-
-        // 카메라는 상하(pitch) 회전
-        if (cameraHolder != null)
-            cameraHolder.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
+        _simYaw += lookDelta.x * mouseSensitivity;
+        _simPitch -= lookDelta.y * mouseSensitivity;
+        _simPitch = Mathf.Clamp(_simPitch, pitchMin, pitchMax);
     }
 
+    // ------------------------------------------------------------
+    // 로컬 렌더용 시야 처리
+    // ------------------------------------------------------------
+    private void ApplyRenderLook(float yaw, float pitch)
+    {
+        transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+
+        if (cameraHolder != null)
+            cameraHolder.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+    }
+
+    // ------------------------------------------------------------
+    // 앉기 처리
+    // ------------------------------------------------------------
     private void HandleCrouch(bool crouchInput)
     {
-        if (IsCrouching == crouchInput) return;
+        if (IsCrouching == crouchInput)
+            return;
+
         ApplyCrouchState(crouchInput);
     }
 
@@ -147,56 +273,78 @@ public class FirstPersonController : NetworkBehaviour
     {
         IsCrouching = crouching;
 
-        // CharacterController 캡슐 높이와 중심 변경
-        _cc.height = crouching ? crouchHeight : standHeight;
-        _cc.center = new Vector3(0f, crouching ? crouchCenterY_Crouch : crouchCenterY_Stand, 0f);
+        if (_cc != null)
+        {
+            _cc.height = crouching ? crouchHeight : standHeight;
+            _cc.center = new Vector3(0f, crouching ? crouchCenterY : standCenterY, 0f);
+        }
 
-        // 카메라 높이도 같이 조정해서 앉은 느낌을 만듦
         if (cameraHolder != null)
         {
-            Vector3 pos = cameraHolder.localPosition;
-            pos.y = crouching ? crouchHeight - 0.1f : standHeight - 0.1f;
-            cameraHolder.localPosition = pos;
+            Vector3 localPos = cameraHolder.localPosition;
+            localPos.y = crouching ? crouchHeight - eyeOffset : standHeight - eyeOffset;
+            cameraHolder.localPosition = localPos;
         }
     }
 
+    // ------------------------------------------------------------
+    // 중력 처리
+    // ------------------------------------------------------------
     private void ApplyGravity()
     {
-        if (!_cc.enabled) return;
+        if (_cc == null || !_cc.enabled)
+            return;
 
-        // 바닥에 붙어 있을 때 너무 큰 음수 속도가 누적되지 않게 보정
         if (_cc.isGrounded && _verticalVelocity < 0f)
-            _verticalVelocity = -2f;
+            _verticalVelocity = groundedStickForce;
 
         _verticalVelocity += gravity * Runner.DeltaTime;
     }
 
+    // ------------------------------------------------------------
+    // 속도 계산
+    // ------------------------------------------------------------
     private float GetCurrentSpeed(PlayerNetworkInput input)
     {
-        if (IsCrouching) return crouchSpeed;
-        if (input.Buttons.IsSet(InputButtons.Sprint)) return runSpeed;
+        if (IsCrouching)
+            return crouchSpeed;
+
+        if (input.Buttons.IsSet(InputButtons.Sprint))
+            return runSpeed;
+
         return walkSpeed;
     }
-    /// <summary>
-    /// 외부 시스템(포획, 연출 등)이 이동/시야를 잠글 때 사용.
-    /// </summary>
+
+    // ------------------------------------------------------------
+    // 외부 제어
+    // ------------------------------------------------------------
     public void LockInput(bool lockMovement, bool lockLook)
     {
         IsMovementLocked = lockMovement;
         IsLookLocked = lockLook;
+
         if (_cc != null)
             _cc.enabled = !lockMovement;
     }
-    /// <summary>
-    /// 캐비닛 안처럼 CharacterController 자체를 끄고 싶을 때 사용.
-    /// </summary>
+
     public void SetCCEnabled(bool enabled)
     {
         if (_cc != null)
             _cc.enabled = enabled;
     }
-    /// <summary>
-    /// 손전등이 카메라 자식 위치를 찾아 붙을 때 사용.
-    /// </summary>
-    public Transform GetCameraLightRoot() => cameraLightRoot;
+
+    public Transform GetCameraLightRoot()
+    {
+        return cameraLightRoot;
+    }
+
+    // ------------------------------------------------------------
+    // 유틸리티
+    // ------------------------------------------------------------
+    private static float NormalizeAngle(float angle)
+    {
+        angle %= 360f;
+        if (angle > 180f) angle -= 360f;
+        return angle;
+    }
 }
