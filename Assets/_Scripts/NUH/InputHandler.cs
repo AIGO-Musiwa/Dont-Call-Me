@@ -53,7 +53,7 @@ public static class InputButtons
 /// - 이 스크립트는 NetworkRunner와 같은 GameObject 또는 그 자식에 두는 것을 권장
 /// - 그러면 Fusion이 StartGame() 시 INetworkRunnerCallbacks를 자동 등록한다
 /// </summary>
-public class InputHandler : MonoBehaviour, INetworkRunnerCallbacks
+public class InputHandler : MonoBehaviour
 {
     [Header("Input Actions")]
     [SerializeField] private InputActionReference moveAction;
@@ -88,6 +88,33 @@ public class InputHandler : MonoBehaviour, INetworkRunnerCallbacks
     private bool _crouchPressed;
     private bool _interactPressed;
     private bool _walkiePressed;
+
+    // 추가: FusionCallbackHandler 구독 관리
+    private FusionCallbackHandler _registeredHandler;
+
+    /// <summary>
+    /// 세션 시작 후 FusionMoveMentTestLauncher 또는 NetworkDebugStarter에서 호출.
+    /// FusionCallbackHandler.Current가 생성된 시점 이후에 호출해야 한다.
+    /// </summary>
+    /// <param name="handler"></param>
+    public void Initialize(FusionCallbackHandler handler)
+    {
+        if (_registeredHandler != null)
+        {
+            _registeredHandler.OnInputEvent -= HandleOnInput;
+        }
+
+        _registeredHandler = handler;
+        _registeredHandler.OnInputEvent += HandleOnInput;
+    }
+
+    private void OnDestroy()
+    {
+        if (_registeredHandler != null)
+        {
+            _registeredHandler.OnInputEvent -= HandleOnInput;
+        }
+    }
 
     private void OnEnable()
     {
@@ -149,7 +176,7 @@ public class InputHandler : MonoBehaviour, INetworkRunnerCallbacks
     /// 여기서 지금까지 누적한 입력을 PlayerNetworkInput으로 묶어 전달한다.
     /// LookInput은 틱 사이에 누적된 마우스 델타 전체를 보낸다.
     /// </summary>
-    public void OnInput(NetworkRunner runner, NetworkInput input)
+    public void HandleOnInput(NetworkRunner runner, NetworkInput input)
     {
         PlayerNetworkInput data = new PlayerNetworkInput
         {
@@ -179,26 +206,4 @@ public class InputHandler : MonoBehaviour, INetworkRunnerCallbacks
         buttons.Set(InputButtons.Walkie, _walkiePressed);
         return buttons;
     }
-
-    // ------------------------------------------------------------
-    // INetworkRunnerCallbacks 필수 구현부 (현재 미사용)
-    // ------------------------------------------------------------
-    public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
-    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
-    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
-    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
-    public void OnConnectedToServer(NetworkRunner runner) { }
-    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
-    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
-    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
-    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
-    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) { }
-    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
-    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
-    public void OnSceneLoadDone(NetworkRunner runner) { }
-    public void OnSceneLoadStart(NetworkRunner runner) { }
-    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
-    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
-    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, System.ArraySegment<byte> data) { }
-    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
 }
