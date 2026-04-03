@@ -47,7 +47,7 @@ public class PlayerSlotUI : MonoBehaviour
     // 바인딩된 데이터로 UI 갱신
     public void Refresh()
     {
-        if (_boundPlayer == null || !_boundPlayer.Object.IsValid) return;
+        if (_boundPlayer == null || _boundPlayer.Object == null || !_boundPlayer.Object.IsValid) return;
 
         nicknameText.text = _boundPlayer.Nickname.ToString();
         readyIcon.enabled = _boundPlayer.IsReady;

@@ -29,6 +29,7 @@ public class GameLauncher : MonoBehaviour
     // ── 내부 ──────────────────────────────────────────────
     private bool _intentionalShutdown;                  // 본인이 직접 종료했는지 확인
     private FusionCallbackHandler _callbackHandler;     // Fusion 콜백 핸들러
+    private bool _isConnecting;                         // Runner.StartGame 진행 중 플래그
 
     // 서버에서만 사용하는 슬롯  추적
     private readonly Dictionary<PlayerRef, int> _playerSlots = new();
@@ -111,6 +112,9 @@ public class GameLauncher : MonoBehaviour
         Runner.AddCallbacks(_callbackHandler);
         DontDestroyOnLoad(Runner.gameObject);
 
+        var runnerGo = Runner.gameObject;
+
+        _isConnecting = true;
         var result = await Runner.StartGame(new StartGameArgs
         {
             GameMode = mode,
@@ -119,12 +123,13 @@ public class GameLauncher : MonoBehaviour
             SceneManager = Runner.GetComponent<INetworkSceneManager>()
                             ?? Runner.gameObject.AddComponent<NetworkSceneManagerDefault>()
         });
+        _isConnecting = false;
 
         if (!result.Ok)
         {
             Debug.LogError($"[GameLauncher] 연결 실패: {result.ShutdownReason}");
             OnJoinFailed?.Invoke(GetJoinFailMessage(result.ShutdownReason));
-            Destroy(Runner.gameObject);
+            Destroy(runnerGo);
             Runner = null;
         }
         else
@@ -182,14 +187,19 @@ public class GameLauncher : MonoBehaviour
     private void HandleShutdown(ShutdownReason reason)
     {
         if (_intentionalShutdown) return;
-        Debug.LogWarning($"[GameLauncher] 예기치 않은 종료: {reason}");
         Runner = null;
+
+        if (_isConnecting) return;
+
+        Debug.LogWarning($"[GameLauncher] 예기치 않은 종료: {reason}");
         OnHostDisconnected?.Invoke();
     }
 
     private void HadnleDisconnected(NetDisconnectReason reason)
     {
         if (_intentionalShutdown) return;
+        if (_isConnecting) return;
+
         Debug.LogWarning($"[GameLauncher] 서버 연결 끊김: {reason}");
         OnHostDisconnected?.Invoke();
     }
