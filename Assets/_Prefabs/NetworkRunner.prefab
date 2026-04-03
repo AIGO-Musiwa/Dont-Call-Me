@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9009033980289793548}
   - component: {fileID: 5485668934217040620}
+  - component: {fileID: -5957311439425892753}
   m_Layer: 0
   m_Name: NetworkRunner
   m_TagString: Untagged
@@ -44,3 +45,21 @@ MonoBehaviour:
   m_Script: {fileID: -1199893898, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkRunner
+--- !u!114 &-5957311439425892753
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5123960976820580460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60b3c7e434449fd48ab4c41860d6e566, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InputHandler
+  moveAction: {fileID: -1680190386980627800, guid: e8da5280c7347af4195ae9f3d9e7af3a, type: 3}
+  lookAction: {fileID: -5630151704836100654, guid: e8da5280c7347af4195ae9f3d9e7af3a, type: 3}
+  sprintAction: {fileID: -7471211009204490832, guid: e8da5280c7347af4195ae9f3d9e7af3a, type: 3}
+  crouchAction: {fileID: 7040659881675835329, guid: e8da5280c7347af4195ae9f3d9e7af3a, type: 3}
+  interactAction: {fileID: 1120369429361536294, guid: e8da5280c7347af4195ae9f3d9e7af3a, type: 3}
+  walkieAction: {fileID: -4670622468078651250, guid: e8da5280c7347af4195ae9f3d9e7af3a, type: 3}
