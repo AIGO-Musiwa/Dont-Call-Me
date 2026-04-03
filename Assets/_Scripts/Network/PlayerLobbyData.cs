@@ -27,9 +27,17 @@ public class PlayerLobbyData : NetworkBehaviour
             Rpc_SetReady(true);
         }
 
-        // TODO: VoiceManager 연동 후 마이크 모니터링 등록
+        // VoiceManager에 로컬 플레이어 등록
+        VoiceManager.Instance?.RegisterLocalPlayer(this);
 
         Debug.Log($"[PlayerLobbyData] 스폰 완료 | 닉네임={nickname} | IsHost={Runner.IsServer}");
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        if (!HasInputAuthority) return;
+
+        VoiceManager.Instance?.Unregister();
     }
 
     #endregion
@@ -43,7 +51,7 @@ public class PlayerLobbyData : NetworkBehaviour
     public void Rpc_SetReady(NetworkBool isReady) => IsReady = isReady;
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    public void rpc_SetMicActive(NetworkBool isActive) => IsMicActive = isActive;
+    public void Rpc_SetMicActive(NetworkBool isActive) => IsMicActive = isActive;
 
     #endregion
 }

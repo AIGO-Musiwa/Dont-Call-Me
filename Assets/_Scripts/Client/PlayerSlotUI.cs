@@ -51,9 +51,7 @@ public class PlayerSlotUI : MonoBehaviour
 
         nicknameText.text = _boundPlayer.Nickname.ToString();
         readyIcon.enabled = _boundPlayer.IsReady;
-
-        // TODO: VoiceManager 연동 후 마이크 상태 반영
-        micIcon.enabled = false;
+        micIcon.enabled = _boundPlayer.IsMicActive;
     }
 
     #endregion
