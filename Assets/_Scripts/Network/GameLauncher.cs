@@ -231,7 +231,6 @@ public class GameLauncher : MonoBehaviour
 
     #region 에디터 전영
 
-#if UNITY_EDITOR
     internal void SetDevData(string nickname, string roomCode)
     {
         LocalNickname = nickname;
@@ -247,8 +246,6 @@ public class GameLauncher : MonoBehaviour
         _callbackHandler.OnShutdownEvent += HandleShutdown;
         _callbackHandler.OnDisconnectedEvent += HandleDisconnected;
     }
-
-#endif
 
     #endregion
 }
