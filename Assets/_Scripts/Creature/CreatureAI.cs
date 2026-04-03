@@ -159,7 +159,14 @@ public class CreatureAI : NetworkBehaviour
 
         //agent 컴포넌트 초기화
         agent = GetComponent<NavMeshAgent>();
-        agent.speed = patrolSpeed;
+
+        if (Object.HasStateAuthority)
+        {
+            agent.enabled = true;
+            agent.speed = patrolSpeed;
+        }
+
+        else agent.enabled = false;
 
         //시작 시 원래 조명 밝기 저장
         if (directionalLight != null)

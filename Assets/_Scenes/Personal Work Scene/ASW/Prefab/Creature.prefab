@@ -176,6 +176,7 @@ GameObject:
   - component: {fileID: 8542084152610913779}
   - component: {fileID: 3640863125624847769}
   - component: {fileID: 6065336768852671156}
+  - component: {fileID: -7382828285008275476}
   m_Layer: 20
   m_Name: Creature
   m_TagString: Untagged
@@ -387,8 +388,8 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  patrolSpeed: 3.5
-  searchDuration: 4.5
+  patrolSpeed: 5
+  searchDuration: 6
   chaseSpeed: 6.5
   captureDistance: 2.5
   playerRespawnPoint: {fileID: 0}
@@ -422,7 +423,25 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 3640863125624847769}
+  - {fileID: -7382828285008275476}
   ForceRemoteRenderTimeframe: 0
+--- !u!114 &-7382828285008275476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535513259889772823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &539186377256783234
 GameObject:
   m_ObjectHideFlags: 0
