@@ -32,7 +32,7 @@ public class CreatureAI : NetworkBehaviour
     public float captureDistance = 1.5f;    //플레이어를 포획할 수 있는 최대 거리
     public Transform playerRespawnPoint;    //플레이어가 포획된 후 이동할 위치
     public Transform creatureRespawnPoint1F;//크리처가 포획된 후 이동할 1층 위치    
-    public Transform creatureRespawnPoint3F;//크리처가 포획된 후 이동할 위치    
+    public Transform creatureRespawnPoint3F;//크리처가 포획된 후 이동할 3층 위치    
     private int currentFloor = 1;           //크리처가 현재 위치한 층 번호        
 
 
