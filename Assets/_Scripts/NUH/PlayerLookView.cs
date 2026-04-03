@@ -11,6 +11,9 @@ public class PlayerLookView : MonoBehaviour
     private PlayerController _controller;
     private PlayerKCCMotor _motor;
 
+    public Camera ViewCamera => playerCamera;
+    public Transform ViewOrigin => playerCamera != null ? playerCamera.transform : cameraHolder;
+
     public void Initialize(PlayerController controller)
     {
         _controller = controller;
