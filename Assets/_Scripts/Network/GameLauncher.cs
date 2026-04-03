@@ -54,7 +54,7 @@ public class GameLauncher : MonoBehaviour
         _callbackHandler.OnPlayerJoinedEvent -= HandlePlayerJoined;
         _callbackHandler.OnPlayerLeftEvent -= HandlePlayerLeft;
         _callbackHandler.OnShutdownEvent -= HandleShutdown;
-        _callbackHandler.OnDisconnectedEvent -= HadnleDisconnected;
+        _callbackHandler.OnDisconnectedEvent -= HandleDisconnected;
         _callbackHandler.OnConnectFailedEvent -= HandleConnectFailed;
     }
 
@@ -104,7 +104,7 @@ public class GameLauncher : MonoBehaviour
         _callbackHandler.OnPlayerJoinedEvent += HandlePlayerJoined;
         _callbackHandler.OnPlayerLeftEvent += HandlePlayerLeft;
         _callbackHandler.OnShutdownEvent += HandleShutdown;
-        _callbackHandler.OnDisconnectedEvent += HadnleDisconnected;
+        _callbackHandler.OnDisconnectedEvent += HandleDisconnected;
         _callbackHandler.OnConnectFailedEvent += HandleConnectFailed;
 
         Runner = Instantiate(networkRunnerPrefab);
@@ -195,7 +195,7 @@ public class GameLauncher : MonoBehaviour
         OnHostDisconnected?.Invoke();
     }
 
-    private void HadnleDisconnected(NetDisconnectReason reason)
+    private void HandleDisconnected(NetDisconnectReason reason)
     {
         if (_intentionalShutdown) return;
         if (_isConnecting) return;
@@ -218,7 +218,7 @@ public class GameLauncher : MonoBehaviour
     {   
         ShutdownReason.GameNotFound => "존재하지 않는 방 코드입니다.",
         ShutdownReason.GameIsFull => "방이 가득 찼습니다.",
-        _ => $"qkd ckark tlfvo ({reason})"
+        _ => $"방 참가 실패({reason})"
     };
 
     private static string GetJoinFailMessage(NetConnectFailedReason reason) => reason switch
@@ -245,7 +245,7 @@ public class GameLauncher : MonoBehaviour
         _callbackHandler.OnPlayerJoinedEvent += HandlePlayerJoined;
         _callbackHandler.OnPlayerLeftEvent += HandlePlayerLeft;
         _callbackHandler.OnShutdownEvent += HandleShutdown;
-        _callbackHandler.OnDisconnectedEvent += HadnleDisconnected;
+        _callbackHandler.OnDisconnectedEvent += HandleDisconnected;
     }
 
 #endif
