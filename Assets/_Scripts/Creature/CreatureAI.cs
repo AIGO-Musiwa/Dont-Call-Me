@@ -153,15 +153,14 @@ public class CreatureAI : NetworkBehaviour
 
     #region Fusion용 Spawned 함수
     public override void Spawned()
-    {
-        //초기 상태 설정
-        currentState = CreatureState.Patrol;
-
+    {        
         //agent 컴포넌트 초기화
         agent = GetComponent<NavMeshAgent>();
 
         if (Object.HasStateAuthority)
         {
+            //초기 상태 설정
+            currentState = CreatureState.Patrol;
             agent.enabled = true;
             agent.speed = patrolSpeed;
         }

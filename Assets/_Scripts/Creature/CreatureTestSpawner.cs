@@ -53,6 +53,7 @@ public class CreatureTestSpawner : MonoBehaviour
             }
 
             isSpawning = true;
+            this.enabled = false;
             Debug.Log("크리처 전용 스포너: 웨이포인트 및 환경 변수(조명, 리스폰) 주입 완료");
         }
     }
