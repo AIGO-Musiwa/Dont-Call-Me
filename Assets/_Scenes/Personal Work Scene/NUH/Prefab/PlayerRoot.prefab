@@ -9,11 +9,12 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1101863805230548405}
-  - component: {fileID: 5117985160988591131}
   - component: {fileID: 3346838686624773243}
-  - component: {fileID: 206222120030693344}
+  - component: {fileID: 5971374519554222819}
+  - component: {fileID: 7291662868223057742}
   - component: {fileID: 240582007588533922}
-  - component: {fileID: 4280283401012911204}
+  - component: {fileID: 8731167519805343018}
+  - component: {fileID: 1545711915542946019}
   m_Layer: 0
   m_Name: PlayerRoot
   m_TagString: Untagged
@@ -38,31 +39,6 @@ Transform:
   - {fileID: 6306466061797410514}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!143 &5117985160988591131
-CharacterController:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 827289365566288008}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Height: 2
-  m_Radius: 0.5
-  m_SlopeLimit: 45
-  m_StepOffset: 0.3
-  m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &3346838686624773243
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -80,11 +56,37 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 206222120030693344}
+  - {fileID: 7291662868223057742}
   - {fileID: 240582007588533922}
-  - {fileID: 4280283401012911204}
   ForceRemoteRenderTimeframe: 0
---- !u!114 &206222120030693344
+--- !u!54 &5971374519554222819
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827289365566288008}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &7291662868223057742
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -93,28 +95,34 @@ MonoBehaviour:
   m_GameObject: {fileID: 827289365566288008}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b70ed18778d1c84ebbf1ad1ea1769ff, type: 3}
+  m_Script: {fileID: -1869825851, guid: 977dbcf975465374990f471e1497f563, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FirstPersonController
-  walkSpeed: 4
-  runSpeed: 6
-  crouchSpeed: 2
-  mouseSensitivity: 0.2
-  pitchMin: -80
-  pitchMax: 80
-  gravity: -20
-  groundedStickForce: -2
-  standHeight: 2
-  crouchHeight: 1
-  standCenterY: 1
-  crouchCenterY: 0.5
-  cameraHolder: {fileID: 5759469755395386870}
-  playerCamera: {fileID: 1283061483550928000}
-  cameraLightRoot: {fileID: 8324999275640108001}
-  eyeOffset: 0.5
-  _IsCrouching: 0
-  _IsMovementLocked: 0
-  _IsLookLocked: 0
+  m_EditorClassIdentifier: Fusion.Addons.SimpleKCC.dll::Fusion.Addons.SimpleKCC.SimpleKCC
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  _settings:
+    Shape: 1
+    IsTrigger: 0
+    Radius: 0.35
+    Height: 1.8
+    Extent: 0.035
+    ColliderLayer: 0
+    CollisionLayerMask:
+      serializedVersion: 2
+      m_Bits: 1
+    ProxyInterpolationMode: 0
+    MaxPenetrationSteps: 8
+    CCDRadiusMultiplier: 0.75
+    AntiJitterDistance: {x: 0.025, y: 0.01}
+    CompressNetworkPosition: 0
+    ForcePredictedLookRotation: 0
+    StepHeight: 0.5
+    StepDepth: 0.2
+    StepSpeed: 1
+    StepMinPushBack: 0.5
+    StepGroundCheckRadiusScale: 0.5
+    StepRequireGroundTarget: 0
+    SnapDistance: 0.25
+    SnapSpeed: 4
 --- !u!114 &240582007588533922
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127,7 +135,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c250ede6db9d88b4986524f61cbb9a0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
---- !u!114 &4280283401012911204
+  _NetPlayerState: 0
+  _NetPlayerRole: 0
+  _NetZone: 0
+  _NetLeftHandItem: {fileID: 0}
+  _NetRightHandItem: {fileID: 0}
+  _NetMovementLocked:
+    _value: 0
+  _NetLookLocked:
+    _value: 0
+--- !u!114 &8731167519805343018
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -136,14 +153,34 @@ MonoBehaviour:
   m_GameObject: {fileID: 827289365566288008}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Script: {fileID: 11500000, guid: 72446cc3f32794f4a8c62c035bf7dd89, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
-  _stateAuthorityChangeErrorCorrectionDelta: 0
-  SyncScale: 0
-  SyncParent: 0
-  _autoAOIOverride: 1
-  DisableSharedModeInterpolation: 0
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerKCCMotor
+  walkSpeed: 4
+  runSpeed: 6
+  crouchSpeed: 2
+  lookSensitivity: 0.2
+  pitchMin: -80
+  pitchMax: 80
+  gravityMultiplier: 2
+  standHeight: 2
+  crouchHeight: 1
+--- !u!114 &1545711915542946019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827289365566288008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c1cbef00496657438e9b47762ab4383, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerLookView
+  cameraHolder: {fileID: 5759469755395386870}
+  playerCamera: {fileID: 1283061483550928000}
+  cameraLightRoot: {fileID: 8324999275640108001}
+  eyeOffset: 0.1
 --- !u!1 &2098675536719637024
 GameObject:
   m_ObjectHideFlags: 0
@@ -186,7 +223,6 @@ GameObject:
   - component: {fileID: 6306466061797410514}
   - component: {fileID: 5714575620342049300}
   - component: {fileID: 1975295929507755975}
-  - component: {fileID: 1290094181750424880}
   m_Layer: 0
   m_Name: PlayerBody
   m_TagString: Untagged
@@ -266,29 +302,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &1290094181750424880
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2442912985913081500}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &2726420840030119512
 GameObject:
   m_ObjectHideFlags: 0
