@@ -25,5 +25,5 @@ public static class SceneNames
     public const string GAME = "Game";
 
     public const int TITLE_INDEX = 0;
-    public const int GAME_INDEX = 2;
+    public const int GAME_INDEX = 1;
 }
