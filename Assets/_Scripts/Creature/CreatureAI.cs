@@ -1,22 +1,14 @@
+using Fusion;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem;
 using Random = UnityEngine.Random;
 
-public enum CreatureState
-{
-    Patrol,         //순찰
-    AlerMove,       //경계 이동
-    Search,         //수색(탐색)
-    Chaser,         //추척
-    Capture         //포획
-}
-
-public class CreatureAI : MonoBehaviour
+public class CreatureAI : NetworkBehaviour
 {
     [Header("현 상태 및 타겟")]
-    public CreatureState currentState = CreatureState.Patrol;
+    [Networked] public CreatureState currentState { get; set; }
     public Transform player;
     
     [Header("층별 순찰 지점 (Waypoints)")]
@@ -39,7 +31,10 @@ public class CreatureAI : MonoBehaviour
     [Header("포획 설정")]
     public float captureDistance = 1.5f;    //플레이어를 포획할 수 있는 최대 거리
     public Transform playerRespawnPoint;    //플레이어가 포획된 후 이동할 위치
-    public Transform creatureRespawnPoint;  //크리처가 포획된 후 이동할 위치    
+    public Transform creatureRespawnPoint1F;//크리처가 포획된 후 이동할 1층 위치    
+    public Transform creatureRespawnPoint3F;//크리처가 포획된 후 이동할 3층 위치    
+    private int currentFloor = 1;           //크리처가 현재 위치한 층 번호        
+
 
     [Header("Creature 시야(LoS) 설정")]
     public float sightDistance = 7.0f;      //시야 거리
@@ -59,30 +54,175 @@ public class CreatureAI : MonoBehaviour
     private float originalLightIntensity;   //원래 조명 밝기 저장 변수
     public Light directionalLight;
 
+
+    #region 로컬용 Start 함수 (테스트용)
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
+    //void Start()
+    //{
+    //    //agent 컴포넌트 초기화
+    //    agent = GetComponent<NavMeshAgent>();
+    //    agent.speed = patrolSpeed;
+
+    //    //시작 시 1층 웨이포인트를 기본 구역으로 설정하고 첫 지점으로 이동
+    //    currentFloorWaypoints = waypoints1F;
+    //    if (currentFloorWaypoints != null && currentFloorWaypoints.Length > 0)
+    //    {
+    //        agent.SetDestination(currentFloorWaypoints[0].position);
+    //    }
+
+    //    //시작 시 원래 조명 밝기 저장
+    //    if (directionalLight != null)
+    //    {
+    //        originalLightIntensity = directionalLight.intensity;
+    //    }
+    //}
+    #endregion    
+
+    #region 로컬용 Update 함수 (테스트용)
+    // Update is called once per frame
+    //void Update()
+    //{
+    //    //============[테스트용 임시 코드]============
+    //    //키보드가 연결되어 있는지 확인 후 1번 또는 2번 키 입력 감지
+    //    if (Keyboard.current != null)
+    //    {
+    //        if (Keyboard.current.digit1Key.wasPressedThisFrame)
+    //        {
+    //            Debug.Log("테스트: 플레이어가 50dB 작은 소리로 무전");
+    //            OnHearRadioSound(player.position, 50f, false);
+    //        }
+
+    //        if (Keyboard.current.digit2Key.wasPressedThisFrame)
+    //        {
+    //            Debug.Log("테스트: 플레이어가 90dB 큰 소리로 무전");
+    //            OnHearRadioSound(player.position, 90f, true);
+    //        }
+    //    }
+
+    //    if (currentState == CreatureState.Capture)
+    //    {
+    //        UpdateCapture();
+    //        return;
+    //    }
+
+    //    Vector3 flatCreaturePos = new Vector3(transform.position.x, 0, transform.position.z);
+    //    Vector3 flatPlayerPos = new Vector3(player.position.x, 0, player.position.z);
+    //    float currentFlatDistance = Vector3.Distance(flatCreaturePos, flatPlayerPos);
+
+    //    if (currentFlatDistance <= captureDistance)
+    //    {
+    //        Debug.Log($"크리처: 잡았다. (평면 거리: {currentFlatDistance:F2}m)");
+    //        StartCoroutine(CaptureSequenceWithLight());
+    //        return;
+    //    }
+
+    //    //이미 추적 상태인 경우 or 붙잡은 상태가 아닐 때만 시야 체크
+    //    if (currentState != CreatureState.Chaser)
+    //    {
+    //        //시야 체크에서 플레이어가 보이면 추적 상태로 전환
+    //        if (CheckLineOfSight())
+    //        {
+    //            Debug.Log("크리처: 시야에 플레이어 포착");
+    //            currentState = CreatureState.Chaser;
+    //            agent.speed = chaseSpeed;
+    //            lastKnownPosition = player.position;
+    //        }
+    //    }
+
+    //    //현재 상태에 따라 행동을 결정
+    //    switch (currentState)
+    //    {
+    //        case CreatureState.Patrol:
+    //            UpdatePatrol();
+    //            break;
+    //        case CreatureState.AlerMove:
+    //            UpdateAlertMove();
+    //            break;
+    //        case CreatureState.Search:
+    //            UpdateSearch();
+    //            break;
+    //        case CreatureState.Chaser:
+    //            UpdateChaser();
+    //            break;
+    //        case CreatureState.Capture:
+    //            UpdateCapture();
+    //            break;
+    //    }
+    //}
+    #endregion
+
+    #region Fusion용 Spawned 함수
+    public override void Spawned()
+    {        
         //agent 컴포넌트 초기화
         agent = GetComponent<NavMeshAgent>();
-        agent.speed = patrolSpeed;
 
-        //시작 시 1층 웨이포인트를 기본 구역으로 설정하고 첫 지점으로 이동
-        currentFloorWaypoints = waypoints1F;
-        if (currentFloorWaypoints != null && currentFloorWaypoints.Length > 0)
+        if (Object.HasStateAuthority)
         {
-            agent.SetDestination(currentFloorWaypoints[0].position);
+            //초기 상태 설정
+            currentState = CreatureState.Patrol;
+            agent.enabled = true;
+            agent.speed = patrolSpeed;
         }
+
+        else agent.enabled = false;
 
         //시작 시 원래 조명 밝기 저장
         if (directionalLight != null)
         {
             originalLightIntensity = directionalLight.intensity;
         }
-    }
 
-    // Update is called once per frame
-    void Update()
+        //PlayerController를 찾아 타겟 할당
+        if (player == null)
+        {
+            PlayerController foundPlayerScript = FindAnyObjectByType<PlayerController>();
+            if (foundPlayerScript != null) player = foundPlayerScript.transform;
+            else Debug.LogError("CreatureAI: 플레이어 Transform이 할당되지 않았고 씬에서 PlayerController도 찾을 수 없습니다!");
+        }
+
+        //Scene에서 각 층의 웨이포인트 부모 오브젝트를 찾아서 자식으로 있는 웨이포인트들을 배열에 저장
+        GameObject wayPointParent1F = GameObject.Find("Waypoints1F");
+        if (wayPointParent1F != null)
+        {
+            waypoints1F = new Transform[wayPointParent1F.transform.childCount];
+            for (int i = 0; i < wayPointParent1F.transform.childCount; i++)
+            {
+                waypoints1F[i] = wayPointParent1F.transform.GetChild(i);
+            }
+        }
+
+        GameObject wayPointParent2F = GameObject.Find("Waypoints2F");
+        if (wayPointParent2F != null)
+        {
+            waypoints2F = new Transform[wayPointParent2F.transform.childCount];
+            for (int i = 0; i < wayPointParent2F.transform.childCount; i++)
+            {
+                waypoints2F[i] = wayPointParent2F.transform.GetChild(i);
+            }
+        }
+
+        GameObject wayPointParent3F = GameObject.Find("Waypoints3F");
+        if (wayPointParent3F != null)
+        {
+            waypoints3F = new Transform[wayPointParent3F.transform.childCount];
+            for (int i = 0; i < wayPointParent3F.transform.childCount; i++)
+            {
+                waypoints3F[i] = wayPointParent3F.transform.GetChild(i);
+            }
+        }
+
+        //시작 시 1층 웨이포인트를 기본값으로 설정
+        SetCurrentFloor(1);
+    }
+    #endregion
+
+    #region Fusion용 FixedUpdateNetwork 함수
+    public override void FixedUpdateNetwork()
     {
+        if (!Object.HasStateAuthority) return;
+        if (currentFloorWaypoints == null || currentFloorWaypoints.Length == 0 || currentFloorWaypoints[0] == null) return;
+
         //============[테스트용 임시 코드]============
         //키보드가 연결되어 있는지 확인 후 1번 또는 2번 키 입력 감지
         if (Keyboard.current != null)
@@ -107,26 +247,31 @@ public class CreatureAI : MonoBehaviour
         }
 
         Vector3 flatCreaturePos = new Vector3(transform.position.x, 0, transform.position.z);
-        Vector3 flatPlayerPos = new Vector3(player.position.x, 0, player.position.z);
-        float currentFlatDistance = Vector3.Distance(flatCreaturePos, flatPlayerPos);
 
-        if (currentFlatDistance <= captureDistance)
+        //플레이어를 찾지 못한 상태면 추적/거리 계산 생략
+        if (player != null)
         {
-            Debug.Log($"크리처: 잡았다. (평면 거리: {currentFlatDistance:F2}m)");
-            StartCoroutine(CaptureSequenceWithLight());
-            return;
-        }
+            Vector3 flatPlayerPos = new Vector3(player.position.x, 0, player.position.z);
+            float currentFlatDistance = Vector3.Distance(flatCreaturePos, flatPlayerPos);
 
-        //이미 추적 상태인 경우 or 붙잡은 상태가 아닐 때만 시야 체크
-        if (currentState != CreatureState.Chaser)
-        {
-            //시야 체크에서 플레이어가 보이면 추적 상태로 전환
-            if (CheckLineOfSight())
+            if (currentFlatDistance <= captureDistance)
             {
-                Debug.Log("크리처: 시야에 플레이어 포착");
-                currentState = CreatureState.Chaser;
-                agent.speed = chaseSpeed;
-                lastKnownPosition = player.position;
+                Debug.Log($"크리처: 잡았다. (평면 거리: {currentFlatDistance:F2}m)");
+                StartCoroutine(CaptureSequenceWithLight());
+                return;
+            }
+
+            //이미 추적 상태인 경우 or 붙잡은 상태가 아닐 때만 시야 체크
+            if (currentState != CreatureState.Chaser)
+            {
+                //시야 체크에서 플레이어가 보이면 추적 상태로 전환
+                if (CheckLineOfSight())
+                {
+                    Debug.Log("크리처: 시야에 플레이어 포착");
+                    currentState = CreatureState.Chaser;
+                    agent.speed = chaseSpeed;
+                    lastKnownPosition = player.position;
+                }
             }
         }
 
@@ -150,6 +295,7 @@ public class CreatureAI : MonoBehaviour
                 break;
         }
     }
+    #endregion
 
     #region Creature 무전기 소리 감지 로직
     public void OnHearRadioSound(Vector3 noisePosition, float rawDb, bool isGlobal)
@@ -249,6 +395,9 @@ public class CreatureAI : MonoBehaviour
     //텔레포터에서 호출해주어 크리처의 현재 순찰 구역(층)을 갱신하는 함수
     public void SetCurrentFloor(int floorNumber)
     {
+        //현재 층 번호 업데이트
+        currentFloor = floorNumber;
+
         if (floorNumber == 1) currentFloorWaypoints = waypoints1F;
         else if (floorNumber == 2) currentFloorWaypoints = waypoints2F;
         else if (floorNumber == 3) currentFloorWaypoints = waypoints3F;
@@ -380,12 +529,40 @@ public class CreatureAI : MonoBehaviour
         player.rotation = playerRespawnPoint.rotation;
         if (playerCC != null) playerCC.enabled = true;
 
-        agent.Warp(creatureRespawnPoint.position);
-        //크리처 리스폰 지점 방향 동기화
-        agent.transform.rotation = creatureRespawnPoint.rotation;
+        //3층 리스폰 지점으로 기본값 설정
+        Transform targetRespawnPoint = creatureRespawnPoint3F;
+        int nextFloor = 3;
 
-        //크리처가 3층으로 리스폰 되었으므로 구역도 3층으로 갱신!
-        SetCurrentFloor(3);
+        if (currentFloor == 1)
+        {
+            targetRespawnPoint = creatureRespawnPoint3F;
+            nextFloor = 3;
+
+        }
+        else if (currentFloor == 2)
+        {
+            if (Random.value > 0.5f)
+            {
+                targetRespawnPoint = creatureRespawnPoint1F;
+                nextFloor = 1;
+            }
+            else
+            {
+                targetRespawnPoint = creatureRespawnPoint3F;
+                nextFloor = 3;
+            }
+        }
+
+        else if (currentFloor == 3)
+        {
+            targetRespawnPoint = creatureRespawnPoint3F;
+                nextFloor = 1;
+        }
+
+        //결정된 위치로 크리처 순간이동 및 구역 갱신
+        agent.Warp(targetRespawnPoint.position);        
+        agent.transform.rotation = targetRespawnPoint.rotation;        
+        SetCurrentFloor(nextFloor);
 
         //크리처 상태 초기화
         agent.isStopped = false;
@@ -407,8 +584,6 @@ public class CreatureAI : MonoBehaviour
     }
 
     #endregion
-
-
 
     private void OnDrawGizmosSelected()
     {
