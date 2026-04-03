@@ -170,6 +170,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c250ede6db9d88b4986524f61cbb9a0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  rightHandDropForwardOffset: 0.8
+  rightHandDropUpOffset: 0.5
+  rightHandDropImpulse: 2.5
   _NetPlayerState: 0
   _NetPlayerRole: 0
   _NetZone: 0
@@ -524,7 +527,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6069357985821149527}
-  m_Enabled: 1
+  m_Enabled: 0
 --- !u!114 &7094065737303699985
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -8,10 +8,10 @@ public class ItemObject : NetworkBehaviour, IInteractable
     [SerializeField] protected ItemType itemType = ItemType.None;
     [SerializeField] protected bool isRoleItem = false;
 
-    ItemType NetItemType { get; set; }
-    NetworkBool NetIsRoleItem { get; set; }
-    NetworkBool NetIsEquipped { get; set; }
-    PlayerRef NetCurrentHolder { get; set; }
+    [Networked] public ItemType NetItemType { get; private set; }
+    [Networked] public NetworkBool NetIsRoleItem { get; private set; }
+    [Networked] public NetworkBool NetIsEquipped { get; private set; }
+    [Networked] public PlayerRef NetCurrentHolder { get; private set; }
 
     protected Collider[] _colliders;
     protected Rigidbody _rigidbody;
@@ -48,12 +48,8 @@ public class ItemObject : NetworkBehaviour, IInteractable
         if (actor.NetPlayerState != PlayerState.Alive)
             return false;
 
-        //이미 누가 들고있는 아이템이면 상호작용 불가 -> 나중에 뺏는걸로 변경해야함
+        // 이미 누가 들고 있는 월드 아이템은 직접 줍지 못함
         if (NetIsEquipped)
-            return false;
-
-        //오른손이 비어있어야 집을 수 있다.
-        if (actor.NetRightHandItem != null)
             return false;
 
         return true;
@@ -67,11 +63,14 @@ public class ItemObject : NetworkBehaviour, IInteractable
         if (!CanInteract(actor))
             return;
 
-        actor.ServerEquipRightHand(this);
+        actor.ServerTryPickupRightHand(this);
     }
 
     public virtual string GetPromptText(PlayerController actor)
     {
+        if (actor != null && actor.NetRightHandItem != null)
+            return "기존 아이템 내려놓고 줍기";
+
         return "줍기";
     }
 
@@ -82,6 +81,7 @@ public class ItemObject : NetworkBehaviour, IInteractable
 
         NetIsEquipped = true;
         NetCurrentHolder = holder.Object.InputAuthority;
+        ApplyPresentationState();
     }
 
     public virtual void OnDropped()
@@ -91,20 +91,41 @@ public class ItemObject : NetworkBehaviour, IInteractable
 
         NetIsEquipped = false;
         NetCurrentHolder = PlayerRef.None;
+        ApplyPresentationState();
+    }
+
+    public virtual void OnDropped(Vector3 worldPosition, Vector3 worldForward, float impulse)
+    {
+        if (!HasStateAuthority)
+            return;
+
+        OnDropped();
+
+        transform.position = worldPosition;
+        transform.rotation = Quaternion.identity;
+
+        if (_rigidbody != null)
+        {
+            _rigidbody.position = worldPosition;
+            _rigidbody.rotation = Quaternion.identity;
+            _rigidbody.linearVelocity = Vector3.zero;
+            _rigidbody.angularVelocity = Vector3.zero;
+            _rigidbody.AddForce(worldForward.normalized * impulse, ForceMode.VelocityChange);
+        }
     }
 
     protected virtual void ApplyPresentationState()
     {
         bool equipped = NetIsEquipped;
 
-        if(_rigidbody != null)
+        if (_rigidbody != null)
         {
             _rigidbody.isKinematic = equipped;
             _rigidbody.linearVelocity = Vector3.zero;
             _rigidbody.angularVelocity = Vector3.zero;
         }
 
-        if(_colliders != null)
+        if (_colliders != null)
         {
             for (int i = 0; i < _colliders.Length; i++)
             {

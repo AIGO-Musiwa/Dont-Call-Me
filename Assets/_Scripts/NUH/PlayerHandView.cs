@@ -19,17 +19,17 @@ public class PlayerHandView : MonoBehaviour
         if (_controller == null || _controller.Runner == null)
             return;
 
-        UpdateRightHandVisual();
+        UpdateHandVisual(_controller.NetRightHandItem, rightHandSocket);
+        UpdateHandVisual(_controller.NetLeftHandItem, leftHandSocket);
     }
 
-    private void UpdateRightHandVisual()
+    private void UpdateHandVisual(NetworkObject itemObject, Transform socket)
     {
-        NetworkObject rightItem = _controller.NetRightHandItem;
-        if (rightItem == null || rightHandSocket == null)
+        if (itemObject == null || socket == null)
             return;
 
-        Transform itemTransform = rightItem.transform;
-        itemTransform.position = rightHandSocket.position;
-        itemTransform.rotation = rightHandSocket.rotation;
+        Transform itemTransform = itemObject.transform;
+        itemTransform.position = socket.position;
+        itemTransform.rotation = socket.rotation;
     }
 }
