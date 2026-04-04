@@ -39,20 +39,14 @@ public class VoiceManager : MonoBehaviour
 
     private void Update()
     {
-        if (_localData == null || _recorder == null)
-        {
-            Debug.Log($"[VoiceManager] Update 조기 종료 | _localData={_localData != null} | _recorder={_recorder != null}");
-            return;
-        }
+        if (_localData == null || _recorder == null) return;
 
         float level = _recorder.LevelMeter?.CurrentAvgAmp ?? 0f;
-        Debug.Log($"[VoiceManager] level={level:F4} threshold={speakingThreshold}");
         bool isSpeaking = level > speakingThreshold;
 
         if (isSpeaking == _wasSpeaking) return;
 
         _wasSpeaking = isSpeaking;
-        Debug.Log($"[VoiceManager] isSpeaking → {isSpeaking}");
         _localData.Rpc_SetMicActive(isSpeaking);
     }
 
