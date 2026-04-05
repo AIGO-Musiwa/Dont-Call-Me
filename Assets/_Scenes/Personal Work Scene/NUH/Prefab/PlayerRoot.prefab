@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &102351167580003973
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4450713854729411720}
+  m_Layer: 0
+  m_Name: RightHandSocket
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4450713854729411720
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102351167580003973}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.4, y: 0.75, z: 0.68}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1101863805230548405}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &827289365566288008
 GameObject:
   m_ObjectHideFlags: 0
@@ -15,6 +46,8 @@ GameObject:
   - component: {fileID: 240582007588533922}
   - component: {fileID: 8731167519805343018}
   - component: {fileID: 1545711915542946019}
+  - component: {fileID: 2312676653009107545}
+  - component: {fileID: 337302903905785820}
   m_Layer: 0
   m_Name: PlayerRoot
   m_TagString: Untagged
@@ -37,6 +70,8 @@ Transform:
   m_Children:
   - {fileID: 5759469755395386870}
   - {fileID: 6306466061797410514}
+  - {fileID: 4450713854729411720}
+  - {fileID: 5465054484062135515}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3346838686624773243
@@ -135,6 +170,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c250ede6db9d88b4986524f61cbb9a0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  rightHandDropForwardOffset: 0.8
+  rightHandDropUpOffset: 0.5
+  rightHandDropImpulse: 2.5
   _NetPlayerState: 0
   _NetPlayerRole: 0
   _NetZone: 0
@@ -181,6 +219,37 @@ MonoBehaviour:
   playerCamera: {fileID: 1283061483550928000}
   cameraLightRoot: {fileID: 8324999275640108001}
   eyeOffset: 0.1
+--- !u!114 &2312676653009107545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827289365566288008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4808110d45324bb4cb091e292352d61c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction
+  interactDistance: 2
+  interactMask:
+    serializedVersion: 2
+    m_Bits: 64
+  drawDebugRay: 1
+--- !u!114 &337302903905785820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827289365566288008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f34196dce3cf0ad4d8069cee116ab746, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHandView
+  rightHandSocket: {fileID: 4450713854729411720}
+  leftHandSocket: {fileID: 5465054484062135515}
 --- !u!1 &2098675536719637024
 GameObject:
   m_ObjectHideFlags: 0
@@ -335,6 +404,37 @@ Transform:
   - {fileID: 8324999275640108001}
   m_Father: {fileID: 1101863805230548405}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3056114338012419123
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5465054484062135515}
+  m_Layer: 0
+  m_Name: LeftHandSocket
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5465054484062135515
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3056114338012419123}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.4, y: 0.75, z: 0.679}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1101863805230548405}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6069357985821149527
 GameObject:
   m_ObjectHideFlags: 0
@@ -427,7 +527,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6069357985821149527}
-  m_Enabled: 1
+  m_Enabled: 0
 --- !u!114 &7094065737303699985
 MonoBehaviour:
   m_ObjectHideFlags: 0
