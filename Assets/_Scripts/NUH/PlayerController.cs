@@ -103,8 +103,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return;
 
         float maxDistance = Interaction != null ? Interaction.InteractDistance : 2.5f;
-        float sqrDistance = (targetObject.transform.position - transform.position).sqrMagnitude;
-        if (sqrDistance > maxDistance * maxDistance + 0.25f)
+
+        //시점 기준 origin -> 대상 collider의 closest point 거리 검사
+        if (!IsTargetWithinInteractDistance(targetObject, maxDistance))
             return;
 
         if (!PlayerInteraction.TryFindInteractable(targetObject.transform, out _, out IInteractable interactable))
@@ -237,5 +238,62 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return string.Empty;
 
         return "오른손 아이템 뺏기";
+    }
+
+    private Vector3 GetServerInteractionOrigin()
+    {
+        if (LookView != null && LookView.ViewOrigin != null)
+            return LookView.ViewOrigin.position;
+
+        float fallbackEyeHeight = 1.6f;
+
+        if (KCCMotor != null)
+        {
+            fallbackEyeHeight = (KCCMotor.IsCrouching ? KCCMotor.CrouchHeight : KCCMotor.StandHeight) - 0.1f;
+        }
+
+        return transform.position + Vector3.up * fallbackEyeHeight;
+    }
+
+    private Vector3 GetClosestInteractionPoint(NetworkObject targetObject, Vector3 origin)
+    {
+        if (targetObject == null)
+            return origin;
+
+        Collider[] colliders = targetObject.GetComponentsInChildren<Collider>(true);
+
+        Vector3 bestPoint = targetObject.transform.position;
+        float bestSqrDistance = (bestPoint - origin).sqrMagnitude;
+        bool foundCollider = false;
+
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider col = colliders[i];
+            if (col == null || !col.enabled)
+                continue;
+
+            Vector3 point = col.ClosestPoint(origin);
+            float sqrDistance = (point - origin).sqrMagnitude;
+
+            if (!foundCollider || sqrDistance < bestSqrDistance)
+            {
+                foundCollider = true;
+                bestSqrDistance = sqrDistance;
+                bestPoint = point;
+            }
+        }
+
+        return bestPoint;
+    }
+
+    private bool IsTargetWithinInteractDistance(NetworkObject targetObject, float maxDistance)
+    {
+        Vector3 origin = GetServerInteractionOrigin();
+        Vector3 targetPoint = GetClosestInteractionPoint(targetObject, origin);
+
+        float sqrDistance = (targetPoint - origin).sqrMagnitude;
+        float allowedSqrDistance = maxDistance * maxDistance + 0.25f;
+
+        return sqrDistance <= allowedSqrDistance;
     }
 }

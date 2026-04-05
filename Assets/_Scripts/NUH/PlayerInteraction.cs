@@ -36,25 +36,20 @@ public class PlayerInteraction : MonoBehaviour
         if (_controller != null && _controller.LookView != null)
             _viewCamera = _controller.LookView.ViewCamera;
     }
+
     private void Update()
     {
         if (_controller == null)
-        {
-            Debug.LogWarning("[PlayerInteraction] _controller == null");
             return;
-        }
 
         if (!_controller.HasInputAuthority)
-        {
             return;
-        }
 
         if (_viewCamera == null && _controller.LookView != null)
             _viewCamera = _controller.LookView.ViewCamera;
 
         if (_viewCamera == null)
         {
-            Debug.LogWarning("[PlayerInteraction] _viewCamera == null");
             ClearTarget();
             return;
         }
@@ -66,71 +61,19 @@ public class PlayerInteraction : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit, InteractDistance, interactMask, QueryTriggerInteraction.Ignore))
         {
-            Debug.LogWarning($"[PlayerInteraction] Hit = {hit.collider.name}, Layer = {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
-
             if (TryFindInteractable(hit.collider.transform, out NetworkObject targetObject, out IInteractable interactable))
             {
-                Debug.LogWarning($"[PlayerInteraction] TryFindInteractable SUCCESS / TargetObject = {targetObject.name}, Interactable = {interactable.GetType().Name}");
-
-                bool canInteract = interactable.CanInteract(_controller);
-                Debug.LogWarning($"[PlayerInteraction] CanInteract = {canInteract}");
-
-                if (canInteract)
+                if (interactable.CanInteract(_controller))
                 {
                     _currentTargetObject = targetObject;
                     _currentInteractable = interactable;
                     return;
                 }
             }
-            else
-            {
-                Debug.LogWarning("[PlayerInteraction] TryFindInteractable FAILED");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("[PlayerInteraction] Raycast MISS");
         }
 
         ClearTarget();
     }
-    //private void Update()
-    //{
-    //    if (_controller == null)
-    //        return;
-
-    //    if (!_controller.HasInputAuthority)
-    //        return;
-
-    //    if (_viewCamera == null && _controller.LookView != null)
-    //        _viewCamera = _controller.LookView.ViewCamera;
-
-    //    if (_viewCamera == null)
-    //    {
-    //        ClearTarget();
-    //        return;
-    //    }
-
-    //    Ray ray = new Ray(_viewCamera.transform.position, _viewCamera.transform.forward);
-
-    //    if (drawDebugRay)
-    //        Debug.DrawRay(ray.origin, ray.direction * interactDistance, Color.green);
-
-    //    if(Physics.Raycast(ray, out RaycastHit hit, InteractDistance, interactMask, QueryTriggerInteraction.Ignore))
-    //    {
-    //        if(TryFindInteractable(hit.collider.transform, out NetworkObject targetObject, out IInteractable interactable))
-    //        {
-    //            if (interactable.CanInteract(_controller))
-    //            {
-    //                _currentTargetObject = targetObject;
-    //                _currentInteractable = interactable;
-    //                return;
-    //            }
-    //        }
-    //    }
-
-    //    ClearTarget();
-    //}
 
     public bool TryGetCurrentTargetId(out NetworkId targetId)
     {

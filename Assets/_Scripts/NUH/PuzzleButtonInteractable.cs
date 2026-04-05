@@ -52,7 +52,7 @@ public class PuzzleButtonInteractable : PuzzleInteractableBase
         NetIsPressed = true;
         NetPressCount++;
 
-        Debug.LogWarning($"[PuzzleButtonInteractable] {name} pressed by {actor.Object.InputAuthority}, Count = {NetPressCount} ");
+        //Debug.LogWarning($"[PuzzleButtonInteractable] {name} pressed by {actor.Object.InputAuthority}, Count = {NetPressCount} ");
 
         // TODO:
         // 문 열기, 발전기 카운트 증가, 퍼즐 매니저 notify 등
