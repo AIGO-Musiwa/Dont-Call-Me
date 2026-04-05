@@ -314,7 +314,7 @@ NavMeshAgent:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 535513259889772823}
-  m_Enabled: 1
+  m_Enabled: 0
   m_AgentTypeID: 0
   m_Radius: 0.4
   m_Speed: 3.5
@@ -354,7 +354,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureAI
   _currentState: 0
-  player: {fileID: 1101863805230548405, guid: b5bea78e12085124caa7c87a5cea30b6, type: 3}
+  player: {fileID: 0}
   waypoints1F:
   - {fileID: 0}
   - {fileID: 0}
@@ -388,14 +388,14 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  patrolSpeed: 5
-  searchDuration: 6
-  chaseSpeed: 6.5
+  patrolSpeed: 7
+  searchDuration: 9
+  chaseSpeed: 12
   captureDistance: 2.5
   playerRespawnPoint: {fileID: 0}
   creatureRespawnPoint1F: {fileID: 0}
   creatureRespawnPoint3F: {fileID: 0}
-  normalSightDistance: 7
+  normalSightDistance: 10
   chaseSightDistance: 12
   normalFieldOfView: 120
   chaseFieldOfView: 160

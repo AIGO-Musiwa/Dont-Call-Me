@@ -34,7 +34,7 @@ public class CreatureAI : NetworkBehaviour
     public Transform playerRespawnPoint;    //플레이어가 포획된 후 이동할 위치
     public Transform creatureRespawnPoint1F;//크리처가 포획된 후 이동할 1층 위치    
     public Transform creatureRespawnPoint3F;//크리처가 포획된 후 이동할 3층 위치    
-    private int currentFloor = 1;           //크리처가 현재 위치한 층 번호        
+    //private int currentFloor = 1;           //크리처가 현재 위치한 층 번호        
 
     [Header("Creature 시야(LoS) 설정")]
     public float normalSightDistance = 7.0f;//시야 거리
@@ -164,6 +164,9 @@ public class CreatureAI : NetworkBehaviour
         //agent 컴포넌트 초기화
         agent = GetComponent<NavMeshAgent>();
 
+        //플레이어는 나중에 씬에서 찾아 할당하기 위해 null로 초기화
+        player = null;
+
         if (Object.HasStateAuthority)
         {
             //초기 상태 설정
@@ -252,9 +255,17 @@ public class CreatureAI : NetworkBehaviour
 
         Vector3 flatCreaturePos = new Vector3(transform.position.x, 0, transform.position.z);
 
-        //플레이어를 찾지 못한 상태면 추적/거리 계산 생략
+        //플레이어가 없으면 씬에서 다시 찾아 할당
+        if (player == null)
+        {            
+            PlayerController foundPlayerScript = FindAnyObjectByType<PlayerController>();
+            if (foundPlayerScript != null && foundPlayerScript.gameObject.scene.IsValid()) player = foundPlayerScript.transform;
+        }
+
+        //플레이어를 찾은 상태인 경우 거리 계산 및 시야 체크
         if (player != null)
         {
+            Vector3 floatCreaturPos = new Vector3(transform.position.x, 0, transform.position.z);
             Vector3 flatPlayerPos = new Vector3(player.position.x, 0, player.position.z);
             float currentFlatDistance = Vector3.Distance(flatCreaturePos, flatPlayerPos);
 
