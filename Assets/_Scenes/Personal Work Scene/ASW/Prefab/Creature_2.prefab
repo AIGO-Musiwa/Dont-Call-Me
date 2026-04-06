@@ -322,7 +322,7 @@ NavMeshAgent:
   avoidancePriority: 50
   m_AngularSpeed: 120
   m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
+  m_AutoTraverseOffMeshLink: 0
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 1.8
@@ -389,7 +389,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   patrolSpeed: 7
-  searchDuration: 8
+  searchDuration: 3
   chaseSpeed: 12
   captureDistance: 2.5
   playerRespawnPoint: {fileID: 0}
@@ -406,7 +406,7 @@ MonoBehaviour:
   alertThresholdDB: 30
   chaseThresholdDb: 70
   dbDropPerMeter: 1
-  directionalLight: {fileID: 0}
+  managedLights: []
 --- !u!114 &6065336768852671156
 MonoBehaviour:
   m_ObjectHideFlags: 0
