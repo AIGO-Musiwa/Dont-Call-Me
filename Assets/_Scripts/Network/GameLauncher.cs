@@ -112,6 +112,16 @@ public class GameLauncher : MonoBehaviour
         Runner.AddCallbacks(_callbackHandler);
         DontDestroyOnLoad(Runner.gameObject);
 
+        var inputHandler = Runner.GetComponent<InputHandler>();
+        if (inputHandler != null)
+        {
+            inputHandler.Initialize(_callbackHandler);
+        }
+        else
+        {
+            Debug.LogWarning("[GameLauncher] NetworkRunner 프리팹에 InputHandler 컴포넌트가 없습니다.");
+        }
+
         var runnerGo = Runner.gameObject;
 
         _isConnecting = true;
