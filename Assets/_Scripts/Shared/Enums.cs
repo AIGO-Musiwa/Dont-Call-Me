@@ -63,6 +63,8 @@ public enum ItemType
     Flashlight,         // 손전등
     FrontDoorKey,       // 정문 열쇠
     MasterKey,          // 마스터 키
+
+    BasicCube,          // 테스트용 큐브
 }
 
 // ── 탈출 ──────────────────────────────────────────────────
