@@ -5,12 +5,14 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerLookView))]
 [RequireComponent(typeof(PlayerInteraction))]
 [RequireComponent(typeof(PlayerHandView))]
+[RequireComponent(typeof(PlayerFlashlightView))]
 public class PlayerController : NetworkBehaviour, IInteractable
 {
     public PlayerKCCMotor KCCMotor { get; private set; }
     public PlayerLookView LookView { get; private set; }
     public PlayerInteraction Interaction { get; private set; }
     public PlayerHandView HandView { get; private set; }
+    public PlayerFlashlightView FlashlightView { get; private set; }
 
     [Header("오른손 드랍")]
     [SerializeField] private float rightHandDropForwardOffset = 0.8f;
@@ -35,11 +37,13 @@ public class PlayerController : NetworkBehaviour, IInteractable
         LookView = GetComponent<PlayerLookView>();
         Interaction = GetComponent<PlayerInteraction>();
         HandView = GetComponent<PlayerHandView>();
+        FlashlightView = GetComponent<PlayerFlashlightView>();
 
         KCCMotor.Initialize(this);
         LookView.Initialize(this);
         Interaction.Initialize(this);
         HandView.Initialize(this);
+        FlashlightView.Initialize(this);
 
         if (HasStateAuthority)
         {
