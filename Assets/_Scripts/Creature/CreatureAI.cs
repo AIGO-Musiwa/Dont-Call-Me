@@ -185,7 +185,7 @@ public class CreatureAI : NetworkBehaviour
         {
             PlayerController foundPlayerScript = FindAnyObjectByType<PlayerController>();
             if (foundPlayerScript != null) player = foundPlayerScript.transform;
-            else Debug.LogError("CreatureAI: 플레이어 Transform이 할당되지 않았고 씬에서 PlayerController도 찾을 수 없습니다!");
+            //else Debug.LogError("CreatureAI: 플레이어 Transform이 할당되지 않았고 씬에서 PlayerController도 찾을 수 없습니다!");
         }
 
         //Scene에서 각 층의 웨이포인트 부모 오브젝트를 찾아서 자식으로 있는 웨이포인트들을 배열에 저장

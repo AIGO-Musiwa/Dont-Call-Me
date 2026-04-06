@@ -178,7 +178,7 @@ GameObject:
   - component: {fileID: 6065336768852671156}
   - component: {fileID: -7382828285008275476}
   m_Layer: 20
-  m_Name: Creature_2
+  m_Name: Creature_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -315,7 +315,7 @@ NavMeshAgent:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 535513259889772823}
   m_Enabled: 0
-  m_AgentTypeID: -902729914
+  m_AgentTypeID: 0
   m_Radius: 0.4
   m_Speed: 3.5
   m_Acceleration: 8
@@ -354,7 +354,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureAI
   _currentState: 0
-  player: {fileID: 1101863805230548405, guid: b5bea78e12085124caa7c87a5cea30b6, type: 3}
+  player: {fileID: 0}
   waypoints1F:
   - {fileID: 0}
   - {fileID: 0}
@@ -389,13 +389,13 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   patrolSpeed: 7
-  searchDuration: 8
+  searchDuration: 9
   chaseSpeed: 12
   captureDistance: 2.5
   playerRespawnPoint: {fileID: 0}
   creatureRespawnPoint1F: {fileID: 0}
   creatureRespawnPoint3F: {fileID: 0}
-  normalSightDistance: 7
+  normalSightDistance: 10
   chaseSightDistance: 12
   normalFieldOfView: 120
   chaseFieldOfView: 160
@@ -419,7 +419,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 3137702169
+  SortKey: 2070267242
   ObjectInterest: 1
   Flags: 262145
   NestedObjects: []
