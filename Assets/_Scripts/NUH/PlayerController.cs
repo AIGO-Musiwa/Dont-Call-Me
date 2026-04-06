@@ -104,7 +104,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
         float maxDistance = Interaction != null ? Interaction.InteractDistance : 2.5f;
 
-        //시점 기준 origin -> 대상 collider의 closest point 거리 검사
+        // 시점 기준 origin -> 대상 collider의 closest point 거리 검사
         if (!IsTargetWithinInteractDistance(targetObject, maxDistance))
             return;
 
@@ -119,7 +119,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
     public ItemObject GetRightHandItemObject()
     {
-        return NetRightHandItem != null ? NetRightHandItem.GetComponent<ItemObject>() : null;
+        return TryGetItemObject(NetRightHandItem, out ItemObject item) ? item : null;
     }
 
     public bool ServerTryPickupRightHand(ItemObject item)
@@ -133,12 +133,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!item.CanInteract(this))
             return false;
 
-        // 규칙 2 준비:
-        // 오른손이 차 있으면 기존 아이템 먼저 드랍하고 새 아이템 획득
-        if (NetRightHandItem != null)
-        {
-            ServerDropRightHandItem();
-        }
+        if (!EnsureRightHandEmpty())
+            return false;
 
         NetRightHandItem = item.Object;
         item.OnEquipped(this);
@@ -150,21 +146,14 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!HasStateAuthority)
             return false;
 
-        if (NetRightHandItem == null)
+        if (!TryGetItemObject(NetRightHandItem, out ItemObject item))
             return false;
 
-        ItemObject item = NetRightHandItem.GetComponent<ItemObject>();
+        Vector3 dropPosition = GetRightHandDropPosition();
+        Vector3 dropForward = transform.forward;
+
         NetRightHandItem = default;
-
-        if (item == null)
-            return false;
-
-        Vector3 dropPosition =
-            transform.position +
-            transform.forward * rightHandDropForwardOffset +
-            Vector3.up * rightHandDropUpOffset;
-
-        item.OnDropped(dropPosition, transform.forward, rightHandDropImpulse);
+        item.OnDropped(dropPosition, dropForward, rightHandDropImpulse);
         return true;
     }
 
@@ -179,16 +168,11 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (target.NetPlayerState != PlayerState.Alive)
             return false;
 
-        ItemObject targetItem = target.GetRightHandItemObject();
-        if (targetItem == null)
+        if (!target.TryGetItemObject(target.NetRightHandItem, out ItemObject targetItem))
             return false;
 
-        // 애매한 부분이긴 한데,
-        // 규칙 2와 일관성 있게 가려면 탈취자 오른손이 차 있어도 먼저 드랍 후 탈취가 자연스럽다.
-        if (NetRightHandItem != null)
-        {
-            ServerDropRightHandItem();
-        }
+        if (!EnsureRightHandEmpty())
+            return false;
 
         target.NetRightHandItem = default;
         NetRightHandItem = targetItem.Object;
@@ -202,10 +186,6 @@ public class PlayerController : NetworkBehaviour, IInteractable
     {
         ServerTryPickupRightHand(item);
     }
-
-    // -------------------------------------------------
-    // IInteractable : 플레이어를 상호작용해서 오른손 아이템 탈취
-    // -------------------------------------------------
 
     public bool CanInteract(PlayerController actor)
     {
@@ -238,6 +218,32 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return string.Empty;
 
         return "오른손 아이템 뺏기";
+    }
+
+    private bool EnsureRightHandEmpty()
+    {
+        if (NetRightHandItem == null)
+            return true;
+
+        return ServerDropRightHandItem();
+    }
+
+    private bool TryGetItemObject(NetworkObject networkObject, out ItemObject item)
+    {
+        item = null;
+
+        if (networkObject == null)
+            return false;
+
+        item = networkObject.GetComponent<ItemObject>();
+        return item != null;
+    }
+
+    private Vector3 GetRightHandDropPosition()
+    {
+        return transform.position +
+               transform.forward * rightHandDropForwardOffset +
+               Vector3.up * rightHandDropUpOffset;
     }
 
     private Vector3 GetServerInteractionOrigin()

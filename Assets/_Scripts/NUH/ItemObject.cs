@@ -84,7 +84,11 @@ public class ItemObject : NetworkBehaviour, IInteractable
         ApplyPresentationState();
     }
 
-    public virtual void OnDropped()
+    /// <summary>
+    /// 내부 상태만 "드랍된 상태"로 정리한다.
+    /// 실제 위치 이동/물리 힘 적용은 하지 않는다.
+    /// </summary>
+    protected virtual void ApplyDroppedState()
     {
         if (!HasStateAuthority)
             return;
@@ -94,12 +98,16 @@ public class ItemObject : NetworkBehaviour, IInteractable
         ApplyPresentationState();
     }
 
+    /// <summary>
+    /// 실제 월드 드랍 처리.
+    /// 내부 드랍 상태 정리 후 위치/회전/물리 힘을 적용한다.
+    /// </summary>
     public virtual void OnDropped(Vector3 worldPosition, Vector3 worldForward, float impulse)
     {
         if (!HasStateAuthority)
             return;
 
-        OnDropped();
+        ApplyDroppedState();
 
         transform.position = worldPosition;
         transform.rotation = Quaternion.identity;
@@ -129,7 +137,9 @@ public class ItemObject : NetworkBehaviour, IInteractable
         {
             for (int i = 0; i < _colliders.Length; i++)
             {
-                if (_colliders[i] == null) continue;
+                if (_colliders[i] == null)
+                    continue;
+
                 _colliders[i].enabled = !equipped;
             }
         }
