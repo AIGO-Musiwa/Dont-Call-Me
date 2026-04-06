@@ -5,12 +5,18 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerLookView))]
 [RequireComponent(typeof(PlayerInteraction))]
 [RequireComponent(typeof(PlayerHandView))]
+[RequireComponent(typeof(PlayerFlashlightView))]
 public class PlayerController : NetworkBehaviour, IInteractable
 {
     public PlayerKCCMotor KCCMotor { get; private set; }
     public PlayerLookView LookView { get; private set; }
     public PlayerInteraction Interaction { get; private set; }
     public PlayerHandView HandView { get; private set; }
+    public PlayerFlashlightView FlashlightView { get; private set; }
+
+    [Header("역할 아이템 프리팹")]
+    [SerializeField] private NetworkObject flashlightRoleItemPrefab;
+    [SerializeField] private NetworkObject WalkieTalkieRoleItemPrefab;
 
     [Header("오른손 드랍")]
     [SerializeField] private float rightHandDropForwardOffset = 0.8f;
@@ -35,19 +41,21 @@ public class PlayerController : NetworkBehaviour, IInteractable
         LookView = GetComponent<PlayerLookView>();
         Interaction = GetComponent<PlayerInteraction>();
         HandView = GetComponent<PlayerHandView>();
+        FlashlightView = GetComponent<PlayerFlashlightView>();
 
         KCCMotor.Initialize(this);
         LookView.Initialize(this);
         Interaction.Initialize(this);
         HandView.Initialize(this);
+        FlashlightView.Initialize(this);
 
         if (HasStateAuthority)
         {
             NetPlayerState = PlayerState.Alive;
-            NetPlayerRole = PlayerRole.None;
-            NetZone = Zone.ZoneA; // 임시값
+
             NetLeftHandItem = default;
             NetRightHandItem = default;
+
             NetMovementLocked = false;
             NetLookLocked = false;
         }
@@ -120,9 +128,79 @@ public class PlayerController : NetworkBehaviour, IInteractable
         interactable.Interact(this);
     }
 
+    public ItemObject GetLeftHandItemObject()
+    {
+        return TryGetItemObject(NetLeftHandItem, out ItemObject item) ? item : null;
+    }
+
     public ItemObject GetRightHandItemObject()
     {
         return TryGetItemObject(NetRightHandItem, out ItemObject item) ? item : null;
+    }
+
+    public bool ServerEquipLeftHand(ItemObject item)
+    {
+        if (!HasStateAuthority || item == null)
+            return false;
+
+        if (NetPlayerState != PlayerState.Alive)
+            return false;
+
+        if (NetLeftHandItem != null)
+            return false;
+
+        NetLeftHandItem = item.Object;
+        item.OnEquipped(this);
+        return true;
+    }
+
+    public bool ServerGrantRoleItemForCurrentRole()
+    {
+        if (!HasStateAuthority)
+            return false;
+
+        // 지금 단계에서는 손전등 역할만 지급
+        if (NetPlayerRole != PlayerRole.Flashlight)
+            return false;
+
+        // 이미 왼손에 역할 아이템이 있으면 중복 지급 안 함
+        if (NetLeftHandItem != null)
+            return false;
+
+        if (flashlightRoleItemPrefab == null)
+        {
+            Debug.LogWarning($"[PlayerController] flashlightRoleItemPrefab이 비어 있습니다. name={name}");
+            return false;
+        }
+
+        NetworkObject spawnedItem = Runner.Spawn(
+            flashlightRoleItemPrefab,
+            transform.position,
+            transform.rotation,
+            Object.InputAuthority
+        );
+
+        if (spawnedItem == null)
+        {
+            Debug.LogWarning($"[PlayerController] 역할 손전등 Spawn 실패. name={name}");
+            return false;
+        }
+
+        ItemObject item = spawnedItem.GetComponent<ItemObject>();
+        if (item == null)
+        {
+            Debug.LogWarning($"[PlayerController] Spawn된 역할 손전등에 ItemObject가 없습니다. name={spawnedItem.name}");
+            Runner.Despawn(spawnedItem);
+            return false;
+        }
+
+        if (!ServerEquipLeftHand(item))
+        {
+            Runner.Despawn(spawnedItem);
+            return false;
+        }
+
+        return true;
     }
 
     public bool ServerTryPickupRightHand(ItemObject item)
