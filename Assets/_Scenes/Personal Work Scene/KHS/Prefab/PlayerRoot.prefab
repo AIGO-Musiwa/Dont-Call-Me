@@ -174,6 +174,8 @@ GameObject:
   - component: {fileID: 2241217608438743324}
   - component: {fileID: 1479969946304416699}
   - component: {fileID: 45976142094748050}
+  - component: {fileID: 5594434563323654496}
+  - component: {fileID: 5364816265260964914}
   m_Layer: 0
   m_Name: PlayerRoot
   m_TagString: Untagged
@@ -375,6 +377,38 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHandView
   rightHandSocket: {fileID: 6143011010069208426}
   leftHandSocket: {fileID: 5515880062972725344}
+--- !u!114 &5594434563323654496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8007863653030160040}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d506a56cd5cf8d4c9c6a3ff3124ce71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerVisualSetter
+  fullBodyMesh: {fileID: 1087275864969574460}
+  shadowMesh: {fileID: 8155679465859260373}
+  playerCamera: {fileID: 2342925281818117947}
+  localLayerName: PlayerSelf
+--- !u!114 &5364816265260964914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8007863653030160040}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c96a31bf16e53f1439c253d38c29ca38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerPresenter
+  controller: {fileID: 3088230933189245652}
+  animator: {fileID: 8252926227935969713}
+  shadowAnimator: {fileID: 914305824770238040}
+  visualSetter: {fileID: 5594434563323654496}
 --- !u!1 &8066230328438064542
 GameObject:
   m_ObjectHideFlags: 0
@@ -1466,6 +1500,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5122211924070353522, guid: 5e6eaf898370c324ea877c5e66053101, type: 3}
   m_PrefabInstance: {fileID: 720102905571652643}
   m_PrefabAsset: {fileID: 0}
+--- !u!95 &8252926227935969713 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 8896326059892667794, guid: 5e6eaf898370c324ea877c5e66053101, type: 3}
+  m_PrefabInstance: {fileID: 720102905571652643}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8336091421639554053 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8814088987830550566, guid: 5e6eaf898370c324ea877c5e66053101, type: 3}
@@ -2441,6 +2480,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 6794071184892071597}
   m_SourcePrefab: {fileID: 100100000, guid: 5e6eaf898370c324ea877c5e66053101, type: 3}
+--- !u!95 &914305824770238040 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 8896326059892667794, guid: 5e6eaf898370c324ea877c5e66053101, type: 3}
+  m_PrefabInstance: {fileID: 8630688157994832842}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &979447274119713772 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8814088987830550566, guid: 5e6eaf898370c324ea877c5e66053101, type: 3}
