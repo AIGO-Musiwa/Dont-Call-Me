@@ -67,10 +67,13 @@ public class VoiceManager : MonoBehaviour
         if (voiceConnection == null) FetchComponents();
         if (voiceConnection == null) return;
 
-        if (voiceConnection.Client.State != ClientState.Joined) return;
-
-        ApplyGroup(pendingGroup);
-        hasPendingGroup = false;
+        // OpChangeGroups가 true를 반환하면 전송 성공 → 완료
+        bool success = voiceConnection.Client.OpChangeGroups(null, new byte[] { pendingGroup });
+        if (success)
+        {
+            Debug.Log($"[VoiceManager] Voice Group 적용 완료 → {pendingGroup}");
+            hasPendingGroup = false;
+        }
     }
 
     #endregion
@@ -123,23 +126,10 @@ public class VoiceManager : MonoBehaviour
             recorder.InterestGroup = groupId;
         }
 
-        if (voiceConnection?.Client != null && voiceConnection.Client.State == ClientState.Joined)
-        {
-            ApplyGroup(groupId);
-        }
-        else
-        {
-            pendingGroup = groupId;
-            hasPendingGroup = true;
-            Debug.Log($"[VoiceManager] Voice 룸 입장 대기 중. Group {groupId} 예약.");
-        }
-    }
 
-    private void ApplyGroup(byte groupId)
-    {
-        // null -> 기존 구독 전부 해제 후 새 그룹만 구독
-        voiceConnection.Client.OpChangeGroups(null, new byte[] { groupId });
-        Debug.Log($"[VoiceManager] Voice Group 적용 → {groupId}");
+        pendingGroup = groupId;
+        hasPendingGroup = true;
+        
     }
 
     #endregion
