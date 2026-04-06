@@ -322,7 +322,7 @@ NavMeshAgent:
   avoidancePriority: 50
   m_AngularSpeed: 120
   m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 0
+  m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 1.8
@@ -389,7 +389,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   patrolSpeed: 7
-  searchDuration: 3
+  searchDuration: 8
   chaseSpeed: 12
   captureDistance: 2.5
   playerRespawnPoint: {fileID: 0}
@@ -406,7 +406,7 @@ MonoBehaviour:
   alertThresholdDB: 30
   chaseThresholdDb: 70
   dbDropPerMeter: 1
-  managedLights: []
+  directionalLight: {fileID: 0}
 --- !u!114 &6065336768852671156
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -419,7 +419,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 3137702169
+  SortKey: 3369513712
   ObjectInterest: 1
   Flags: 262145
   NestedObjects: []
@@ -1688,7 +1688,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: c49dd960343c5d84eacd908846fdd5c0, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
-  m_ApplyRootMotion: 0
+  m_ApplyRootMotion: 1
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0

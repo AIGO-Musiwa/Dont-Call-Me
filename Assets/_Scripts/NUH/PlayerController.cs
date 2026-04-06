@@ -59,6 +59,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
             NetMovementLocked = false;
             NetLookLocked = false;
         }
+        // 바디 싱크 장치 초기화
+        var bodySync = GetComponent<PlayerBodySync>();
+        if (bodySync != null) bodySync.Initialize(this);
     }
 
     public override void FixedUpdateNetwork()
