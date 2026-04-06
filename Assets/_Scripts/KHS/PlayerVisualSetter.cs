@@ -1,45 +1,83 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
-
-/// <summary>
-/// 본인의 화면에서는 몸을 가리고 그림자만 남기며, 남들에겐 전체를 보여주는 역할을 하는 컴포넌트
-/// </summary>
 public class PlayerVisualSetter : MonoBehaviour
 {
     [Header("메쉬")]
-    [SerializeField] private GameObject fullBodyMesh; //실제 캐릭터 외형
-    [SerializeField] private GameObject shadowMesh; //그림자 메쉬
+    [SerializeField] private GameObject fullBodyMesh;
+    [SerializeField] private GameObject shadowMesh;
 
-    [Header("카메라")]
-    [SerializeField] private Camera playerCamera; //플레이어의 카메라
-    [SerializeField] private string localLayerName = "PlayerSelf"; //자신만 보이는 레이어 이름
+    [Header("카메라 & 레이어")]
+    [SerializeField] private Camera playerCamera;
+    [SerializeField] private string localLayerName = "PlayerSelf";
+    [SerializeField] private string remoteLayerName = "RemotePlayer";
 
     public void SetupVisual(bool isLocal)
     {
+        if (fullBodyMesh == null) return;
+
+        Renderer[] allRenderers = fullBodyMesh.GetComponentsInChildren<Renderer>(true);
+
         if (isLocal)
         {
-            // --- [로컬 플레이어 전용 세팅] ---
+            // --- [로컬 플레이어 설정] ---
             int localLayer = LayerMask.NameToLayer(localLayerName);
+            if (localLayer == -1) { Debug.LogError($"{localLayerName} 레이어가 없습니다!"); return; }
 
-            // 1. 내 몸의 레이어를 변경하여 내 카메라가 못 보게 함
             SetLayerRecursively(fullBodyMesh, localLayer);
 
-            // 2. 내 카메라의 Culling Mask에서 해당 레이어 제외
             if (playerCamera != null)
+            {
+                playerCamera.enabled = true; // 내 카메라는 켠다
                 playerCamera.cullingMask &= ~(1 << localLayer);
 
-            // 3. 그림자 전용 메쉬를 활성화하여 내 발밑에 그림자 생성
+                // [보강] 내 카메라가 상대방 레이어는 확실히 보도록 추가
+                int remoteLayer = LayerMask.NameToLayer(remoteLayerName);
+                if (remoteLayer != -1) playerCamera.cullingMask |= (1 << remoteLayer);
+            }
+
+            foreach (var renderer in allRenderers)
+            {
+                renderer.enabled = true;
+                renderer.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+
+                // [추가] 내 몸이 내 손전등 빛을 받아서 밝아지거나 시야를 방해하지 않게 함
+                renderer.receiveShadows = false;
+                renderer.lightProbeUsage = LightProbeUsage.Off;
+            }
+
             if (shadowMesh != null) shadowMesh.SetActive(true);
         }
         else
         {
-            // --- [리모트 플레이어 세팅] ---
-            // 남이 보는 내 모습에선 그림자 전용 메쉬가 필요 없으므로 제거
+            // --- [리모트 플레이어 설정] ---
+            int remoteLayer = LayerMask.NameToLayer(remoteLayerName);
+            if (remoteLayer == -1) remoteLayer = 0;
+
+            SetLayerRecursively(fullBodyMesh, remoteLayer);
+
+            // [수정] 상대방의 프리팹에 붙어있는 카메라는 무조건 끈다
+            if (playerCamera != null)
+            {
+                playerCamera.enabled = false;
+            }
+
+            // 상대방 몸체 렌더러 설정
+            foreach (var renderer in allRenderers)
+            {
+                renderer.enabled = true;
+                renderer.shadowCastingMode = ShadowCastingMode.On; // 그림자 던지기 ON
+                renderer.receiveShadows = true; // 그림자 받기 ON
+            }
+
+            // 리모트 플레이어는 별도 그림자 메쉬가 필요 없음
             if (shadowMesh != null) shadowMesh.SetActive(false);
         }
     }
+
     private void SetLayerRecursively(GameObject obj, int newLayer)
     {
+        if (obj == null) return;
         obj.layer = newLayer;
         foreach (Transform child in obj.transform)
             SetLayerRecursively(child.gameObject, newLayer);

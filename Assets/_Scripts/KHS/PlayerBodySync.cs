@@ -30,10 +30,12 @@ public class PlayerBodySync : MonoBehaviour
         // 0. 필수 부품 체크
         if (controller == null || controller.KCCMotor == null || headBone == null) return;
 
-        // 1. [공통] 카메라 위치 동기화 (1인칭 시점 유지)
         if (cameraHolder != null)
         {
-            cameraHolder.position = headBone.position;
+            // [수정] 뼈 위치를 '직대입'하지 않고 부동소수점 오차나 애니메이션 잔떨림을 Lerp로 걸러냄
+            // 0.15f 정도의 속도로 따라가게 하면, 숨쉬기 애니메이션의 미세한 떨림은 흡수하고
+            // 이동이나 앉기 같은 굵직한 움직임은 부드럽게 따라감 (스태빌라이저 효과)
+            cameraHolder.position = Vector3.Lerp(cameraHolder.position, headBone.position, Time.deltaTime * 20f);
         }
 
         // 2. [핵심] 네트워크로 동기화된 시선 각도(Pitch) 수신
