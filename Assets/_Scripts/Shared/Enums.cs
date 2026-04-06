@@ -6,8 +6,7 @@ using UnityEngine;
 
 // 플레이어 역할 아이템
 public enum PlayerRole
-{
-    None,           
+{           
     WalkieTalkie,       // 무전기
     Flashlight          // 손전등
 }

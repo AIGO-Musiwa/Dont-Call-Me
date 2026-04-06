@@ -79,6 +79,12 @@ public class ItemObject : NetworkBehaviour, IInteractable
         if (!HasStateAuthority || holder == null)
             return;
 
+        if (_rigidbody != null)
+        {
+            _rigidbody.linearVelocity = Vector3.zero;
+            _rigidbody.angularVelocity = Vector3.zero;
+        }
+
         NetIsEquipped = true;
         NetCurrentHolder = holder.Object.InputAuthority;
         ApplyPresentationState();
@@ -124,13 +130,17 @@ public class ItemObject : NetworkBehaviour, IInteractable
 
     protected virtual void ApplyPresentationState()
     {
+        // attach 안 된 시점 방어
+        if (Object == null || !Object.IsValid)
+            return;
+
         bool equipped = NetIsEquipped;
 
         if (_rigidbody != null)
         {
-            _rigidbody.isKinematic = equipped;
-            _rigidbody.linearVelocity = Vector3.zero;
-            _rigidbody.angularVelocity = Vector3.zero;
+            // 표현 단계에서는 isKinematic만 맞추기 / velocity 여기서 건드리지 않기
+            if (_rigidbody.isKinematic != equipped)
+                _rigidbody.isKinematic = equipped;
         }
 
         if (_colliders != null)
@@ -140,7 +150,9 @@ public class ItemObject : NetworkBehaviour, IInteractable
                 if (_colliders[i] == null)
                     continue;
 
-                _colliders[i].enabled = !equipped;
+                bool shouldEnable = !equipped;
+                if (_colliders[i].enabled != shouldEnable)
+                    _colliders[i].enabled = shouldEnable;
             }
         }
     }

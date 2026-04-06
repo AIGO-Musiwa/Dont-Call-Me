@@ -95,6 +95,12 @@ public class ZoneDistributor : NetworkBehaviour
             {
                 pc.NetZone = zone;
                 pc.NetPlayerRole = role;
+
+                if (!pc.ServerGrantRoleItemForCurrentRole())
+                {
+                    Debug.Log($"[ZoneDistributor] 역할 아이템 지급 스킵 또는 실패: Player={players[i]}, Role={role}");
+                }
+
             }
             else
             {
