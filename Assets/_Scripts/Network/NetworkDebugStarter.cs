@@ -9,7 +9,7 @@ public class NetworkDebugStarter : MonoBehaviour
     [SerializeField] private NetworkRunner runnerPrefab;
 
     [Tooltip("MPM 사용 시 인스턴스끼리 같은 이름으로 접속")]
-    [SerializeField] private string sessionName;
+    [SerializeField] private string sessionName = "DevGame";
 
     [Header("테스트용 플레이어 정보")]
     [SerializeField] private string testNickname = "TestPlayer";
@@ -22,9 +22,6 @@ public class NetworkDebugStarter : MonoBehaviour
             Debug.Log("[NetworkDebugStarter] 이미 네트워크 연결됨. 스킵.");
             return;
         }
-
-        // 매번 새 세션 이름 생성 → 이전 세션 캐시 충돌 방지
-        string sessionName = "Dev_" + System.Guid.NewGuid().ToString("N")[..8];
 
         // GameLauncher 동적 생성
         var go = new GameObject("GameLauncher [Dev]");
