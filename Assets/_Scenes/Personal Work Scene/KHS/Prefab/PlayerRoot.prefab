@@ -169,10 +169,11 @@ GameObject:
   - component: {fileID: 6177426018623530629}
   - component: {fileID: 5525029988116590832}
   - component: {fileID: 6280834204966514304}
-  - component: {fileID: 751049855708869648}
   - component: {fileID: 6162312197151213717}
   - component: {fileID: 3088230933189245652}
   - component: {fileID: 2241217608438743324}
+  - component: {fileID: 1479969946304416699}
+  - component: {fileID: 45976142094748050}
   m_Layer: 0
   m_Name: PlayerRoot
   m_TagString: Untagged
@@ -282,27 +283,6 @@ MonoBehaviour:
     StepRequireGroundTarget: 0
     SnapDistance: 0.25
     SnapSpeed: 4
---- !u!114 &751049855708869648
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8007863653030160040}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 72446cc3f32794f4a8c62c035bf7dd89, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerKCCMotor
-  walkSpeed: 4
-  runSpeed: 6
-  crouchSpeed: 2
-  lookSensitivity: 0.2
-  pitchMin: -80
-  pitchMax: 80
-  gravityMultiplier: 2
-  standHeight: 2
-  crouchHeight: 1
 --- !u!114 &6162312197151213717
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -331,6 +311,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c250ede6db9d88b4986524f61cbb9a0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  rightHandDropForwardOffset: 0.8
+  rightHandDropUpOffset: 0.5
+  rightHandDropImpulse: 2.5
   _NetPlayerState: 0
   _NetPlayerRole: 0
   _NetZone: 0
@@ -361,6 +344,37 @@ MonoBehaviour:
   gravityMultiplier: 2
   standHeight: 2
   crouchHeight: 1
+--- !u!114 &1479969946304416699
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8007863653030160040}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4808110d45324bb4cb091e292352d61c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction
+  interactDistance: 2
+  interactMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  drawDebugRay: 1
+--- !u!114 &45976142094748050
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8007863653030160040}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f34196dce3cf0ad4d8069cee116ab746, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHandView
+  rightHandSocket: {fileID: 6143011010069208426}
+  leftHandSocket: {fileID: 5515880062972725344}
 --- !u!1 &8066230328438064542
 GameObject:
   m_ObjectHideFlags: 0
@@ -587,7 +601,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 497813117079571487, guid: 5e6eaf898370c324ea877c5e66053101, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 574421710498410759, guid: 5e6eaf898370c324ea877c5e66053101, type: 3}
       propertyPath: m_CastShadows
