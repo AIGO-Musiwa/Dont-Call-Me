@@ -9,7 +9,7 @@ public class NetworkDebugStarter : MonoBehaviour
     [SerializeField] private NetworkRunner runnerPrefab;
 
     [Tooltip("MPM 사용 시 인스턴스끼리 같은 이름으로 접속")]
-    [SerializeField] private string sessionName = "DevGame2";
+    [SerializeField] private string sessionName;
 
     [Header("테스트용 플레이어 정보")]
     [SerializeField] private string testNickname = "TestPlayer";
