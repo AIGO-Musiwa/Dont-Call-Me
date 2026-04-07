@@ -82,6 +82,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
                 RPC_RequestInteract(targetId);
             }
         }
+
     }
 
     public Transform GetCameraLightRoot()
