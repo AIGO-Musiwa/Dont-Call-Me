@@ -60,9 +60,6 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
     private int _lastInteractRequestTick = -1;
 
-    /// <summary>
-    /// 네트워크 스폰 시 핵심 컴포넌트를 초기화하고 기본 상태를 세팅한다.
-    /// </summary>
     public override void Spawned()
     {
         KCCMotor = GetComponent<PlayerKCCMotor>();
@@ -70,16 +67,14 @@ public class PlayerController : NetworkBehaviour, IInteractable
         Interaction = GetComponent<PlayerInteraction>();
         HandView = GetComponent<PlayerHandView>();
         FlashlightView = GetComponent<PlayerFlashlightView>();
-        SpectatorController = GetComponent<PlayerSpectatorController>();
+        SpectatorController = FindFirstObjectByType<PlayerSpectatorController>(FindObjectsInactive.Include);
 
         KCCMotor.Initialize(this);
         LookView.Initialize(this);
         Interaction.Initialize(this);
         HandView.Initialize(this);
         FlashlightView.Initialize(this);
-
-        if (SpectatorController != null)
-            SpectatorController.Initialize(this);
+        SpectatorController.Initialize(this);
 
         if (HasStateAuthority)
         {
@@ -106,9 +101,6 @@ public class PlayerController : NetworkBehaviour, IInteractable
             bodySync.Initialize(this);
     }
 
-    /// <summary>
-    /// 입력을 소비하고, 서버 권한에서는 포획/은신 같은 지속 상태를 틱 단위로 갱신한다.
-    /// </summary>
     public override void FixedUpdateNetwork()
     {
         if (HasStateAuthority)
@@ -145,17 +137,11 @@ public class PlayerController : NetworkBehaviour, IInteractable
         }
     }
 
-    /// <summary>
-    /// 카메라 루트에 붙은 손전등 라이트 루트를 외부에서 가져온다.
-    /// </summary>
     public Transform GetCameraLightRoot()
     {
         return LookView != null ? LookView.GetCameraLightRoot() : null;
     }
 
-    /// <summary>
-    /// 외부 상태에 의해 이동 / 시야 잠금을 직접 설정한다.
-    /// </summary>
     public void SetInputLock(bool movementLocked, bool lookLocked)
     {
         if (!HasStateAuthority)
@@ -165,33 +151,30 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetLookLocked = lookLocked;
     }
 
-    /// <summary>
-    /// 현재 플레이어가 일반 게임플레이 입력을 사용할 수 있는지 반환한다.
-    /// </summary>
     public bool CanUseGameplayInput()
     {
         return NetPlayerState == PlayerState.Normal && NetHideState == HideState.None;
     }
 
-    /// <summary>
-    /// 현재 플레이어가 관전 모드 대상인지 반환한다.
-    /// </summary>
     public bool IsSpectatorState()
     {
         return NetPlayerState == PlayerState.Dead || NetPlayerState == PlayerState.Escaped;
     }
 
     /// <summary>
-    /// 현재 플레이어가 Captured의 실제 플레이 단계인지 반환한다.
+    /// 관전 대상이 될 수 있는 상태인지 반환한다.
+    /// 현재 기준으로 Normal과 Captured를 관전 대상으로 허용한다.
     /// </summary>
+    public bool CanBeSpectated()
+    {
+        return NetPlayerState == PlayerState.Normal || NetPlayerState == PlayerState.Captured;
+    }
+
     public bool IsCaptureActive()
     {
         return NetPlayerState == PlayerState.Captured && NetCapturePhase == CapturePhase.Active;
     }
 
-    /// <summary>
-    /// 클라이언트가 선택한 상호작용 대상을 서버에 요청하고, 서버가 최종 성립 여부를 판정한다.
-    /// </summary>
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void RPC_RequestInteract(NetworkId targetId)
     {
@@ -221,10 +204,6 @@ public class PlayerController : NetworkBehaviour, IInteractable
         interactable.Interact(this);
     }
 
-    /// <summary>
-    /// 은신 중 좌클릭 입력이 들어오면 현재 숨은 은신처를 다시 찾아,
-    /// 입장과 동일하게 HideSpotInteractable 쪽 퇴장 경로를 타도록 요청한다.
-    /// </summary>
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void RPC_RequestExitHide()
     {
@@ -441,11 +420,6 @@ public class PlayerController : NetworkBehaviour, IInteractable
         return "오른손 아이템 뺏기";
     }
 
-    //public bool ServerEnterCaptured()
-    //{
-    //    return ServerEnterCaptured(transform.position, transform.rotation);
-    //}
-
     public bool ServerEnterCaptured(Vector3 captureAnchorPosition, Quaternion captureAnchorRotation)
     {
         if (!HasStateAuthority)
@@ -474,11 +448,6 @@ public class PlayerController : NetworkBehaviour, IInteractable
             ServerEnterDead();
             return true;
         }
-
-        // [Capture Presentation] 잡힌 플레이어 전용 괴물 포획 연출 시작 지점.
-        // [Capture Presentation] alive 플레이어 전원 검정 페이드 인/아웃 시작 지점.
-        // [Capture Presentation] spectator(Dead / Escaped)는 연출 제외.
-        // [Capture Transition] 페이드 중 구제 위치로 이동하는 연출을 여기에 연결.
 
         return true;
     }
@@ -532,10 +501,6 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
         float remainSeconds = Mathf.Max(0f, rescueBaseTimeSeconds - NetAftereffectPercent);
         NetCaptureExpireTimer = TickTimer.CreateFromSeconds(Runner, remainSeconds);
-
-        // [Capture Transition] 검정 페이드아웃 종료 후 Active 단계 진입.
-        // [Capture Active] 누워있는 상태로 시야를 움직이며 비밀번호 힌트 확인.
-        // [Future Minigame] 포획 미니게임과 결과 처리 연결 지점.
     }
 
     public bool ServerExitCapturedToNormal()
@@ -569,8 +534,6 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureExpireTimer = TickTimer.None;
         NetMovementLocked = true;
         NetLookLocked = true;
-
-        // [Death Presentation] 사망 UI 출력 및 확인 후 관전 모드 진입 지점.
     }
 
     public void ServerEnterEscaped()
@@ -608,11 +571,6 @@ public class PlayerController : NetworkBehaviour, IInteractable
         return true;
     }
 
-    /// <summary>
-    /// 은신처 내부 로직이 전달한 퇴장 위치를 사용해 hide 상태를 해제한다.
-    /// 은신처 점유 상태 해제는 HideSpotInteractable이 담당하고,
-    /// 플레이어 컨트롤러는 플레이어 상태와 이동 처리만 담당한다.
-    /// </summary>
     public bool ServerExitHide(Vector3 exitPosition, Quaternion exitRotation)
     {
         if (!HasStateAuthority)
@@ -634,10 +592,6 @@ public class PlayerController : NetworkBehaviour, IInteractable
         return true;
     }
 
-    /// <summary>
-    /// 현재 숨고 있는 은신처를 NetworkId 기준으로 다시 찾아온다.
-    /// 숨은 상태에서 퇴장 요청 시 HideSpotInteractable 쪽 로직을 다시 타기 위해 사용한다.
-    /// </summary>
     private bool TryGetCurrentHideSpot(out HideSpotInteractable hideSpot)
     {
         hideSpot = null;
@@ -763,10 +717,6 @@ public class PlayerController : NetworkBehaviour, IInteractable
         return sqrDistance <= allowedSqrDistance;
     }
 
-    /// <summary>
-    /// 네트워크 플레이어를 지정한 월드 위치/회전으로 즉시 이동시킨다.
-    /// 이동은 반드시 PlayerKCCMotor를 통해 SimpleKCC 기준으로 처리한다.
-    /// </summary>
     private void MovePlayerToWorldPose(Vector3 worldPosition, Quaternion worldRotation)
     {
         if (KCCMotor != null)
