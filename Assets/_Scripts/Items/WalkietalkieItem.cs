@@ -50,17 +50,36 @@ public class WalkieTalkieItem : ItemObject
         // material 업데이트
         materialController?.SetWalkieState(NetWalkieState);
 
-        switch (NetWalkieState)
+        UpdateWhiteNoise();
+    }
+
+    // 화이트 노이즈 재생 여부를 현재 상태 + 근접 여부로 결정
+    public void UpdateWhiteNoise()
+    {
+        if ( NetWalkieState != WalkieState.RX)
         {
-            case WalkieState.RX:
-                if (IsLocalPlayerInSameZone())
-                    PlayeWhiteNoise();
-                break;
-            case WalkieState.TX:
-            case WalkieState.Idle:
-                StopWhiteNoise();
-                break;
+            StopWhiteNoise();
+            return;
         }
+
+        if (CheckHearWhiteNoisePlayer())
+            PlayeWhiteNoise();
+        else
+            StopWhiteNoise();
+    }
+
+    // 화이트 노이즈를 들어야 하는지 판단
+    private bool CheckHearWhiteNoisePlayer()
+    {
+        if (!Runner.TryGetPlayerObject(Runner.LocalPlayer, out var localObj)) return false;
+        if (!localObj.TryGetComponent(out PlayerController localPc)) return false;
+        if (localPc.NetZone != NetZone) return false;
+
+        // 무전기 소지자는 항상 들림
+        if (localPc.GetHeldWalkieTalkie() == this) return true;
+
+        // 팀원은 무전기 범위 안에 있을 때만 들림
+        return localPc.NetIsNearReceiver;
     }
 
     // 화이트 노이즈 재생

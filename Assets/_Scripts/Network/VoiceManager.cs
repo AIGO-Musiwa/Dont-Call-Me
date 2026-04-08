@@ -191,7 +191,7 @@ public class VoiceManager : MonoBehaviour
         Debug.Log($"[VoiceManager] 원격 PTT {(isOn ? "시작" : "종료")} → GROUP_WALKIE {(isOn ? "구독 추가" : "구독 해제")}");
     }
 
-    // 팀원이 무전기/송신자 근처에 들어오거나 벗어날 때 호출
+    // 팀원이 수신자 근처에 들어오거나 벗어날 때 호출
     public void SetTeammateGroup(bool isNear)
     {
         if (recorder == null) FetchComponents();
@@ -208,12 +208,29 @@ public class VoiceManager : MonoBehaviour
         Debug.Log($"[VoiceManager] 팀원 근접 {(isNear ? "진입" : "이탈")} → GROUP_WALKIE {(isNear ? "구독 추가" : "구독 해제")}");
     }
 
+    // 팀원이 송신자 근처에 들어오거나 벗어날 때 호출
+    public void SetTeammateSenderGroup(bool isNear)
+    {
+        if (recorder == null) FetchComponents();
+        if (voiceConnection?.Client == null) return;
+
+        byte myGroup = localZone == Zone.ZoneA
+            ? Constants.GROUP_ZONE_A
+            : Constants.GROUP_ZONE_B;
+
+        recorder.InterestGroup = isNear ? Constants.GROUP_WALKIE : myGroup;
+
+        ApplyGroup(isNear
+            ? new byte[] { myGroup, Constants.GROUP_WALKIE }
+            : new byte[] { myGroup });
+    }
+
     #endregion
 
     private void ApplyGroup(byte[] groups)
     {
         // null -> 기존 구독 전부 해제 후 새 그룹만 구독
-        voiceConnection.Client.OpChangeGroups(null, groups);
+        voiceConnection.Client.OpChangeGroups(new byte[0], groups);
         Debug.Log($"[VoiceManager] Voice Group 적용 → [{string.Join(", ", groups)}]");
     }
 

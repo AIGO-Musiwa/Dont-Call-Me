@@ -81,9 +81,9 @@ public class WalkieTalkieManager : NetworkBehaviour
                 float sqrDist = (pc.transform.position - receiverWalkie.transform.position).sqrMagnitude;
                 bool isNear = sqrDist <= walkiePickupRange * walkiePickupRange;
 
-                if (pc.NetIsNearWalkie != isNear)
+                if (pc.NetIsNearReceiver != isNear)
                 {
-                    pc.NetIsNearWalkie = isNear;
+                    pc.NetIsNearReceiver = isNear;
                 }
             }
             else
@@ -218,10 +218,6 @@ public class WalkieTalkieManager : NetworkBehaviour
         {
             VoiceManager.Instance?.SetPTT(true);
         }
-        else if (localPc.NetZone == ActiveSenderZone)
-        {
-            VoiceManager.Instance?.SetTeammateGroup(true);
-        }
         else
         {
             // 수신자 구역 무전기 소지자
@@ -237,15 +233,19 @@ public class WalkieTalkieManager : NetworkBehaviour
         if (!Runner.TryGetPlayerObject(Runner.LocalPlayer, out var localObj)) return;
         if (!localObj.TryGetComponent(out PlayerController localPc)) return;
 
-        // PTT 종료 시 senderZone을 알 수 없음 -> localZone 기준으로 처리
-        if (ActiveSender == Runner.LocalPlayer)
+        
+        if (ActiveSenderZone == localPc.NetZone)
         {
-            VoiceManager.Instance.SetPTT(false);
+            if (localPc.GetHeldWalkieTalkie() != null)
+                VoiceManager.Instance?.SetPTT(false);
         }
-        else if (localPc.NetZone != ActiveSenderZone && localPc.GetHeldWalkieTalkie() != null)
+        else
         {
-            // 수신자 구역 무전기 소시자 GROUP_WALKIE 해제
-            VoiceManager.Instance.SetRemotePTT(false, ActiveSenderZone);
+            // 수신자 구역 무전기 소지자
+            if (localPc.GetHeldWalkieTalkie() != null)
+            {
+                VoiceManager.Instance.SetRemotePTT(false, ActiveSenderZone);
+            }
         }
     }
 

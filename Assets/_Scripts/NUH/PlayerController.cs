@@ -62,7 +62,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
     // 수신자 팀원이 수신 무전기 근처에 있는지 여부
     [Networked, OnChangedRender(nameof(OnNearWalkieChanged))]
-    public NetworkBool NetIsNearWalkie { get; set; }
+    public NetworkBool NetIsNearReceiver { get; set; }
 
     // 송신자 팀원이 송신 무전기 근처에 있는지 여부
     [Networked, OnChangedRender(nameof(OnNearSenderChanged))]
@@ -110,6 +110,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
         var bodySync = GetComponent<PlayerBodySync>();
         if (bodySync != null)
             bodySync.Initialize(this);
+
+        WalkieTalkieManager.Instance?.RegisterPlayer(this);
     }
 
     public override void FixedUpdateNetwork()
@@ -360,13 +362,17 @@ public class PlayerController : NetworkBehaviour, IInteractable
     private void OnNearWalkieChanged()
     {
         if (!HasInputAuthority) return;
-        VoiceManager.Instance?.SetTeammateGroup(NetIsNearWalkie);
+        VoiceManager.Instance?.SetTeammateGroup(NetIsNearReceiver);
+
+        // 범위 진입/이탈 시 수신 구역 무전기의 화이트 노이즈도 갱신
+        WalkieTalkieItem receiverWalkie = WalkieTalkieManager.Instance?.GetWalkieTalkieByZone(NetZone);
+        receiverWalkie?.UpdateWhiteNoise();
     }
 
     private void OnNearSenderChanged()
     {
         if (!HasInputAuthority) return;
-        VoiceManager.Instance?.SetTeammateGroup(NetIsNearSender);
+        VoiceManager.Instance?.SetTeammateSenderGroup(NetIsNearSender);
     }
 
     public WalkieTalkieItem GetHeldWalkieTalkie()
