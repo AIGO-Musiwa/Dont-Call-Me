@@ -34683,22 +34683,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 542bb53300e49f1428e54749f5fa2893, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureTestSpawner
-  creaturePrefab_Bldg1: {fileID: 6065336768852671156, guid: 38a81e87b037f9a4da2a4bfbae4d2ab3, type: 3}
+  creaturePrefab_Bldg1: {fileID: 6065336768852671156, guid: 010fdabf254c228429c387c8dee8b4d7, type: 3}
   spawnPointBldg1: {fileID: 402202043}
   bldg1_Waypoint1F: {fileID: 1375707525}
   bldg1_Waypoint2F: {fileID: 100077529}
   bldg1_Waypoint3F: {fileID: 285911620}
   bldg1_CreatureRespawn1F: {fileID: 402202043}
   bldg1_CreatureRespawn3F: {fileID: 781373552}
-  creaturePrefab_Bldg2: {fileID: 6065336768852671156, guid: 1cd70141d47419e4ea565ad09e37a042, type: 3}
+  playerRespawn_Bldg1: {fileID: 0}
+  bldg1_Lights: []
+  creaturePrefab_Bldg2: {fileID: 6065336768852671156, guid: d1f566a01c84fd9459c9fead5e9e65fd, type: 3}
   spawnPointBldg2: {fileID: 1276877540}
   bldg2_Waypoint1F: {fileID: 2086473536}
   bldg2_Waypoint2F: {fileID: 1383969302}
   bldg2_Waypoint3F: {fileID: 1270498746}
   bldg2_CreatureRespawn1F: {fileID: 1276877540}
   bldg2_CreatureRespawn3F: {fileID: 1338234173}
-  sceneDirectionalLight: {fileID: 2051228079}
-  playerRespawnPoint: {fileID: 774321615}
+  playerRespawn_Bldg2: {fileID: 0}
+  bldg2_Lights: []
 --- !u!4 &444438770
 Transform:
   m_ObjectHideFlags: 0
@@ -35224,9 +35226,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0399f22ba5c0ba24da8450ae1fa3709f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StairTeleporter
-  destination: {fileID: 418182072}
-  playerLayerName: Player
-  creatureLayerName: Creature
 --- !u!43 &460186904
 Mesh:
   m_ObjectHideFlags: 0
@@ -39235,9 +39234,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0399f22ba5c0ba24da8450ae1fa3709f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StairTeleporter
-  destination: {fileID: 2020497233}
-  playerLayerName: Player
-  creatureLayerName: Creature
 --- !u!43 &552898922
 Mesh:
   m_ObjectHideFlags: 0
@@ -45003,9 +44999,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0399f22ba5c0ba24da8450ae1fa3709f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StairTeleporter
-  destination: {fileID: 701028524}
-  playerLayerName: Player
-  creatureLayerName: Creature
 --- !u!43 &644788928
 Mesh:
   m_ObjectHideFlags: 0
@@ -117766,9 +117759,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0399f22ba5c0ba24da8450ae1fa3709f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StairTeleporter
-  destination: {fileID: 593079229}
-  playerLayerName: Player
-  creatureLayerName: Creature
 --- !u!1 &1505796748
 GameObject:
   m_ObjectHideFlags: 0
@@ -120384,9 +120374,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0399f22ba5c0ba24da8450ae1fa3709f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StairTeleporter
-  destination: {fileID: 1655856536}
-  playerLayerName: Player
-  creatureLayerName: Creature
 --- !u!1 &1547905720
 GameObject:
   m_ObjectHideFlags: 0
@@ -140532,9 +140519,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0399f22ba5c0ba24da8450ae1fa3709f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StairTeleporter
-  destination: {fileID: 332454624}
-  playerLayerName: Player
-  creatureLayerName: Creature
 --- !u!43 &1836087432
 Mesh:
   m_ObjectHideFlags: 0
@@ -152201,9 +152185,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0399f22ba5c0ba24da8450ae1fa3709f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StairTeleporter
-  destination: {fileID: 2080912741}
-  playerLayerName: Player
-  creatureLayerName: Creature
 --- !u!1 &2048604703
 GameObject:
   m_ObjectHideFlags: 0
@@ -155915,9 +155896,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0399f22ba5c0ba24da8450ae1fa3709f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StairTeleporter
-  destination: {fileID: 1767342967}
-  playerLayerName: Player
-  creatureLayerName: Creature
 --- !u!1 &2127961129
 GameObject:
   m_ObjectHideFlags: 0
