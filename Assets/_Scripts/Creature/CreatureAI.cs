@@ -24,6 +24,9 @@ public class CreatureAI : NetworkBehaviour
 
     [Header("탐색 설정")]
     public float searchDuration = 3f;
+    public float searchSweepAngle = 120f;
+    public float searchSweepSpeed = 4f;
+    //public float searchRotationSpeed = 360f;
     private float currentSearchTime = 0f;
 
     [Header("추적 설정")]
@@ -273,17 +276,29 @@ public class CreatureAI : NetworkBehaviour
 
     private void UpdateAlertMove()
     {
-        if (!agent.pathPending && agent.remainingDistance < 0.5f) currentState = CreatureState.Search;
+        if (!agent.pathPending && agent.remainingDistance < 0.5f)
+        {
+            currentState = CreatureState.Search;
+            currentSearchTime = 0f;
+        }
     }
 
     private void UpdateSearch()
     {
         currentSearchTime += Runner.DeltaTime;
-        transform.Rotate(Vector3.up * 60f * Runner.DeltaTime);
+
+        //좌우로 두리번거리는 스캔 움직임
+        float turnAmount = Mathf.Cos(currentSearchTime * searchSweepSpeed) * searchSweepAngle * Runner.DeltaTime;
+        transform.Rotate(Vector3.up * turnAmount);
+
+        //한 바퀴 돌면서 두리번거리는 스캔 움직임
+        //transform.Rotate(Vector3.up * searchRotationSpeed * Runner.DeltaTime);
+        
         if (currentSearchTime >= searchDuration)
         {
             SetNormalSight();
             currentState = CreatureState.Patrol;
+            currentSearchTime = 0f;
         }
     }
 
