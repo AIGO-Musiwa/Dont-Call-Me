@@ -21,6 +21,7 @@ public static class Constants
     public const byte GROUP_LOBBY = 0;
     public const byte GROUP_ZONE_A = 1;
     public const byte GROUP_ZONE_B = 2;
+    public const byte GROUP_WALKIE = 3;
 }
 
 // ── 씬 이름 (Build Settings의 씬 이름과 반드시 일치) ────

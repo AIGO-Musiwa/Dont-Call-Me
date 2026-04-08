@@ -1,21 +1,21 @@
-using UnityEngine;
+using Fusion;
 
-public class PlayerVoiceController : MonoBehaviour
+public class PlayerVoiceController : NetworkBehaviour
 {
     private PlayerController playerController;
 
-    void Start()
+    public override void Spawned()
     {
         playerController = GetComponent<PlayerController>();
 
-        if (playerController == null || !playerController.HasInputAuthority) return;
+        // 네트워크 권한과 데이터가 확실히 세팅된 시점
+        if (playerController == null || !HasInputAuthority) return;
 
         VoiceManager.Instance?.SwitchToGameMode(playerController.NetZone);
     }
-
-    private void OnDestroy()
+    public override void Despawned(NetworkRunner runner, bool hasState)
     {
-        if (playerController != null && playerController.HasStateAuthority)
+        if (HasInputAuthority)
         {
             VoiceManager.Instance?.SwitchToLobbyMode();
         }

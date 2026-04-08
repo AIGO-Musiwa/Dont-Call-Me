@@ -17,6 +17,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
     [Header("역할 아이템 프리팹")]
     [SerializeField] private NetworkObject flashlightRoleItemPrefab;
+    [SerializeField] private NetworkObject walkieTalkieRoleItemPrefab;
 
     [Header("오른손 드랍")]
     [SerializeField] private float rightHandDropForwardOffset = 0.8f;
@@ -40,7 +41,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
     [Networked] public PlayerState NetPlayerState { get; set; }
     [Networked] public PlayerRole NetPlayerRole { get; set; }
-    [Networked] public Zone NetZone { get; set; }
+    [Networked, OnChangedRender(nameof(OnZoneChanged))]
+    public Zone NetZone { get; set; }
 
     [Networked] public HideState NetHideState { get; set; }
     [Networked] public CapturePhase NetCapturePhase { get; set; }
@@ -58,7 +60,16 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [Networked] public NetworkBool NetMovementLocked { get; set; }
     [Networked] public NetworkBool NetLookLocked { get; set; }
 
+    // 수신자 팀원이 수신 무전기 근처에 있는지 여부
+    [Networked, OnChangedRender(nameof(OnNearWalkieChanged))]
+    public NetworkBool NetIsNearWalkie { get; set; }
+
+    // 송신자 팀원이 송신 무전기 근처에 있는지 여부
+    [Networked, OnChangedRender(nameof(OnNearSenderChanged))]
+    public NetworkBool NetIsNearSender { get; set; }
+
     private int _lastInteractRequestTick = -1;
+    private bool _prevWalkiePressed;
 
     public override void Spawned()
     {
@@ -136,6 +147,23 @@ public class PlayerController : NetworkBehaviour, IInteractable
             }
         }
 
+        // 무전기 PTT 누르기 시작
+        if (HasInputAuthority &&
+            input.Buttons.IsSet(InputButtons.Walkie) &&
+            !_prevWalkiePressed)
+        {
+            _prevWalkiePressed = true;
+            GetHeldWalkieTalkie()?.RPC_RequestPTT(true);
+        }
+
+        // 무전기 PTT 떼기
+        else if (HasInputAuthority &&
+            !input.Buttons.IsSet(InputButtons.Walkie) &&
+            _prevWalkiePressed)
+        {
+            _prevWalkiePressed = false;
+            GetHeldWalkieTalkie()?.RPC_RequestPTT(false);
+        }
     }
 
     public Transform GetCameraLightRoot()
@@ -257,20 +285,37 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!HasStateAuthority)
             return false;
 
-        if (NetPlayerRole != PlayerRole.Flashlight)
-            return false;
-
+        // 이미 왼손에 역할 아이템이 있으면 중복 지급 안 함
         if (NetLeftHandItem != null)
             return false;
 
-        if (flashlightRoleItemPrefab == null)
+        NetworkObject prefabToSpawn = null;
+
+        if (NetPlayerRole == PlayerRole.Flashlight)
         {
-            Debug.LogWarning($"[PlayerController] flashlightRoleItemPrefab이 비어 있습니다. name={name}");
+            if (flashlightRoleItemPrefab == null)
+            {
+                Debug.LogWarning($"[PlayerController] flashlightRoleItemPrefab이 비어 있습니다. name={name}");
+                return false;
+            }
+            prefabToSpawn = flashlightRoleItemPrefab;
+        }
+        else if (NetPlayerRole == PlayerRole.WalkieTalkie)
+        {
+            if (walkieTalkieRoleItemPrefab == null)
+            {
+                Debug.LogWarning($"[PlayerController] WalkieTalkieRoleItemPrefab이 비어 있습니다. name={name}");
+                return false;
+            }
+            prefabToSpawn = walkieTalkieRoleItemPrefab;
+        }
+        else
+        {
             return false;
         }
 
         NetworkObject spawnedItem = Runner.Spawn(
-            flashlightRoleItemPrefab,
+            prefabToSpawn,
             transform.position,
             transform.rotation,
             Object.InputAuthority
@@ -280,6 +325,12 @@ public class PlayerController : NetworkBehaviour, IInteractable
         {
             Debug.LogWarning($"[PlayerController] 역할 손전등 Spawn 실패. name={name}");
             return false;
+        }
+
+        // 무전기면 NetZone 배정
+        if (spawnedItem.TryGetComponent(out WalkieTalkieItem walkieItem))
+        {
+            walkieItem.NetZone = NetZone;
         }
 
         ItemObject item = spawnedItem.GetComponent<ItemObject>();
@@ -298,6 +349,40 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
         return true;
     }
+
+    #region 무전기 관련 함수
+    private void OnZoneChanged()
+    {
+        if (!HasInputAuthority) return;
+        VoiceManager.Instance?.SwitchToGameMode(NetZone);
+    }
+
+    private void OnNearWalkieChanged()
+    {
+        if (!HasInputAuthority) return;
+        VoiceManager.Instance?.SetTeammateGroup(NetIsNearWalkie);
+    }
+
+    private void OnNearSenderChanged()
+    {
+        if (!HasInputAuthority) return;
+        VoiceManager.Instance?.SetTeammateGroup(NetIsNearSender);
+    }
+
+    public WalkieTalkieItem GetHeldWalkieTalkie()
+    {
+        if (NetLeftHandItem != null &&
+            NetLeftHandItem.TryGetComponent(out WalkieTalkieItem leftWalkie))
+            return leftWalkie;
+
+        if (NetRightHandItem != null &&
+            NetRightHandItem.TryGetComponent(out WalkieTalkieItem rightWalkie))
+            return rightWalkie;
+
+        return null;
+    }
+
+    #endregion
 
     public bool ServerTryPickupRightHand(ItemObject item)
     {

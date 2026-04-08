@@ -100,6 +100,7 @@ MonoBehaviour:
   - {fileID: 7291662868223057742}
   - {fileID: 240582007588533922}
   - {fileID: -7581908001551703947}
+  - {fileID: -8854411365576175989}
   ForceRemoteRenderTimeframe: 0
 --- !u!54 &5971374519554222819
 Rigidbody:
@@ -178,6 +179,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   flashlightRoleItemPrefab: {fileID: 8306845425981146657, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+  walkieTalkieRoleItemPrefab: {fileID: 9013565362436366231, guid: 6ebe2e98208b7a746ae0f9a36f629d43, type: 3}
   rightHandDropForwardOffset: 0.8
   rightHandDropUpOffset: 0.5
   rightHandDropImpulse: 2.5
@@ -208,6 +210,10 @@ MonoBehaviour:
   _NetMovementLocked:
     _value: 0
   _NetLookLocked:
+    _value: 0
+  _NetIsNearWalkie:
+    _value: 0
+  _NetIsNearSender:
     _value: 0
 --- !u!114 &8731167519805343018
 MonoBehaviour:
