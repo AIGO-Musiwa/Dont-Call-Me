@@ -14,11 +14,27 @@ public enum PlayerRole
 // 플레이어 생존 상태
 public enum PlayerState
 {
-    Alive,              // 생존 상태
+    Normal,              // 생존 상태
     Captured,           // 크리처에게 납치된 (게이지 진행 중)
     Dead,               // 후유증 게이지 100% 도달 -> 사망
     Escaped,            // 탈출 성공
-    Spectating          // 관전 모드 (사망 또는 탈출 후)
+    //Spectating          // 관전 모드 (사망 또는 탈출 후)
+}
+
+// 플레이어 숨은 상태
+public enum HideState
+{
+    None,               // 안 숨음
+    Cabinet,            
+    Desk,               
+}
+
+// Capture 내부 상태
+public enum CapturePhase
+{
+    None,
+    Transition,         // 연출 / 이동 단계
+    Active,             // 실제 포획 당한 후 플레이 단계 (이때부터 1퍼씩 게이지 오름)
 }
 
 // ── 구역 ──────────────────────────────────────────────────

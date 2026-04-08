@@ -10,52 +10,59 @@ public class PlayerLookView : MonoBehaviour
     [Header("View")]
     [SerializeField] private float eyeOffset = 0.1f;
     [SerializeField] private bool lockCursorForLocalPlayer = true;
+    [SerializeField] private float capturedEyeHeight = 0.45f;
 
     private PlayerController _controller;
     private PlayerKCCMotor _motor;
 
-
     public Camera ViewCamera => playerCamera;
     public Transform ViewOrigin => playerCamera != null ? playerCamera.transform : cameraHolder;
 
+    /// <summary>
+    /// 플레이어 컨트롤러와 KCC 참조를 연결하고 카메라 설정을 초기화한다.
+    /// </summary>
     public void Initialize(PlayerController controller)
     {
         _controller = controller;
         _motor = controller != null ? controller.KCCMotor : null;
 
         ResolveReferences();
-
         ApplyAuthorityOnlyPresentation();
         ValidateSetup();
     }
 
+    /// <summary>
+    /// 매 프레임 공용 시선 표현과 로컬 카메라 표현을 갱신한다.
+    /// </summary>
     private void LateUpdate()
     {
         if (!IsReady())
             return;
 
-        // 1) 공용 표현
-        // - 모든 클라이언트에서 cameraHolder pitch / height 갱신
-        // - 원격 플레이어의 라이트 방향도 이 pose를 따라가야 함
         ApplySharedLookPose();
-
-        // 2) 로컬 전용 표현
-        // - 카메라 enable
-        // - 커서 잠금
         ApplyAuthorityOnlyPresentation();
     }
 
+    /// <summary>
+    /// 카메라 홀더와 KCC 참조가 유효한지 검사한다.
+    /// </summary>
     private bool IsReady()
     {
         return _controller != null && _motor != null && _motor.KCC != null && cameraHolder != null;
     }
 
+    /// <summary>
+    /// Inspector에서 비어 있을 수 있는 카메라 참조를 자동으로 찾는다.
+    /// </summary>
     private void ResolveReferences()
     {
         if (playerCamera == null && cameraHolder != null)
             playerCamera = cameraHolder.GetComponentInChildren<Camera>(true);
     }
 
+    /// <summary>
+    /// 필수 참조가 비어 있을 때 디버그 로그를 출력한다.
+    /// </summary>
     private void ValidateSetup()
     {
         if (cameraHolder == null)
@@ -65,18 +72,27 @@ public class PlayerLookView : MonoBehaviour
             Debug.LogWarning("[PlayerLookView] cameraLightRoot가 비어 있습니다. 손전등 라이트 루트를 연결하세요.", this);
     }
 
+    /// <summary>
+    /// 모든 클라이언트에서 동일하게 보여야 하는 시선 방향 / 높이 표현을 적용한다.
+    /// </summary>
     private void ApplySharedLookPose()
     {
         ApplyCameraHolderRotation();
         ApplyCameraHolderHeight();
     }
 
+    /// <summary>
+    /// KCC의 pitch 값을 읽어 cameraHolder 로컬 회전을 맞춘다.
+    /// </summary>
     private void ApplyCameraHolderRotation()
     {
         Vector2 pitchRotation = _motor.KCC.GetLookRotation(true, false);
         cameraHolder.localRotation = Quaternion.Euler(pitchRotation.x, 0f, 0f);
     }
 
+    /// <summary>
+    /// 현재 상태에 맞는 눈높이를 계산해 cameraHolder 높이를 갱신한다.
+    /// </summary>
     private void ApplyCameraHolderHeight()
     {
         Vector3 localPos = cameraHolder.localPosition;
@@ -84,25 +100,43 @@ public class PlayerLookView : MonoBehaviour
         cameraHolder.localPosition = localPos;
     }
 
+    /// <summary>
+    /// 현재 상태에 맞는 눈높이를 반환한다.
+    /// 책상 은신은 crouch 높이, 포획 Active는 누운 시점용 높이를 사용한다.
+    /// </summary>
     private float GetCurrentEyeHeight()
     {
-        // 현재 구조 기준으로는 motor의 crouch 상태를 사용
-        // 나중에 원격 crouch까지 더 정확히 맞추고 싶으면 crouch 상태를 렌더 가능한 값으로 분리하는게 더 안전함
+        if (_controller != null)
+        {
+            if (_controller.NetHideState == HideState.Desk)
+                return _motor.CrouchHeight - eyeOffset;
+
+            if (_controller.NetPlayerState == PlayerState.Captured && _controller.NetCapturePhase == CapturePhase.Active)
+            {
+                // [Capture Presentation] 실제 누운 카메라 회전 / 흔들림 / 포즈 보정은 나중에 여기서 확장.
+                return capturedEyeHeight;
+            }
+        }
+
         bool isCrouching = _motor.IsCrouching;
         float baseHeight = isCrouching ? _motor.CrouchHeight : _motor.StandHeight;
         return baseHeight - eyeOffset;
     }
 
+    /// <summary>
+    /// 로컬 플레이어에게만 필요한 카메라 enable / 커서 잠금 표현을 적용한다.
+    /// </summary>
     private void ApplyAuthorityOnlyPresentation()
     {
         bool hasInputAuthority = _controller != null && _controller.HasInputAuthority;
+        bool shouldEnableFirstPersonCamera = hasInputAuthority && (_controller == null || !_controller.IsSpectatorState());
 
         if (playerCamera != null)
-            playerCamera.enabled = hasInputAuthority;
+            playerCamera.enabled = shouldEnableFirstPersonCamera;
 
         if (!lockCursorForLocalPlayer)
             return;
-        
+
         if (hasInputAuthority)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -110,6 +144,9 @@ public class PlayerLookView : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 손전등 뷰가 사용할 카메라 라이트 루트를 반환한다.
+    /// </summary>
     public Transform GetCameraLightRoot()
     {
         return cameraLightRoot;
