@@ -68,8 +68,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 827289365566288008}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 136.9, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -77,6 +77,7 @@ Transform:
   - {fileID: 6306466061797410514}
   - {fileID: 4450713854729411720}
   - {fileID: 5465054484062135515}
+  - {fileID: 7159790405745032031}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3346838686624773243
@@ -177,13 +178,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   flashlightRoleItemPrefab: {fileID: 8306845425981146657, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
-  WalkieTalkieRoleItemPrefab: {fileID: 0}
   rightHandDropForwardOffset: 0.8
   rightHandDropUpOffset: 0.5
   rightHandDropImpulse: 2.5
+  leftHandDropForwardOffset: 0.6
+  leftHandDropSideOffset: -0.25
+  leftHandDropUpOffset: 0.45
+  leftHandDropImpulse: 2
+  captureTransitionSeconds: 1
+  traumaPenaltyCapture1: 10
+  traumaPenaltyCapture2: 20
+  traumaPenaltyCapture3Plus: 30
+  traumaIncreasePerSecond: 1
+  traumaDeathThreshold: 100
+  rescueBaseTimeSeconds: 100
   _NetPlayerState: 0
   _NetPlayerRole: 0
   _NetZone: 0
+  _NetHideState: 0
+  _NetCapturePhase: 0
+  _NetAftereffectPercent: 0
+  _NetCaptureCount: 0
+  _NetCaptureAnchorPosition: {x: 0, y: 0, z: 0}
+  _NetCaptureAnchorRotation: {x: 0, y: 0, z: 0, w: 0}
+  _NetCurrentHideSpotId:
+    Raw: 0
   _NetLeftHandItem: {fileID: 0}
   _NetRightHandItem: {fileID: 0}
   _NetMovementLocked:
@@ -228,6 +247,7 @@ MonoBehaviour:
   cameraLightRoot: {fileID: 8324999275640108001}
   eyeOffset: 0.1
   lockCursorForLocalPlayer: 1
+  capturedEyeHeight: 0.45
 --- !u!114 &2312676653009107545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -567,6 +587,51 @@ Transform:
   - {fileID: 8324999275640108001}
   m_Father: {fileID: 1101863805230548405}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2956842345499881975
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7159790405745032031}
+  - component: {fileID: 1102240384899927850}
+  m_Layer: 0
+  m_Name: SpectatorTargetAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7159790405745032031
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2956842345499881975}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1101863805230548405}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1102240384899927850
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2956842345499881975}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11b186c1c54d7d24898006a717e4d57a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpectatorTargetAnchor
+  anchor: {fileID: 7159790405745032031}
 --- !u!1 &3056114338012419123
 GameObject:
   m_ObjectHideFlags: 0
@@ -790,9 +855,9 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.03
   far clip plane: 1000
-  field of view: 60
+  field of view: 65
   orthographic: 0
   orthographic size: 5
   m_Depth: -1

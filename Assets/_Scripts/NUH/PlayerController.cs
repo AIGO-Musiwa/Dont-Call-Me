@@ -13,19 +13,44 @@ public class PlayerController : NetworkBehaviour, IInteractable
     public PlayerInteraction Interaction { get; private set; }
     public PlayerHandView HandView { get; private set; }
     public PlayerFlashlightView FlashlightView { get; private set; }
+    public PlayerSpectatorController SpectatorController { get; private set; }
 
     [Header("역할 아이템 프리팹")]
     [SerializeField] private NetworkObject flashlightRoleItemPrefab;
-    [SerializeField] private NetworkObject WalkieTalkieRoleItemPrefab;
 
     [Header("오른손 드랍")]
     [SerializeField] private float rightHandDropForwardOffset = 0.8f;
     [SerializeField] private float rightHandDropUpOffset = 0.5f;
     [SerializeField] private float rightHandDropImpulse = 2.5f;
 
+    [Header("왼손 드랍")]
+    [SerializeField] private float leftHandDropForwardOffset = 0.6f;
+    [SerializeField] private float leftHandDropSideOffset = -0.25f;
+    [SerializeField] private float leftHandDropUpOffset = 0.45f;
+    [SerializeField] private float leftHandDropImpulse = 2.0f;
+
+    [Header("포획")]
+    [SerializeField] private float captureTransitionSeconds = 1.0f;
+    [SerializeField] private float traumaPenaltyCapture1 = 10f;
+    [SerializeField] private float traumaPenaltyCapture2 = 20f;
+    [SerializeField] private float traumaPenaltyCapture3Plus = 30f;
+    [SerializeField] private float traumaIncreasePerSecond = 1f;
+    [SerializeField] private float traumaDeathThreshold = 100f;
+    [SerializeField] private float rescueBaseTimeSeconds = 100f;
+
     [Networked] public PlayerState NetPlayerState { get; set; }
     [Networked] public PlayerRole NetPlayerRole { get; set; }
     [Networked] public Zone NetZone { get; set; }
+
+    [Networked] public HideState NetHideState { get; set; }
+    [Networked] public CapturePhase NetCapturePhase { get; set; }
+    [Networked] public float NetAftereffectPercent { get; set; }
+    [Networked] public int NetCaptureCount { get; set; }
+    [Networked] public TickTimer NetCaptureTransitionTimer { get; set; }
+    [Networked] public TickTimer NetCaptureExpireTimer { get; set; }
+    [Networked] public Vector3 NetCaptureAnchorPosition { get; set; }
+    [Networked] public Quaternion NetCaptureAnchorRotation { get; set; }
+    [Networked] public NetworkId NetCurrentHideSpotId { get; set; }
 
     [Networked] public NetworkObject NetLeftHandItem { get; set; }
     [Networked] public NetworkObject NetRightHandItem { get; set; }
@@ -42,16 +67,27 @@ public class PlayerController : NetworkBehaviour, IInteractable
         Interaction = GetComponent<PlayerInteraction>();
         HandView = GetComponent<PlayerHandView>();
         FlashlightView = GetComponent<PlayerFlashlightView>();
+        SpectatorController = FindFirstObjectByType<PlayerSpectatorController>(FindObjectsInactive.Include);
 
         KCCMotor.Initialize(this);
         LookView.Initialize(this);
         Interaction.Initialize(this);
         HandView.Initialize(this);
         FlashlightView.Initialize(this);
+        SpectatorController.Initialize(this);
 
         if (HasStateAuthority)
         {
-            NetPlayerState = PlayerState.Alive;
+            NetPlayerState = PlayerState.Normal;
+            NetHideState = HideState.None;
+            NetCapturePhase = CapturePhase.None;
+            NetAftereffectPercent = 0f;
+            NetCaptureCount = 0;
+            NetCaptureTransitionTimer = TickTimer.None;
+            NetCaptureExpireTimer = TickTimer.None;
+            NetCaptureAnchorPosition = transform.position;
+            NetCaptureAnchorRotation = transform.rotation;
+            NetCurrentHideSpotId = default;
 
             NetLeftHandItem = default;
             NetRightHandItem = default;
@@ -59,23 +95,40 @@ public class PlayerController : NetworkBehaviour, IInteractable
             NetMovementLocked = false;
             NetLookLocked = false;
         }
-        // 바디 싱크 장치 초기화
+
         var bodySync = GetComponent<PlayerBodySync>();
-        if (bodySync != null) bodySync.Initialize(this);
+        if (bodySync != null)
+            bodySync.Initialize(this);
     }
 
     public override void FixedUpdateNetwork()
     {
+        if (HasStateAuthority)
+        {
+            ServerTickCaptureState();
+        }
+
         if (!GetInput(out PlayerNetworkInput input))
             return;
 
         KCCMotor.Simulate(input, NetMovementLocked, NetLookLocked);
+
+        if (HasInputAuthority && SpectatorController != null && IsSpectatorState())
+        {
+            SpectatorController.TickSpectatorInput(input);
+        }
 
         if (HasInputAuthority &&
             input.Buttons.IsSet(InputButtons.Interact) &&
             Runner.Tick != _lastInteractRequestTick)
         {
             _lastInteractRequestTick = Runner.Tick;
+
+            if (NetHideState != HideState.None)
+            {
+                RPC_RequestExitHide();
+                return;
+            }
 
             if (Interaction != null && Interaction.TryGetCurrentTargetId(out NetworkId targetId))
             {
@@ -98,13 +151,37 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetLookLocked = lookLocked;
     }
 
+    public bool CanUseGameplayInput()
+    {
+        return NetPlayerState == PlayerState.Normal && NetHideState == HideState.None;
+    }
+
+    public bool IsSpectatorState()
+    {
+        return NetPlayerState == PlayerState.Dead || NetPlayerState == PlayerState.Escaped;
+    }
+
+    /// <summary>
+    /// 관전 대상이 될 수 있는 상태인지 반환한다.
+    /// 현재 기준으로 Normal과 Captured를 관전 대상으로 허용한다.
+    /// </summary>
+    public bool CanBeSpectated()
+    {
+        return NetPlayerState == PlayerState.Normal || NetPlayerState == PlayerState.Captured;
+    }
+
+    public bool IsCaptureActive()
+    {
+        return NetPlayerState == PlayerState.Captured && NetCapturePhase == CapturePhase.Active;
+    }
+
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void RPC_RequestInteract(NetworkId targetId)
     {
         if (!HasStateAuthority)
             return;
 
-        if (NetPlayerState != PlayerState.Alive)
+        if (!CanUseGameplayInput())
             return;
 
         if (!Runner.TryFindObject(targetId, out NetworkObject targetObject))
@@ -113,9 +190,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (targetObject == null)
             return;
 
-        float maxDistance = Interaction != null ? Interaction.InteractDistance : 2.5f;
+        float maxDistance = Interaction != null ? Interaction.InteractDistance : 2f;
 
-        // 시점 기준 origin -> 대상 collider의 closest point 거리 검사
         if (!IsTargetWithinInteractDistance(targetObject, maxDistance))
             return;
 
@@ -126,6 +202,24 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return;
 
         interactable.Interact(this);
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void RPC_RequestExitHide()
+    {
+        if (!HasStateAuthority)
+            return;
+
+        if (NetHideState == HideState.None)
+            return;
+
+        if (!TryGetCurrentHideSpot(out HideSpotInteractable hideSpot))
+        {
+            Debug.LogWarning("[PlayerController] 현재 숨은 은신처를 찾지 못해 퇴장 요청을 처리할 수 없습니다.", this);
+            return;
+        }
+
+        hideSpot.RequestExit(this);
     }
 
     public ItemObject GetLeftHandItemObject()
@@ -143,7 +237,10 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!HasStateAuthority || item == null)
             return false;
 
-        if (NetPlayerState != PlayerState.Alive)
+        if (NetPlayerState != PlayerState.Normal)
+            return false;
+
+        if (NetHideState != HideState.None)
             return false;
 
         if (NetLeftHandItem != null)
@@ -159,11 +256,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!HasStateAuthority)
             return false;
 
-        // 지금 단계에서는 손전등 역할만 지급
         if (NetPlayerRole != PlayerRole.Flashlight)
             return false;
 
-        // 이미 왼손에 역할 아이템이 있으면 중복 지급 안 함
         if (NetLeftHandItem != null)
             return false;
 
@@ -208,7 +303,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!HasStateAuthority || item == null)
             return false;
 
-        if (NetPlayerState != PlayerState.Alive)
+        if (!CanUseGameplayInput())
             return false;
 
         if (!item.CanInteract(this))
@@ -238,15 +333,40 @@ public class PlayerController : NetworkBehaviour, IInteractable
         return true;
     }
 
+    public bool ServerDropLeftHandItem()
+    {
+        if (!HasStateAuthority)
+            return false;
+
+        if (!TryGetItemObject(NetLeftHandItem, out ItemObject item))
+            return false;
+
+        Vector3 dropPosition = GetLeftHandDropPosition();
+        Vector3 dropForward = transform.forward;
+
+        NetLeftHandItem = default;
+        item.OnDropped(dropPosition, dropForward, leftHandDropImpulse);
+        return true;
+    }
+
+    public void ServerForceDropAllHeldItems()
+    {
+        if (!HasStateAuthority)
+            return;
+
+        ServerDropLeftHandItem();
+        ServerDropRightHandItem();
+    }
+
     public bool ServerTryTakeRightHandFrom(PlayerController target)
     {
         if (!HasStateAuthority || target == null || target == this)
             return false;
 
-        if (NetPlayerState != PlayerState.Alive)
+        if (!CanUseGameplayInput())
             return false;
 
-        if (target.NetPlayerState != PlayerState.Alive)
+        if (!target.CanUseGameplayInput())
             return false;
 
         if (!target.TryGetItemObject(target.NetRightHandItem, out ItemObject targetItem))
@@ -262,7 +382,6 @@ public class PlayerController : NetworkBehaviour, IInteractable
         return true;
     }
 
-    // 기존 호출부 호환용
     public void ServerEquipRightHand(ItemObject item)
     {
         ServerTryPickupRightHand(item);
@@ -273,10 +392,10 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (actor == null || actor == this)
             return false;
 
-        if (actor.NetPlayerState != PlayerState.Alive)
+        if (!actor.CanUseGameplayInput())
             return false;
 
-        if (NetPlayerState != PlayerState.Alive)
+        if (!CanUseGameplayInput())
             return false;
 
         return NetRightHandItem != null;
@@ -299,6 +418,195 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return string.Empty;
 
         return "오른손 아이템 뺏기";
+    }
+
+    public bool ServerEnterCaptured(Vector3 captureAnchorPosition, Quaternion captureAnchorRotation)
+    {
+        if (!HasStateAuthority)
+            return false;
+
+        if (NetPlayerState != PlayerState.Normal)
+            return false;
+
+        NetPlayerState = PlayerState.Captured;
+        NetCapturePhase = CapturePhase.Transition;
+        NetHideState = HideState.None;
+        NetCurrentHideSpotId = default;
+        NetCaptureAnchorPosition = captureAnchorPosition;
+        NetCaptureAnchorRotation = captureAnchorRotation;
+        NetCaptureTransitionTimer = TickTimer.CreateFromSeconds(Runner, captureTransitionSeconds);
+        NetCaptureExpireTimer = TickTimer.None;
+
+        NetMovementLocked = true;
+        NetLookLocked = false;
+
+        ServerForceDropAllHeldItems();
+        ApplyImmediateTraumaOnCapture();
+
+        if (NetAftereffectPercent >= traumaDeathThreshold)
+        {
+            ServerEnterDead();
+            return true;
+        }
+
+        return true;
+    }
+
+    public void ServerTickCaptureState()
+    {
+        if (!HasStateAuthority)
+            return;
+
+        if (NetPlayerState != PlayerState.Captured)
+            return;
+
+        if (NetCapturePhase == CapturePhase.Transition)
+        {
+            if (NetCaptureTransitionTimer.Expired(Runner))
+            {
+                ServerBeginCapturedActive();
+            }
+            return;
+        }
+
+        if (NetCapturePhase != CapturePhase.Active)
+            return;
+
+        NetAftereffectPercent += Runner.DeltaTime * traumaIncreasePerSecond;
+
+        if (NetAftereffectPercent >= traumaDeathThreshold)
+        {
+            ServerEnterDead();
+            return;
+        }
+
+        if (NetCaptureExpireTimer.Expired(Runner))
+        {
+            ServerEnterDead();
+        }
+    }
+
+    public void ServerBeginCapturedActive()
+    {
+        if (!HasStateAuthority)
+            return;
+
+        if (NetPlayerState != PlayerState.Captured)
+            return;
+
+        NetCapturePhase = CapturePhase.Active;
+        NetCaptureTransitionTimer = TickTimer.None;
+
+        MovePlayerToWorldPose(NetCaptureAnchorPosition, NetCaptureAnchorRotation);
+
+        float remainSeconds = Mathf.Max(0f, rescueBaseTimeSeconds - NetAftereffectPercent);
+        NetCaptureExpireTimer = TickTimer.CreateFromSeconds(Runner, remainSeconds);
+    }
+
+    public bool ServerExitCapturedToNormal()
+    {
+        if (!HasStateAuthority)
+            return false;
+
+        if (NetPlayerState != PlayerState.Captured)
+            return false;
+
+        NetPlayerState = PlayerState.Normal;
+        NetCapturePhase = CapturePhase.None;
+        NetCaptureTransitionTimer = TickTimer.None;
+        NetCaptureExpireTimer = TickTimer.None;
+        NetMovementLocked = false;
+        NetLookLocked = false;
+
+        return true;
+    }
+
+    public void ServerEnterDead()
+    {
+        if (!HasStateAuthority)
+            return;
+
+        NetPlayerState = PlayerState.Dead;
+        NetHideState = HideState.None;
+        NetCapturePhase = CapturePhase.None;
+        NetCurrentHideSpotId = default;
+        NetCaptureTransitionTimer = TickTimer.None;
+        NetCaptureExpireTimer = TickTimer.None;
+        NetMovementLocked = true;
+        NetLookLocked = true;
+    }
+
+    public void ServerEnterEscaped()
+    {
+        if (!HasStateAuthority)
+            return;
+
+        NetPlayerState = PlayerState.Escaped;
+        NetHideState = HideState.None;
+        NetCapturePhase = CapturePhase.None;
+        NetCurrentHideSpotId = default;
+        NetCaptureTransitionTimer = TickTimer.None;
+        NetCaptureExpireTimer = TickTimer.None;
+        NetMovementLocked = true;
+        NetLookLocked = true;
+    }
+
+    public bool ServerEnterHide(HideState hideState, NetworkObject hideSpotObject, Vector3 enterPosition, Quaternion enterRotation)
+    {
+        if (!HasStateAuthority)
+            return false;
+
+        if (NetPlayerState != PlayerState.Normal)
+            return false;
+
+        if (NetHideState != HideState.None)
+            return false;
+
+        NetHideState = hideState;
+        NetCurrentHideSpotId = hideSpotObject != null ? hideSpotObject.Id : default;
+        NetMovementLocked = true;
+        NetLookLocked = false;
+
+        MovePlayerToWorldPose(enterPosition, enterRotation);
+        return true;
+    }
+
+    public bool ServerExitHide(Vector3 exitPosition, Quaternion exitRotation)
+    {
+        if (!HasStateAuthority)
+            return false;
+
+        if (NetHideState == HideState.None)
+            return false;
+
+        NetHideState = HideState.None;
+        NetCurrentHideSpotId = default;
+
+        if (NetPlayerState == PlayerState.Normal)
+        {
+            NetMovementLocked = false;
+            NetLookLocked = false;
+        }
+
+        MovePlayerToWorldPose(exitPosition, exitRotation);
+        return true;
+    }
+
+    private bool TryGetCurrentHideSpot(out HideSpotInteractable hideSpot)
+    {
+        hideSpot = null;
+
+        if (NetCurrentHideSpotId == default)
+            return false;
+
+        if (!Runner.TryFindObject(NetCurrentHideSpotId, out NetworkObject hideSpotObject))
+            return false;
+
+        if (hideSpotObject == null)
+            return false;
+
+        hideSpot = hideSpotObject.GetComponent<HideSpotInteractable>();
+        return hideSpot != null;
     }
 
     private bool EnsureRightHandEmpty()
@@ -325,6 +633,31 @@ public class PlayerController : NetworkBehaviour, IInteractable
         return transform.position +
                transform.forward * rightHandDropForwardOffset +
                Vector3.up * rightHandDropUpOffset;
+    }
+
+    private Vector3 GetLeftHandDropPosition()
+    {
+        return transform.position +
+               transform.forward * leftHandDropForwardOffset +
+               transform.right * leftHandDropSideOffset +
+               Vector3.up * leftHandDropUpOffset;
+    }
+
+    private void ApplyImmediateTraumaOnCapture()
+    {
+        NetCaptureCount += 1;
+        NetAftereffectPercent += GetBaseTraumaPenalty(NetCaptureCount);
+    }
+
+    private float GetBaseTraumaPenalty(int captureCount)
+    {
+        if (captureCount <= 1)
+            return traumaPenaltyCapture1;
+
+        if (captureCount == 2)
+            return traumaPenaltyCapture2;
+
+        return traumaPenaltyCapture3Plus;
     }
 
     private Vector3 GetServerInteractionOrigin()
@@ -382,5 +715,25 @@ public class PlayerController : NetworkBehaviour, IInteractable
         float allowedSqrDistance = maxDistance * maxDistance + 0.25f;
 
         return sqrDistance <= allowedSqrDistance;
+    }
+
+    private void MovePlayerToWorldPose(Vector3 worldPosition, Quaternion worldRotation)
+    {
+        if (KCCMotor != null)
+        {
+            KCCMotor.WarpToPose(worldPosition, worldRotation);
+            return;
+        }
+
+        transform.SetPositionAndRotation(worldPosition, worldRotation);
+
+        Rigidbody body = GetComponent<Rigidbody>();
+        if (body != null)
+        {
+            body.position = worldPosition;
+            body.rotation = worldRotation;
+            body.linearVelocity = Vector3.zero;
+            body.angularVelocity = Vector3.zero;
+        }
     }
 }

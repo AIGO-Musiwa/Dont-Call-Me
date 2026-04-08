@@ -35,6 +35,9 @@ public class PlayerKCCMotor : MonoBehaviour
     public float StandHeight => standHeight;
     public float CrouchHeight => crouchHeight;
 
+    /// <summary>
+    /// 플레이어 컨트롤러와 KCC를 연결하고 초기 중력/높이를 세팅한다.
+    /// </summary>
     public void Initialize(PlayerController controller)
     {
         _controller = controller;
@@ -46,12 +49,7 @@ public class PlayerKCCMotor : MonoBehaviour
 
         if (_simpleKCC != null)
         {
-            // SetGravity는 float 하나를 받음
-            // 내부에서 Vector3.up * gravity로 처리하므로
-            // 아래 방향 중력을 원하면 음수값을 넘겨야 함
             _simpleKCC.SetGravity(Physics.gravity.y * gravityMultiplier);
-
-            // 시작 높이 설정
             _simpleKCC.SetHeight(standHeight);
         }
 
@@ -59,34 +57,106 @@ public class PlayerKCCMotor : MonoBehaviour
         _initialized = true;
     }
 
+    /// <summary>
+    /// 입력을 받아 시야 / 높이 / 이동을 적용한다.
+    /// 메인 상태와 은신 상태에 따라 이동 가능 여부를 제한한다.
+    /// </summary>
     public void Simulate(PlayerNetworkInput input, bool movementLocked, bool lookLocked)
     {
         if (!_initialized || _simpleKCC == null)
             return;
 
-        // 1) Look 처리
         if (!lookLocked)
         {
-            Vector2 lookDelta = new Vector2(
-                -input.LookInput.y * lookSensitivity,
-                 input.LookInput.x * lookSensitivity
-            );
-
-            _simpleKCC.AddLookRotation(lookDelta, pitchMin, pitchMax);
+            ApplyLook(input);
         }
 
-        // 2) Crouch 처리
-        bool wantsCrouch = !movementLocked && input.Buttons.IsSet(InputButtons.Crouch);
+        bool canMove = CanMove(movementLocked);
+        UpdateCrouchState(input, canMove);
+        ApplyMove(input, canMove);
+    }
+
+    /// <summary>
+    /// 지정한 월드 위치/회전으로 KCC를 즉시 워프한다.
+    /// 위치는 SimpleKCC 기준으로 동기화하고, 회전은 현재 pitch를 유지한 채 yaw만 맞춘다.
+    /// </summary>
+    public void WarpToPose(Vector3 worldPosition, Quaternion worldRotation)
+    {
+        if (!_initialized || _simpleKCC == null)
+        {
+            transform.SetPositionAndRotation(worldPosition, worldRotation);
+
+            if (_rigidbody != null)
+            {
+                _rigidbody.position = worldPosition;
+                _rigidbody.rotation = worldRotation;
+                _rigidbody.linearVelocity = Vector3.zero;
+                _rigidbody.angularVelocity = Vector3.zero;
+            }
+
+            return;
+        }
+
+        Vector2 currentLook = _simpleKCC.GetLookRotation(true, true);
+        float preservedPitch = currentLook.x;
+        float targetYaw = NormalizeSignedAngle(worldRotation.eulerAngles.y);
+
+        _simpleKCC.SetPosition(worldPosition);
+        _simpleKCC.SetLookRotation(preservedPitch, targetYaw);
+
+        if (_rigidbody != null)
+        {
+            _rigidbody.linearVelocity = Vector3.zero;
+            _rigidbody.angularVelocity = Vector3.zero;
+        }
+    }
+
+    /// <summary>
+    /// 0~360도 각도를 -180~180 범위의 signed 각도로 변환한다.
+    /// </summary>
+    private float NormalizeSignedAngle(float angle)
+    {
+        if (angle > 180f)
+            angle -= 360f;
+
+        return angle;
+    }
+
+    /// <summary>
+    /// 마우스 입력을 사용해 KCC LookRotation을 갱신한다.
+    /// </summary>
+    private void ApplyLook(PlayerNetworkInput input)
+    {
+        Vector2 lookDelta = new Vector2(
+            -input.LookInput.y * lookSensitivity,
+             input.LookInput.x * lookSensitivity
+        );
+
+        _simpleKCC.AddLookRotation(lookDelta, pitchMin, pitchMax);
+    }
+
+    /// <summary>
+    /// 상태와 입력을 기준으로 crouch 여부와 KCC 높이를 갱신한다.
+    /// </summary>
+    private void UpdateCrouchState(PlayerNetworkInput input, bool canMove)
+    {
+        bool wantsCrouch = canMove && input.Buttons.IsSet(InputButtons.Crouch);
+
         if (wantsCrouch != _isCrouching)
         {
             _isCrouching = wantsCrouch;
             _simpleKCC.SetHeight(_isCrouching ? crouchHeight : standHeight);
         }
+    }
 
-        // 3) Move 처리
+    /// <summary>
+    /// 현재 입력과 상태를 기준으로 이동 속도를 계산해 KCC에 적용한다.
+    /// </summary>
+    private void ApplyMove(PlayerNetworkInput input, bool canMove)
+    {
         Vector3 moveVelocity = Vector3.zero;
 
-        if (!movementLocked)
+        if (canMove)
         {
             float speed = GetCurrentSpeed(input);
 
@@ -99,10 +169,32 @@ public class PlayerKCCMotor : MonoBehaviour
             moveVelocity = moveDirection * speed;
         }
 
-        // Move(Vector3, float)
         _simpleKCC.Move(moveVelocity, 0f);
     }
 
+    /// <summary>
+    /// 현재 상태에서 이동이 가능한지 판단한다.
+    /// </summary>
+    private bool CanMove(bool movementLocked)
+    {
+        if (_controller == null)
+            return !movementLocked;
+
+        if (movementLocked)
+            return false;
+
+        if (_controller.NetPlayerState != PlayerState.Normal)
+            return false;
+
+        if (_controller.NetHideState != HideState.None)
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// 현재 입력 상태에 맞는 이동 속도를 반환한다.
+    /// </summary>
     private float GetCurrentSpeed(PlayerNetworkInput input)
     {
         if (_isCrouching)

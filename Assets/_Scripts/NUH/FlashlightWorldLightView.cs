@@ -12,7 +12,7 @@ public class FlashlightWorldLightView : MonoBehaviour
             ownerItem = GetComponent<FlashLightItem>();
 
         if (worldLight == null) 
-            GetComponentInChildren<Light>(true);
+            worldLight =  GetComponentInChildren<Light>(true);
     }
 
     private void LateUpdate()
