@@ -16,12 +16,18 @@ public class ItemObject : NetworkBehaviour, IInteractable
     protected Collider[] _colliders;
     protected Rigidbody _rigidbody;
 
+    /// <summary>
+    /// 아이템의 Collider / Rigidbody 참조를 캐싱한다.
+    /// </summary>
     protected virtual void Awake()
     {
         _colliders = GetComponentsInChildren<Collider>(true);
         _rigidbody = GetComponent<Rigidbody>();
     }
 
+    /// <summary>
+    /// 네트워크 스폰 시 아이템 기본 네트워크 상태를 초기화한다.
+    /// </summary>
     public override void Spawned()
     {
         if (HasStateAuthority)
@@ -35,26 +41,37 @@ public class ItemObject : NetworkBehaviour, IInteractable
         ApplyPresentationState();
     }
 
+    /// <summary>
+    /// 렌더 단계에서 아이템의 월드/장착 표현 상태를 반영한다.
+    /// </summary>
     public override void Render()
     {
         ApplyPresentationState();
     }
 
+    /// <summary>
+    /// 현재 플레이어가 이 아이템을 상호작용 가능한지 검사한다.
+    /// </summary>
     public virtual bool CanInteract(PlayerController actor)
     {
         if (actor == null)
             return false;
 
-        if (actor.NetPlayerState != PlayerState.Alive)
+        if (actor.NetPlayerState != PlayerState.Normal)
             return false;
 
-        // 이미 누가 들고 있는 월드 아이템은 직접 줍지 못함
+        if (actor.NetHideState != HideState.None)
+            return false;
+
         if (NetIsEquipped)
             return false;
 
         return true;
     }
 
+    /// <summary>
+    /// 아이템 상호작용이 성립하면 서버가 플레이어 오른손 장착을 시도한다.
+    /// </summary>
     public virtual void Interact(PlayerController actor)
     {
         if (!HasStateAuthority)
@@ -66,6 +83,9 @@ public class ItemObject : NetworkBehaviour, IInteractable
         actor.ServerTryPickupRightHand(this);
     }
 
+    /// <summary>
+    /// 현재 아이템 상호작용 프롬프트 문구를 반환한다.
+    /// </summary>
     public virtual string GetPromptText(PlayerController actor)
     {
         if (actor != null && actor.NetRightHandItem != null)
@@ -74,6 +94,9 @@ public class ItemObject : NetworkBehaviour, IInteractable
         return "줍기";
     }
 
+    /// <summary>
+    /// 아이템이 플레이어 슬롯에 장착될 때 호출된다.
+    /// </summary>
     public virtual void OnEquipped(PlayerController holder)
     {
         if (!HasStateAuthority || holder == null)
@@ -91,8 +114,8 @@ public class ItemObject : NetworkBehaviour, IInteractable
     }
 
     /// <summary>
-    /// 내부 상태만 "드랍된 상태"로 정리한다.
-    /// 실제 위치 이동/물리 힘 적용은 하지 않는다.
+    /// 내부 상태만 드랍 상태로 정리한다.
+    /// 실제 이동과 물리 적용은 별도 함수에서 처리한다.
     /// </summary>
     protected virtual void ApplyDroppedState()
     {
@@ -105,8 +128,7 @@ public class ItemObject : NetworkBehaviour, IInteractable
     }
 
     /// <summary>
-    /// 실제 월드 드랍 처리.
-    /// 내부 드랍 상태 정리 후 위치/회전/물리 힘을 적용한다.
+    /// 월드 위치로 아이템을 드랍하고 초기 속도/힘을 적용한다.
     /// </summary>
     public virtual void OnDropped(Vector3 worldPosition, Vector3 worldForward, float impulse)
     {
@@ -128,9 +150,11 @@ public class ItemObject : NetworkBehaviour, IInteractable
         }
     }
 
+    /// <summary>
+    /// 장착 여부에 따라 Collider / Rigidbody 표현 상태를 갱신한다.
+    /// </summary>
     protected virtual void ApplyPresentationState()
     {
-        // attach 안 된 시점 방어
         if (Object == null || !Object.IsValid)
             return;
 
@@ -138,7 +162,6 @@ public class ItemObject : NetworkBehaviour, IInteractable
 
         if (_rigidbody != null)
         {
-            // 표현 단계에서는 isKinematic만 맞추기 / velocity 여기서 건드리지 않기
             if (_rigidbody.isKinematic != equipped)
                 _rigidbody.isKinematic = equipped;
         }
