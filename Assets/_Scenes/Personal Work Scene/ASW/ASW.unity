@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0, g: 0, b: 0, a: 1}
-  m_SkyboxMaterial: {fileID: 0}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -14654,7 +14654,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c22777d6e868e4f2fb421913386b154e, type: 2}
+  - {fileID: 2100000, guid: 212ba45726c70c44e8d7b95d56e5d338, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -36414,7 +36414,7 @@ Transform:
   m_GameObject: {fileID: 260340793}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1, y: 1.6, z: 24}
+  m_LocalPosition: {x: -11, y: 8.4, z: 36}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -62783,6 +62783,72 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1001 &497817132
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1632354295}
+    m_Modifications:
+    - target: {fileID: 13387870213881929, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -11
+      objectReference: {fileID: 0}
+    - target: {fileID: 13387870213881929, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 13387870213881929, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -11
+      objectReference: {fileID: 0}
+    - target: {fileID: 13387870213881929, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 13387870213881929, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 13387870213881929, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 13387870213881929, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 13387870213881929, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 13387870213881929, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 13387870213881929, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3803839711681771849, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+      propertyPath: m_Name
+      value: Item_FlashLight
+      objectReference: {fileID: 0}
+    - target: {fileID: 8306845425981146657, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+      propertyPath: SortKey
+      value: 136247361
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+--- !u!4 &497817133 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 13387870213881929, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
+  m_PrefabInstance: {fileID: 497817132}
+  m_PrefabAsset: {fileID: 0}
 --- !u!43 &499441106
 Mesh:
   m_ObjectHideFlags: 0
@@ -69047,7 +69113,7 @@ GameObject:
   m_Component:
   - component: {fileID: 553313042}
   m_Layer: 0
-  m_Name: PlayerStart
+  m_Name: "2\uB3D9_PlayerStart"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -109386,7 +109452,7 @@ GameObject:
   m_Component:
   - component: {fileID: 875406339}
   m_Layer: 0
-  m_Name: PlayerStart
+  m_Name: "1\uB3D9_PlayerStart"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -218551,6 +218617,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 875406339}
+  - {fileID: 497817133}
   - {fileID: 1419040945}
   - {fileID: 83795274}
   - {fileID: 468137253}
@@ -269565,7 +269632,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ZoneDistributor
   playerPrefab: {fileID: 3346838686624773243, guid: b5bea78e12085124caa7c87a5cea30b6, type: 3}
   zoneASpawnPoint: {fileID: 875406339}
-  zoneBSpawnPoint: {fileID: 774321615}
+  zoneBSpawnPoint: {fileID: 553313042}
   requiredPlayers: 1
 --- !u!4 &2049478433
 Transform:
