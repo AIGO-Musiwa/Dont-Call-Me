@@ -193,7 +193,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 2.5, z: 0}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 7925829034414503186}
@@ -403,6 +403,8 @@ MonoBehaviour:
   - {fileID: 0}
   patrolSpeed: 10
   searchDuration: 2
+  searchSweepAngle: 120
+  searchSweepSpeed: 4
   chaseSpeed: 16
   captureDistance: 2.5
   playerRespawnPoint: {fileID: 0}
@@ -1679,8 +1681,8 @@ Transform:
   m_GameObject: {fileID: 6564590123828667936}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -1.25, z: 0}
-  m_LocalScale: {x: 0.12, y: 0.12, z: 0.12}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 7067953664760160479}
