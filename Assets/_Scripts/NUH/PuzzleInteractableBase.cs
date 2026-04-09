@@ -18,7 +18,7 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     public virtual bool CanInteract(PlayerController actor)
     {
         if (actor == null) return false;
-        if (actor.NetPlayerState != PlayerState.Alive) return false;
+        if (actor.NetPlayerState != PlayerState.Normal) return false;
         return CanInteractInternal(actor);
     }
 

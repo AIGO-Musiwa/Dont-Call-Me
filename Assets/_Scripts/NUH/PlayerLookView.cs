@@ -10,10 +10,10 @@ public class PlayerLookView : MonoBehaviour
     [Header("View")]
     [SerializeField] private float eyeOffset = 0.1f;
     [SerializeField] private bool lockCursorForLocalPlayer = true;
+    [SerializeField] private float capturedEyeHeight = 0.45f;
 
     private PlayerController _controller;
     private PlayerKCCMotor _motor;
-
 
     public Camera ViewCamera => playerCamera;
     public Transform ViewOrigin => playerCamera != null ? playerCamera.transform : cameraHolder;
@@ -24,7 +24,6 @@ public class PlayerLookView : MonoBehaviour
         _motor = controller != null ? controller.KCCMotor : null;
 
         ResolveReferences();
-
         ApplyAuthorityOnlyPresentation();
         ValidateSetup();
     }
@@ -34,14 +33,7 @@ public class PlayerLookView : MonoBehaviour
         if (!IsReady())
             return;
 
-        // 1) 공용 표현
-        // - 모든 클라이언트에서 cameraHolder pitch / height 갱신
-        // - 원격 플레이어의 라이트 방향도 이 pose를 따라가야 함
         ApplySharedLookPose();
-
-        // 2) 로컬 전용 표현
-        // - 카메라 enable
-        // - 커서 잠금
         ApplyAuthorityOnlyPresentation();
     }
 
@@ -86,8 +78,15 @@ public class PlayerLookView : MonoBehaviour
 
     private float GetCurrentEyeHeight()
     {
-        // 현재 구조 기준으로는 motor의 crouch 상태를 사용
-        // 나중에 원격 crouch까지 더 정확히 맞추고 싶으면 crouch 상태를 렌더 가능한 값으로 분리하는게 더 안전함
+        if (_controller != null)
+        {
+            if (_controller.NetHideState == HideState.Desk)
+                return _motor.CrouchHeight - eyeOffset;
+
+            if (_controller.NetPlayerState == PlayerState.Captured && _controller.NetCapturePhase == CapturePhase.Active)
+                return capturedEyeHeight;
+        }
+
         bool isCrouching = _motor.IsCrouching;
         float baseHeight = isCrouching ? _motor.CrouchHeight : _motor.StandHeight;
         return baseHeight - eyeOffset;
@@ -96,13 +95,14 @@ public class PlayerLookView : MonoBehaviour
     private void ApplyAuthorityOnlyPresentation()
     {
         bool hasInputAuthority = _controller != null && _controller.HasInputAuthority;
+        bool shouldEnableFirstPersonCamera = hasInputAuthority && (_controller == null || !_controller.IsSpectatorState());
 
         if (playerCamera != null)
-            playerCamera.enabled = hasInputAuthority;
+            playerCamera.enabled = shouldEnableFirstPersonCamera;
 
         if (!lockCursorForLocalPlayer)
             return;
-        
+
         if (hasInputAuthority)
         {
             Cursor.lockState = CursorLockMode.Locked;
