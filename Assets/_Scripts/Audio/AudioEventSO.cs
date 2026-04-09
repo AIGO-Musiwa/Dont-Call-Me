@@ -4,7 +4,7 @@ using UnityEngine.Audio;
 /// <summary>
 /// 클립 데이터와 재생 튜닝 값을 하나로 묶어 관리
 /// </summary>
-[CreateAssetMenu(fileName = "NewAudioEvent", menuName = "System/Audio Cartridge")]
+[CreateAssetMenu(fileName = "NewAudioEvent", menuName = "AudioSO/Audio Cartridge")]
 public class AudioEventSO : ScriptableObject
 {
     [Header("사운드 에셋 (배열 셔플 지원)")]
