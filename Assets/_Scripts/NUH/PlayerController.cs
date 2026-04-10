@@ -71,6 +71,12 @@ public class PlayerController : NetworkBehaviour, IInteractable
     private int _lastInteractRequestTick = -1;
     private bool _prevWalkiePressed;
 
+
+
+
+    // 테스트용 임시 포획 Anchor
+    [SerializeField] private Transform debugCaptureAnchor;
+
     public override void Spawned()
     {
         KCCMotor = GetComponent<PlayerKCCMotor>();
@@ -103,8 +109,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
             NetLeftHandItem = default;
             NetRightHandItem = default;
 
-            NetMovementLocked = false;
-            NetLookLocked = false;
+            SetInputLock(false, false);
+            //NetMovementLocked = false;
+            //NetLookLocked = false;
         }
 
         var bodySync = GetComponent<PlayerBodySync>();
@@ -479,37 +486,52 @@ public class PlayerController : NetworkBehaviour, IInteractable
         ServerTryPickupRightHand(item);
     }
 
+    /// <summary>
+    /// 플레이어 상호작용이 가능한지 검사
+    /// 우선순위
+    /// 1. 대상이 Captured + Active면 구출 가능 여부 검사
+    /// 2. 오른손 아이템 탈취 가능 여부 검사
+    /// </summary>
     public bool CanInteract(PlayerController actor)
     {
-        if (actor == null || actor == this)
-            return false;
+        if (CanBeRescuedBy(actor))
+            return true;
 
-        if (!actor.CanUseGameplayInput())
-            return false;
+        if (CanBeStolenFromBy(actor))
+            return true;
 
-        if (!CanUseGameplayInput())
-            return false;
-
-        return NetRightHandItem != null;
+        return false;
     }
 
+    /// <summary>
+    /// 플레이어 상호작용이 실제로 성립했을 때 서버에서 실행
+    /// </summary>
     public void Interact(PlayerController actor)
     {
         if (!HasStateAuthority)
             return;
 
-        if (!CanInteract(actor))
+        if (CanBeRescuedBy(actor))
+        {
+            ServerTryRescueBy(actor);
             return;
+        }
 
-        actor.ServerTryTakeRightHandFrom(this);
+        if (CanBeStolenFromBy(actor))
+        {
+            actor.ServerTryTakeRightHandFrom(this);
+        }
     }
 
     public string GetPromptText(PlayerController actor)
     {
-        if (!CanInteract(actor))
-            return string.Empty;
+        if (CanBeRescuedBy(actor))
+            return "구출하기";
 
-        return "오른손 아이템 뺏기";
+        if (CanBeStolenFromBy(actor))
+            return "오른손 아이템 뺏기";
+
+        return string.Empty;
     }
 
     public bool ServerEnterCaptured(Vector3 captureAnchorPosition, Quaternion captureAnchorRotation)
@@ -529,8 +551,10 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureTransitionTimer = TickTimer.CreateFromSeconds(Runner, captureTransitionSeconds);
         NetCaptureExpireTimer = TickTimer.None;
 
-        NetMovementLocked = true;
-        NetLookLocked = false;
+
+        SetInputLock(true, false);
+        //NetMovementLocked = true;
+        //NetLookLocked = false;
 
         ServerForceDropAllHeldItems();
         ApplyImmediateTraumaOnCapture();
@@ -607,10 +631,67 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCapturePhase = CapturePhase.None;
         NetCaptureTransitionTimer = TickTimer.None;
         NetCaptureExpireTimer = TickTimer.None;
-        NetMovementLocked = false;
-        NetLookLocked = false;
+        SetInputLock(false, false);
+        //NetMovementLocked = false;
+        //NetLookLocked = false;
 
         return true;
+    }
+
+
+    /// <summary>
+    /// 현재 플레이어가 다른 플레이어에게 구출될 수 있는지 검사
+    /// 대상은 Captured + Active 상태여야 하고
+    /// 구출자는 Normal 상태에서 일반 입력이 가능해야 한다.
+    /// </summary>
+    public bool CanBeRescuedBy(PlayerController actor)
+    {
+        if (actor == null || actor == this)
+            return false;
+
+        if (!actor.CanUseGameplayInput())
+            return false;
+
+        if (NetPlayerState != PlayerState.Captured)
+            return false;
+
+        if (NetCapturePhase != CapturePhase.Active)
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// 현재 플레이어가 다른 플레이어에게 오른손 아이템을 탈취당할 수 있는지 검사
+    /// 기존 플레이어 상호작용의 탈취 조건을 별도 함수로 분리
+    /// </summary>
+    private bool CanBeStolenFromBy(PlayerController actor)
+    {
+        if (actor == null || actor == this)
+            return false;
+
+        if (!actor.CanUseGameplayInput())
+            return false;
+
+        if (!CanUseGameplayInput())
+            return false;
+
+        return NetRightHandItem != null;
+    }
+
+    /// <summary>
+    /// 서버에서 실제 구출을 실행
+    /// 조건이 맞으면 Captured 상태를 해제하고 Normal 상태로 복귀
+    /// </summary>
+    public bool ServerTryRescueBy(PlayerController actor)
+    {
+        if (!HasStateAuthority)
+            return false;
+
+        if (!CanBeRescuedBy(actor))
+            return false;
+
+        return ServerExitCapturedToNormal();
     }
 
     public void ServerEnterDead()
@@ -827,5 +908,53 @@ public class PlayerController : NetworkBehaviour, IInteractable
             body.linearVelocity = Vector3.zero;
             body.angularVelocity = Vector3.zero;
         }
+    }
+
+    /// <summary>
+    /// 플레이 모드에서 인스펙터 컨텍스트 메뉴로 강제 포획 테스트를 실행한다.
+    /// debugCaptureAnchor가 있으면 그 위치/회전을 사용하고,
+    /// 없으면 현재 플레이어 위치/회전을 사용한다.
+    /// </summary>
+    [ContextMenu("Debug/Force Capture")]
+    private void DebugForceCapture()
+    {
+        if (!Application.isPlaying)
+        {
+            Debug.LogWarning("[PlayerController] 플레이 모드에서만 테스트할 수 있습니다.", this);
+            return;
+        }
+
+        if (!HasStateAuthority)
+        {
+            Debug.LogWarning("[PlayerController] StateAuthority가 아닌 객체는 강제 포획 테스트를 실행할 수 없습니다.", this);
+            return;
+        }
+
+        Vector3 targetPosition = debugCaptureAnchor != null ? debugCaptureAnchor.position : transform.position;
+        Quaternion targetRotation = debugCaptureAnchor != null ? debugCaptureAnchor.rotation : transform.rotation;
+
+        ServerEnterCaptured(targetPosition, targetRotation);
+    }
+
+    /// <summary>
+    /// 플레이 모드에서 인스펙터 컨텍스트 메뉴로 강제 구출 테스트를 실행한다.
+    /// Captured 상태일 때 Normal 상태로 즉시 복귀시킨다.
+    /// </summary>
+    [ContextMenu("Debug/Force Rescue")]
+    private void DebugForceRescue()
+    {
+        if (!Application.isPlaying)
+        {
+            Debug.LogWarning("[PlayerController] 플레이 모드에서만 테스트할 수 있습니다.", this);
+            return;
+        }
+
+        if (!HasStateAuthority)
+        {
+            Debug.LogWarning("[PlayerController] StateAuthority가 아닌 객체는 강제 구출 테스트를 실행할 수 없습니다.", this);
+            return;
+        }
+
+        ServerExitCapturedToNormal();
     }
 }
