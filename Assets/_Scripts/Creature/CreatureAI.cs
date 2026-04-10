@@ -1,9 +1,7 @@
 using Fusion;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.InputSystem;
 using Random = UnityEngine.Random;
 
 public class CreatureAI : NetworkBehaviour
@@ -11,6 +9,9 @@ public class CreatureAI : NetworkBehaviour
     [Header("현 상태 및 타겟")]
     [Networked] public CreatureState currentState { get; set; }
     public Transform player;
+
+    [Header("소속 구역 설정")]
+    public Zone myZone;
 
     [Header("층별 순찰 지점 (Waypoints)")]
     public Transform[] waypoints1F;
@@ -70,6 +71,7 @@ public class CreatureAI : NetworkBehaviour
     {
         //agent 컴포넌트 초기화
         agent = GetComponent<NavMeshAgent>();
+        //playerController = FindAnyObjectByType<PlayerController>();
         player = null;
 
         if (Object.HasStateAuthority)
@@ -91,12 +93,12 @@ public class CreatureAI : NetworkBehaviour
             }
         }
 
-        //PlayerController를 찾아 타겟 할당
-        if (player == null)
-        {
-            PlayerController foundPlayerScript = FindAnyObjectByType<PlayerController>();
-            if (foundPlayerScript != null) player = foundPlayerScript.transform;
-        }
+        ////PlayerController를 찾아 타겟 할당
+        //if (player == null)
+        //{
+        //    PlayerController foundPlayerScript = FindAnyObjectByType<PlayerController>();
+        //    if (foundPlayerScript != null) player = foundPlayerScript.transform;
+        //}
 
         //기본 시야로 초기화
         SetNormalSight();
@@ -135,28 +137,35 @@ public class CreatureAI : NetworkBehaviour
             return;
         }
 
-        //플레이어가 없으면 씬에서 다시 찾아 할당
-        if (player == null)
-        {
-            PlayerController foundPlayerScript = FindAnyObjectByType<PlayerController>();
-            if (foundPlayerScript != null && foundPlayerScript.gameObject.scene.IsValid()) player = foundPlayerScript.transform;
-        }
+        //씬에 있는 모든 플레이어를 찾아 가져옴
+        PlayerController[] allPlayer = FindObjectsByType<PlayerController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
 
-        //플레이어를 찾은 상태인 경우 거리 계산 및 시야 체크
-        if (player != null)
+        //모든 플레이어 중 가장 가깝고 고전에 맞는 플레이어를 찾음
+        foreach (PlayerController p in allPlayer)
         {
+            //크리쳐 담당 구역과 플레이어 소속 구역이 다르면 무시
+            if (p.NetZone != this.myZone) continue;
+
+            //플레이어가 죽었거나, 탈출했거나, 포획 중이거나, 캐비닛에 숨어 있으면 무시
+            if (p.NetPlayerState != PlayerState.Normal || p.NetHideState != HideState.None) continue;
+
             //평면 거리 계산
             Vector3 flatCreaturePos = new Vector3(transform.position.x, 0, transform.position.z);
-            Vector3 flatPlayerPos = new Vector3(player.position.x, 0, player.position.z);
+            Vector3 flatPlayerPos = new Vector3(p.transform.position.x, 0, p.transform.position.z);
             float currentFlatDistance = Vector3.Distance(flatCreaturePos, flatPlayerPos);
 
             //높이 차이 계산
-            float yDiff = Mathf.Abs(transform.position.y - player.position.y);
+            float yDiff = Mathf.Abs(transform.position.y - p.transform.position.y);
 
             //거리가 가깝고 같은 층일 때 포획 발동
             if (currentFlatDistance <= captureDistance && yDiff < 2.0f && currentState != CreatureState.Capture)
             {
+                player = p.transform;
                 Debug.Log($"크리처: 잡았다. (평면 거리: {currentFlatDistance:F2}m, 높이 차이: {yDiff:F2}m)");
+
+                //PlayerController 포획 함수 호출
+                p.ServerEnterCaptured(playerRespawnPoint.position, playerRespawnPoint.rotation);
+
                 currentState = CreatureState.Capture;
                 captureTimer = 0f;
                 isTeleportDone = false;
@@ -166,17 +175,30 @@ public class CreatureAI : NetworkBehaviour
                 agent.velocity = Vector3.zero;
                 return;
             }
+        }
 
             //이미 추적 상태인 경우를 제외하고 시야 체크
-            if (currentState != CreatureState.Chaser)
+        if (currentState != CreatureState.Chaser)
+        {
+            foreach (PlayerController p in allPlayer)
             {
-                if (CheckLineOfSight())
+                if (p.NetZone != this.myZone) continue;
+
+                if (p.NetPlayerState != PlayerState.Normal || p.NetHideState != HideState.None) continue;
+
+                //시야에 보인 플레이어 체크
+                if (CheckLineOfSight(p.transform))
                 {
+                    player = p.transform;
                     currentState = CreatureState.Chaser;
+
+                    //추격 시 시야 거리 및 각도 증가
+                    SetChaseSight();
                     agent.speed = chaseSpeed;
                     lastKnownPosition = player.position;
+                    break;
                 }
-            }
+            }            
         }
 
         //현재 상태에 따라 행동을 결정
@@ -223,12 +245,12 @@ public class CreatureAI : NetworkBehaviour
         currentFieldOfView = chaseFieldOfView; 
     }
 
-    bool CheckLineOfSight()
+    bool CheckLineOfSight(Transform target)
     {
-        //player null 체크
-        if (player == null) return false;
-        Vector3 directionToPlayer = (player.position - transform.position).normalized;
-        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+        //target null 체크
+        if (target == null) return false;
+        Vector3 directionToPlayer = (target.position - transform.position).normalized;
+        float distanceToPlayer = Vector3.Distance(transform.position, target.position);
 
         //플레이어가 시야 거리 내에 있는지 확인
         if (distanceToPlayer <= currentSightDistance)
@@ -237,11 +259,15 @@ public class CreatureAI : NetworkBehaviour
             if (angle <= currentFieldOfView / 2f)
             {
                 Vector3 eyePosition = transform.position + Vector3.up * eyeHeight;
-                Vector3[] targetPoints = { player.position + Vector3.up * 1.6f, player.position + Vector3.up * 1.0f, player.position + Vector3.up * 0.2f };
+                Vector3[] targetPoints = { 
+                    target.position + Vector3.up * 1.6f, 
+                    target.position + Vector3.up * 1.0f, 
+                    target.position + Vector3.up * 0.2f 
+                };
 
-                foreach (Vector3 target in targetPoints)
+                foreach (Vector3 targetPlayer in targetPoints)
                 {
-                    Vector3 dirtoTarget = (target - eyePosition).normalized;
+                    Vector3 dirtoTarget = (targetPlayer - eyePosition).normalized;
                     if (!Physics.Raycast(eyePosition, dirtoTarget, distanceToPlayer, obstaclMask)) return true;
                 }
             }
@@ -304,7 +330,7 @@ public class CreatureAI : NetworkBehaviour
 
     private void UpdateChaser()
     {
-        if (CheckLineOfSight())
+        if (player != null && CheckLineOfSight(player))
         {
             lastKnownPosition = player.position;
             agent.SetDestination(lastKnownPosition);
@@ -318,6 +344,9 @@ public class CreatureAI : NetworkBehaviour
                 currentState = CreatureState.Search;
                 currentSearchTime = 0f;
                 agent.speed = patrolSpeed;
+                
+                //놓쳤으므로 null로 Player 초기화
+                player = null;
             }
         }
     }
@@ -330,7 +359,7 @@ public class CreatureAI : NetworkBehaviour
             Vector3 direction = (player.position - transform.position).normalized;
             direction.y = 0f;
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), Runner.DeltaTime * 5f);
-        }
+        }        
 
         //포획 타이머 계산
         captureTimer += Runner.DeltaTime;
@@ -338,17 +367,17 @@ public class CreatureAI : NetworkBehaviour
         {
             isTeleportDone = true;
 
-            //플레이어 텔레포트 적용
-            PlayerKCCMotor playerMotor = player.GetComponentInParent<PlayerKCCMotor>();
-            if (playerMotor == null) playerMotor = player.GetComponentInChildren<PlayerKCCMotor>();
+            ////플레이어 텔레포트 적용
+            //PlayerKCCMotor playerMotor = player.GetComponentInParent<PlayerKCCMotor>();
+            //if (playerMotor == null) playerMotor = player.GetComponentInChildren<PlayerKCCMotor>();
 
-            if (playerMotor != null && playerMotor.KCC != null)
-            {
-                playerMotor.KCC.SetPosition(playerRespawnPoint.position);
-                playerMotor.KCC.SetLookRotation(playerRespawnPoint.rotation.eulerAngles.x, playerRespawnPoint.rotation.eulerAngles.y);
-                playerMotor.transform.position = playerRespawnPoint.position;
-                playerMotor.transform.rotation = playerRespawnPoint.rotation;
-            }
+            //if (playerMotor != null && playerMotor.KCC != null)
+            //{
+            //    playerMotor.KCC.SetPosition(playerRespawnPoint.position);
+            //    playerMotor.KCC.SetLookRotation(playerRespawnPoint.rotation.eulerAngles.x, playerRespawnPoint.rotation.eulerAngles.y);
+            //    playerMotor.transform.position = playerRespawnPoint.position;
+            //    playerMotor.transform.rotation = playerRespawnPoint.rotation;
+            //}
 
             //크리처 리스폰 지점 설정 및 텔레포트 적용
             int currentFloor = GetCurrentFloor();
