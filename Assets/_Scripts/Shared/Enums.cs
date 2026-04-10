@@ -59,12 +59,10 @@ public enum CreatureState
 // ── 소리 ──────────────────────────────────────────────────
 
 // 크리쳐 감지용 소리 종류
-public enum SoundType
+public enum SoundChannel
 {
-    Footstep,           // 발소리
-    Voice,              // 말소라 (마이크 입력)
-    WalkieTalkie,       // 무전기 소리 + 전자음
-    Items,              // 그 외 아이템에서 나는 소리
+    Natural,    // 플레이어 음성, 이동음
+    Walkie,     // PTT 음성, 화이트 노이즈, 라디오 유인음, 퍼즐 실패음
 }
 
 // ── 아이템 ────────────────────────────────────────────────
