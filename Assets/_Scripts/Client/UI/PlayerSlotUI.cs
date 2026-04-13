@@ -15,7 +15,7 @@ public class PlayerSlotUI : MonoBehaviour
     [SerializeField] private Image micIcon;
 
     // ── 내부 ──────────────────────────────────────────────
-    private PlayerLobbyData _boundPlayer;
+    private PlayerData _boundPlayer;
 
     private void Start()
     {
@@ -25,7 +25,7 @@ public class PlayerSlotUI : MonoBehaviour
     #region 외부 공개 메서드
 
     // 슬롯에 플레이어 데이터 바인딩 후 UI 갱신
-    public void SetPlayer(PlayerLobbyData data)
+    public void SetPlayer(PlayerData data)
     {
         _boundPlayer = data;
 

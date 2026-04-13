@@ -87,7 +87,6 @@ public class ZoneDistributor : NetworkBehaviour
             Quaternion spawnRot = spawnPoint != null ? spawnPoint.rotation : Quaternion.identity;
 
             var obj = Runner.Spawn(playerPrefab, spawnPos, spawnRot, players[i]);
-            Runner.SetPlayerObject(players[i], obj);
 
             // PlayerController에 구역 / 역할 설정
             var pc = obj.GetComponent<PlayerController>();
@@ -106,6 +105,13 @@ public class ZoneDistributor : NetworkBehaviour
             {
                 Debug.LogWarning($"[ZoneDistributor] PlayerController를 찾을 수 없습니다: {players[i]}");
             }
+
+            // PlayerData에 PlayerController NetworkId 연결
+            var data = Runner.GetPlayerObject(players[i])?.GetComponent<PlayerData>();
+            if (data != null)
+                data.PlayerControllerNetId = obj.Id;
+            else
+                Debug.LogWarning($"[ZoneDistributor] PlayerData를 찾을 수 없습니다: {players[i]}");
 
             _playerZoneMap[players[i]] = zone;
             _playerRoleMap[players[i]] = role;

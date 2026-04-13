@@ -39,7 +39,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [SerializeField] private float traumaDeathThreshold = 100f;
     [SerializeField] private float rescueBaseTimeSeconds = 100f;
 
-    [Networked] public PlayerState NetPlayerState { get; set; }
+    public PlayerState NetPlayerState { get; set; }
     [Networked] public PlayerRole NetPlayerRole { get; set; }
     [Networked, OnChangedRender(nameof(OnZoneChanged))]
     public Zone NetZone { get; set; }
@@ -74,7 +74,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
     private int _lastInteractRequestTick = -1;
     private bool _prevWalkiePressed;
 
-
+    // 플레이어 State 변화 감지
+    private ChangeDetector stateChangeDetector;
 
 
     // 테스트용 임시 포획 Anchor
@@ -122,6 +123,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
             bodySync.Initialize(this);
 
         WalkieTalkieManager.Instance?.RegisterPlayer(this);
+
+        stateChangeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
     }
 
     public override void FixedUpdateNetwork()
@@ -129,6 +132,15 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (HasStateAuthority)
         {
             ServerTickCaptureState();
+
+            // PlayerState 변경 감지 -> 게임 종료 조건 판정
+            foreach (var change in stateChangeDetector.DetectChanges(this))
+            {
+                if (change == nameof(NetPlayerState))
+                {
+                    GameSessionManager.Instance?.EvaluateEndCondition();
+                }
+            }
         }
 
         if (!GetInput(out PlayerNetworkInput input))

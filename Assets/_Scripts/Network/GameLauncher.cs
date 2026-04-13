@@ -1,9 +1,11 @@
 using Fusion;
 using Fusion.Sockets;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameLauncher : MonoBehaviour
 {
@@ -25,11 +27,13 @@ public class GameLauncher : MonoBehaviour
     public event Action OnHostDisconnected;                             // 호스트 끊김 시 (LobbyManager에서 구독)
     public event Action<NetworkRunner, PlayerRef> OnPlayerJoinedEvent;  // 플레이어 입장 (LobbyManagert에서 구독)
     public event Action<NetworkRunner, PlayerRef> OnPlayerLeftEvent;    // 플레이어 퇴장 (LobbyManager에서 구독)
+    public event Action OnReturnedToLobby;                              // 게임 종료 후 대기실 복귀 완료
 
     // ── 내부 ──────────────────────────────────────────────
     private bool _intentionalShutdown;                  // 본인이 직접 종료했는지 확인
     private FusionCallbackHandler _callbackHandler;     // Fusion 콜백 핸들러
     private bool _isConnecting;                         // Runner.StartGame 진행 중 플래그
+    private bool isReturningToLobby;
 
     // 서버에서만 사용하는 슬롯  추적
     private readonly Dictionary<PlayerRef, int> _playerSlots = new();
@@ -44,18 +48,13 @@ public class GameLauncher : MonoBehaviour
             return;
         }
         Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     private void OnDestroy()
     {
         Instance = null;
-
-        if (_callbackHandler == null) return;
-        _callbackHandler.OnPlayerJoinedEvent -= HandlePlayerJoined;
-        _callbackHandler.OnPlayerLeftEvent -= HandlePlayerLeft;
-        _callbackHandler.OnShutdownEvent -= HandleShutdown;
-        _callbackHandler.OnDisconnectedEvent -= HandleDisconnected;
-        _callbackHandler.OnConnectFailedEvent -= HandleConnectFailed;
+        UnsubscribeCallbacks();
     }
 
     #endregion
@@ -88,6 +87,73 @@ public class GameLauncher : MonoBehaviour
         Runner = null;
     }
 
+    // 게임 종료 후 대기실로 복귀
+    public void ReturnToLobby()
+    {
+        if (Runner == null) return;
+
+        // Fusion SceneManager로 Title씬 로드 (Host 호출)
+        if (Runner.IsServer)
+        {
+            isReturningToLobby = true;
+            Runner.LoadScene(SceneRef.FromIndex(SceneNames.TITLE_INDEX));
+        }
+    }
+
+    #endregion
+
+    #region 씬 복귀 처리
+
+    // Fusion이 씬 로드를 완료하면 NetworkSceneManager가 OnSceneLoadDone을 호출함.
+    // 그걸 받을 수 없으므로 SceneManager 이벤트로 대신 감지.
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.buildIndex != SceneNames.TITLE_INDEX) return;
+
+        // 복귀 중일 때만 처리
+        if (!isReturningToLobby) return;
+
+        isReturningToLobby = false;
+        ResetLobbyState();
+        StartCoroutine(InvokeReturnedToLobbyNextFrame()); 
+    }
+
+    private IEnumerator InvokeReturnedToLobbyNextFrame()
+    {
+        Debug.Log($"[GameLauncher] OnReturnedToLobby 발생");
+        yield return null;
+
+        // TitlePanel이 혹시 열려있으면 닫기
+        FindFirstObjectByType<TitleManager>()?.Hide();
+        OnReturnedToLobby?.Invoke();
+    }
+
+    // 대기실 복귀 시 ready 상태 초기화
+    private void ResetLobbyState()
+    {
+        if (Runner == null) return;
+
+        var myData = Runner.GetPlayerObject(Runner.LocalPlayer)?.GetComponent<PlayerData>();
+
+        if (myData == null) return;
+
+        if (Runner.IsServer)
+            myData.Rpc_SetReady(true);      // 호스트는 항상 레디
+        else
+            myData.Rpc_SetReady(false);     // 클라이언트
+    }
+
     #endregion
 
     #region 내부 연결 처리
@@ -101,11 +167,7 @@ public class GameLauncher : MonoBehaviour
         }
 
         _callbackHandler = new FusionCallbackHandler();
-        _callbackHandler.OnPlayerJoinedEvent += HandlePlayerJoined;
-        _callbackHandler.OnPlayerLeftEvent += HandlePlayerLeft;
-        _callbackHandler.OnShutdownEvent += HandleShutdown;
-        _callbackHandler.OnDisconnectedEvent += HandleDisconnected;
-        _callbackHandler.OnConnectFailedEvent += HandleConnectFailed;
+        SubscribeCallbacks();
 
         Runner = Instantiate(networkRunnerPrefab);
         Runner.name = "NetworkRunner";
@@ -160,7 +222,30 @@ public class GameLauncher : MonoBehaviour
         return new string(code);
     }
 
-    #endregion 
+    #endregion
+
+    #region 콜백 구독/해제
+
+    private void SubscribeCallbacks()
+    {
+        _callbackHandler.OnPlayerJoinedEvent += HandlePlayerJoined;
+        _callbackHandler.OnPlayerLeftEvent += HandlePlayerLeft;
+        _callbackHandler.OnShutdownEvent += HandleShutdown;
+        _callbackHandler.OnDisconnectedEvent += HandleDisconnected;
+        _callbackHandler.OnConnectFailedEvent += HandleConnectFailed;
+    }
+
+    private void UnsubscribeCallbacks()
+    {
+        if (_callbackHandler == null) return;
+        _callbackHandler.OnPlayerJoinedEvent -= HandlePlayerJoined;
+        _callbackHandler.OnPlayerLeftEvent -= HandlePlayerLeft;
+        _callbackHandler.OnShutdownEvent -= HandleShutdown;
+        _callbackHandler.OnDisconnectedEvent -= HandleDisconnected;
+        _callbackHandler.OnConnectFailedEvent -= HandleConnectFailed;
+    }
+
+    #endregion
 
     #region 콜백 처리
 
@@ -170,6 +255,7 @@ public class GameLauncher : MonoBehaviour
         {
             var obj = runner.Spawn(playerLobbyDataPrefab, Vector3.zero, Quaternion.identity, player);
             runner.SetPlayerObject(player, obj);
+            DontDestroyOnLoad(obj.gameObject);
 
             // 첫 번째 빈 슬롯 할당
             for (int i = 0; i < Constants.MAX_PLAYERS; i++)
@@ -177,7 +263,7 @@ public class GameLauncher : MonoBehaviour
                 if (!_playerSlots.ContainsValue(i))
                 {
                     _playerSlots[player] = i;
-                    obj.GetComponent<PlayerLobbyData>().SlotIndex = i;
+                    obj.GetComponent<PlayerData>().SlotIndex = i;
                     break;
                 }
             }   
@@ -255,6 +341,11 @@ public class GameLauncher : MonoBehaviour
         _callbackHandler.OnPlayerLeftEvent += HandlePlayerLeft;
         _callbackHandler.OnShutdownEvent += HandleShutdown;
         _callbackHandler.OnDisconnectedEvent += HandleDisconnected;
+    }
+
+    internal void SetDevPlayerDataPrefab(NetworkObject prefab)
+    {
+        playerLobbyDataPrefab = prefab;
     }
 
     #endregion

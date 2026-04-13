@@ -1,4 +1,5 @@
 using Fusion;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -13,6 +14,11 @@ public class NetworkDebugStarter : MonoBehaviour
 
     [Header("테스트용 플레이어 정보")]
     [SerializeField] private string testNickname = "TestPlayer";
+
+    [Header("테스트용 PlayerData 프리팹")]
+    [SerializeField] private NetworkObject playerDataPrefab;
+
+    private NetworkRunner runner;
 
     private async void Start()
     {
@@ -29,7 +35,7 @@ public class NetworkDebugStarter : MonoBehaviour
 
         var callbackHandler = new FusionCallbackHandler();
 
-        var runner = Instantiate(runnerPrefab);
+        runner = Instantiate(runnerPrefab);
         runner.name = "NetworkRunner [Dev]";
         runner.AddCallbacks(callbackHandler);
         DontDestroyOnLoad(runner.gameObject);
@@ -42,8 +48,11 @@ public class NetworkDebugStarter : MonoBehaviour
             Debug.LogWarning("[NetworkDebugStarter] InputHandler를 Runner에서 찾을 수 없습니다. " +
                              "NetworkRunner 프리팹에 InputHandler가 붙어 있는지 확인하세요.");
 
-        GameLauncher.Instance.SetDevData(testNickname, sessionName);
+        string uniqueNickname = $"{testNickname}_{Random.Range(1000, 9999)}";
+        GameLauncher.Instance.SetDevData(uniqueNickname, sessionName);
         GameLauncher.Instance.SetDevRunner(runner, callbackHandler);
+
+        GameLauncher.Instance.SetDevPlayerDataPrefab(playerDataPrefab);
 
         var result = await runner.StartGame(new StartGameArgs
         {
@@ -54,7 +63,10 @@ public class NetworkDebugStarter : MonoBehaviour
         });
 
         if (!result.Ok)
+        {
             Debug.LogError($"[NetworkDebugStarter] 연결 실패: {result.ShutdownReason}");
+            return;
+        }
 
         Debug.Log($"[NetworkDebugStarter] 연결 성공 — {runner.GameMode}");
     }
