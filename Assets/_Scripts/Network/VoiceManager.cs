@@ -24,6 +24,8 @@ public class VoiceManager : MonoBehaviour
     // 현재 로컬 플레이어 구역
     private Zone localZone;
 
+    public Recorder LocalRecorder => recorder;
+
     #region Unity LifeCycle
 
     private void Awake()
