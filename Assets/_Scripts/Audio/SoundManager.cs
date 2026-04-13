@@ -9,6 +9,9 @@ public class SoundManager : MonoBehaviour
 {
     public static SoundManager Instance { get; private set; }
 
+    [Header("BGM 제어 유닛")]
+    [SerializeField] private AudioSource bgmSource;
+
     [Header("최대 풀 수")]
     public int poolSize = 20; // 풀에서 관리할 최대 사운드 수
     [Tooltip("빈 오브젝트에 AudioSurce만 붙은 프리팹")]
@@ -18,16 +21,28 @@ public class SoundManager : MonoBehaviour
 
     private void Awake()
     {
-        if(Instance == null)
+        if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            // BGM 소스 자동 세팅 (2D 사운드)
+            if (bgmSource == null) bgmSource = gameObject.AddComponent<AudioSource>();
+            bgmSource.spatialBlend = 0f; // BGM은 공간감이 없는 2D
+            bgmSource.loop = true;
+
             InitializePool();
         }
-        else
-        {
-            Destroy(gameObject);
-        }
+        else { Destroy(gameObject); }
+    }
+
+    /// <summary>
+    /// 전역 BGM 재생 (중앙 방송)
+    /// </summary>
+    public void PlayBGM(AudioEventSO bgmCartridge)
+    {
+        if (bgmCartridge == null) return;
+        bgmCartridge.Play(bgmSource);
     }
     private void InitializePool()
     {
