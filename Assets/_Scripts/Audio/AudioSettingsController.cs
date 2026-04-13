@@ -3,33 +3,41 @@ using UnityEngine.Audio;
 using UnityEngine.UI;
 
 /// <summary>
-/// 로그 계산으로 UI슬라이더의 값을 AudioMixer의 (dB)값으로 변환하는 컨트롤러
+/// [기공사 전용] 마스터/SFX/BGM 3개 채널을 제어하는 오디오 중앙 제어반
 /// </summary>
 public class AudioSettingsController : MonoBehaviour
 {
-    [Header("중앙 제어반")]
+    [Header("중앙 제어반 (Mixer)")]
     [SerializeField] private AudioMixer mainMixer;
 
-    [Header("UI 입력 단자 (Slider)")]
+    [Header("UI 입력 단자 (Sliders)")]
     [SerializeField] private Slider masterSlider;
     [SerializeField] private Slider sfxSlider;
+    [SerializeField] private Slider bgmSlider; 
 
     private void Start()
     {
-        // 슬라이더 값이 변할 때마다 믹서에 신호를 쏘도록 자동 체결
+        // 1. 마스터 볼륨 체결
         if (masterSlider != null)
             masterSlider.onValueChanged.AddListener(val => SetVolume("Master_Vol", val));
 
+        // 2. SFX 볼륨 체결
         if (sfxSlider != null)
             sfxSlider.onValueChanged.AddListener(val => SetVolume("SFX_Vol", val));
+
+        // 3. BGM 볼륨 체결 (새 통로 연결)
+        if (bgmSlider != null)
+            bgmSlider.onValueChanged.AddListener(val => SetVolume("BGM_Vol", val));
     }
 
     /// <summary>
-    /// 선형적인 0~1 볼륨 값을 데시벨(dB) 스케일로 변환 (-80dB ~ 0dB)
+    /// 인간의 청각 특성(로그 스케일)에 맞게 볼륨을 변환하여 전달
+    /// 변환 공식: $dB = \log_{10}(\text{sliderValue}) \times 20$
     /// </summary>
     private void SetVolume(string parameterName, float sliderValue)
     {
-        // sliderValue가 0일 때 발생하는 Mathf.Log10(0)의 무한대 에러 방지 (최소치 0.0001)
+        // sliderValue(0~1)를 dB(-80~0)로 변환
+        // Mathf.Max를 통해 Log10(0)으로 인한 무한대 발산(에러) 방지
         float dB = Mathf.Log10(Mathf.Max(0.0001f, sliderValue)) * 20f;
 
         mainMixer.SetFloat(parameterName, dB);
