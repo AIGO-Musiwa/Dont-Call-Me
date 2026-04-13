@@ -27,7 +27,6 @@ public class CreatureAI : NetworkBehaviour
     public float searchDuration = 3f;
     public float searchSweepAngle = 120f;
     public float searchSweepSpeed = 4f;
-    //public float searchRotationSpeed = 360f;
     private float currentSearchTime = 0f;
 
     [Header("추적 설정")]
@@ -47,13 +46,12 @@ public class CreatureAI : NetworkBehaviour
     public float normalFieldOfView = 120f;
     public float chaseFieldOfView = 160f;
 
-    //현재 적용 중인 시야 스펙
     private float currentSightDistance;
     private float currentFieldOfView;
     public float eyeHeight = 1.4f;
     public LayerMask obstaclMask;
 
-    [Header("무전기 소리 설정")]
+    [Header("소리 설정")]
     public float alertThresholdDB = 40f;
     public float chaseThresholdDb = 70f;
     public float dbDropPerMeter = 2f;
@@ -62,16 +60,11 @@ public class CreatureAI : NetworkBehaviour
     private Vector3 soundLocation;
     private Vector3 lastKnownPosition;
 
-    [Header("조명 관리")]
-    public Light[] managedLights;
-    private float[] originalLightIntensities;
-
-    #region Fusion용 Spawned 및 Render 함수
+    #region Fusion용 Spawned함수
     public override void Spawned()
     {
         //agent 컴포넌트 초기화
         agent = GetComponent<NavMeshAgent>();
-        //playerController = FindAnyObjectByType<PlayerController>();
         player = null;
 
         if (Object.HasStateAuthority)
@@ -83,45 +76,8 @@ public class CreatureAI : NetworkBehaviour
         }
         else agent.enabled = false;
 
-        //할당된 조명들의 원래 밝기 저장
-        if (managedLights != null && managedLights.Length > 0)
-        {
-            originalLightIntensities = new float[managedLights.Length];
-            for (int i = 0; i < managedLights.Length; i++)
-            {
-                if (managedLights[i] != null) originalLightIntensities[i] = managedLights[i].intensity;
-            }
-        }
-
-        ////PlayerController를 찾아 타겟 할당
-        //if (player == null)
-        //{
-        //    PlayerController foundPlayerScript = FindAnyObjectByType<PlayerController>();
-        //    if (foundPlayerScript != null) player = foundPlayerScript.transform;
-        //}
-
         //기본 시야로 초기화
         SetNormalSight();
-    }
-
-    public override void Render()
-    {
-        if (managedLights == null || managedLights.Length == 0) return;
-
-        //상태에 따라 조명 밝기 동기화 처리
-        for (int i = 0; i < managedLights.Length; i++)
-        {
-            if (managedLights[i] == null) continue;
-
-            if (currentState == CreatureState.Capture)
-            {
-                managedLights[i].intensity = Mathf.Lerp(managedLights[i].intensity, 0f, Time.deltaTime * 5f);
-            }
-            else
-            {
-                managedLights[i].intensity = Mathf.Lerp(managedLights[i].intensity, originalLightIntensities[i], Time.deltaTime * 2f);
-            }
-        }
     }
     #endregion
 
@@ -140,13 +96,13 @@ public class CreatureAI : NetworkBehaviour
         //씬에 있는 모든 플레이어를 찾아 가져옴
         PlayerController[] allPlayer = FindObjectsByType<PlayerController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
 
-        //모든 플레이어 중 가장 가깝고 고전에 맞는 플레이어를 찾음
+        //모든 플레이어 중 가장 가깝고 조건에 맞는 플레이어를 찾음
         foreach (PlayerController p in allPlayer)
         {
             //크리쳐 담당 구역과 플레이어 소속 구역이 다르면 무시
             if (p.NetZone != this.myZone) continue;
 
-            //플레이어가 죽었거나, 탈출했거나, 포획 중이거나, 캐비닛에 숨어 있으면 무시
+            //플레이어가 죽었거나 탈출했거나 포획 중이거나 캐비닛에 숨어 있으면 무시
             if (p.NetPlayerState != PlayerState.Normal || p.NetHideState != HideState.None) continue;
 
             //평면 거리 계산
@@ -161,7 +117,6 @@ public class CreatureAI : NetworkBehaviour
             if (currentFlatDistance <= captureDistance && yDiff < 2.0f && currentState != CreatureState.Capture)
             {
                 player = p.transform;
-                Debug.Log($"크리처: 잡았다. (평면 거리: {currentFlatDistance:F2}m, 높이 차이: {yDiff:F2}m)");
 
                 //PlayerController 포획 함수 호출
                 p.ServerEnterCaptured(playerRespawnPoint.position, playerRespawnPoint.rotation);
@@ -173,17 +128,21 @@ public class CreatureAI : NetworkBehaviour
                 agent.isStopped = true;
                 agent.ResetPath();
                 agent.velocity = Vector3.zero;
+
+                //포획 발생 시 해당 구역 조명 관리자에게 암전 명령 전달
+                ZoneLightingManager myZoneLightManager = ZoneLightingManager.GetManager(myZone);
+                if (myZoneLightManager != null) myZoneLightManager.SetCaptureDarkout(true);
+
                 return;
             }
         }
 
-            //이미 추적 상태인 경우를 제외하고 시야 체크
+        //이미 추적 상태인 경우를 제외하고 시야 체크
         if (currentState != CreatureState.Chaser)
         {
             foreach (PlayerController p in allPlayer)
             {
                 if (p.NetZone != this.myZone) continue;
-
                 if (p.NetPlayerState != PlayerState.Normal || p.NetHideState != HideState.None) continue;
 
                 //시야에 보인 플레이어 체크
@@ -198,7 +157,7 @@ public class CreatureAI : NetworkBehaviour
                     lastKnownPosition = player.position;
                     break;
                 }
-            }            
+            }
         }
 
         //현재 상태에 따라 행동을 결정
@@ -221,6 +180,10 @@ public class CreatureAI : NetworkBehaviour
         if (perceivedDb >= chaseThresholdDb)
         {
             currentState = CreatureState.Chaser;
+
+            //큰 소리를 듣고 추격할 때도 시야 증가
+            SetChaseSight();
+
             agent.speed = chaseSpeed;
             lastKnownPosition = noisePosition;
         }
@@ -233,22 +196,28 @@ public class CreatureAI : NetworkBehaviour
         }
     }
 
-    private void SetNormalSight() 
-    { 
-        currentSightDistance = normalSightDistance; 
-        currentFieldOfView = normalFieldOfView; 
+    private void SetNormalSight()
+    {
+        currentSightDistance = normalSightDistance;
+        currentFieldOfView = normalFieldOfView;
     }
-    
-    private void SetChaseSight() 
-    { 
-        currentSightDistance = chaseSightDistance; 
-        currentFieldOfView = chaseFieldOfView; 
+
+    private void SetChaseSight()
+    {
+        currentSightDistance = chaseSightDistance;
+        currentFieldOfView = chaseFieldOfView;
     }
 
     bool CheckLineOfSight(Transform target)
     {
         //target null 체크
         if (target == null) return false;
+
+        //층간 시야 차단 로직
+        //Y축 높이 차이가 4.5m 이상 나면 다른 층으로 간주하고 시야 검사를 생략
+        float yDiff = Mathf.Abs(transform.position.y - target.position.y);
+        if (yDiff > 4.5f) return false;
+
         Vector3 directionToPlayer = (target.position - transform.position).normalized;
         float distanceToPlayer = Vector3.Distance(transform.position, target.position);
 
@@ -259,15 +228,17 @@ public class CreatureAI : NetworkBehaviour
             if (angle <= currentFieldOfView / 2f)
             {
                 Vector3 eyePosition = transform.position + Vector3.up * eyeHeight;
-                Vector3[] targetPoints = { 
-                    target.position + Vector3.up * 1.6f, 
-                    target.position + Vector3.up * 1.0f, 
-                    target.position + Vector3.up * 0.2f 
+                Vector3[] targetPoints = {
+                    target.position + Vector3.up * 1.6f,
+                    target.position + Vector3.up * 1.0f,
+                    target.position + Vector3.up * 0.2f
                 };
 
                 foreach (Vector3 targetPlayer in targetPoints)
                 {
                     Vector3 dirtoTarget = (targetPlayer - eyePosition).normalized;
+
+                    //레이캐스트가 장애물에 부딪히지 않으면 시야에 보인다고 판정
                     if (!Physics.Raycast(eyePosition, dirtoTarget, distanceToPlayer, obstaclMask)) return true;
                 }
             }
@@ -276,7 +247,7 @@ public class CreatureAI : NetworkBehaviour
     }
     #endregion
 
-    #region Creature 행동 업데이트 로직   
+    #region Creature 행동 업데이트 로직
     public void InitializeAllWaypoints()
     {
         allWaypoints.Clear();
@@ -317,9 +288,6 @@ public class CreatureAI : NetworkBehaviour
         float turnAmount = Mathf.Cos(currentSearchTime * searchSweepSpeed) * searchSweepAngle * Runner.DeltaTime;
         transform.Rotate(Vector3.up * turnAmount);
 
-        //한 바퀴 돌면서 두리번거리는 스캔 움직임
-        //transform.Rotate(Vector3.up * searchRotationSpeed * Runner.DeltaTime);
-        
         if (currentSearchTime >= searchDuration)
         {
             SetNormalSight();
@@ -344,7 +312,7 @@ public class CreatureAI : NetworkBehaviour
                 currentState = CreatureState.Search;
                 currentSearchTime = 0f;
                 agent.speed = patrolSpeed;
-                
+
                 //놓쳤으므로 null로 Player 초기화
                 player = null;
             }
@@ -359,25 +327,13 @@ public class CreatureAI : NetworkBehaviour
             Vector3 direction = (player.position - transform.position).normalized;
             direction.y = 0f;
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), Runner.DeltaTime * 5f);
-        }        
+        }
 
         //포획 타이머 계산
         captureTimer += Runner.DeltaTime;
         if (captureTimer >= 2.0f && !isTeleportDone)
         {
             isTeleportDone = true;
-
-            ////플레이어 텔레포트 적용
-            //PlayerKCCMotor playerMotor = player.GetComponentInParent<PlayerKCCMotor>();
-            //if (playerMotor == null) playerMotor = player.GetComponentInChildren<PlayerKCCMotor>();
-
-            //if (playerMotor != null && playerMotor.KCC != null)
-            //{
-            //    playerMotor.KCC.SetPosition(playerRespawnPoint.position);
-            //    playerMotor.KCC.SetLookRotation(playerRespawnPoint.rotation.eulerAngles.x, playerRespawnPoint.rotation.eulerAngles.y);
-            //    playerMotor.transform.position = playerRespawnPoint.position;
-            //    playerMotor.transform.rotation = playerRespawnPoint.rotation;
-            //}
 
             //크리처 리스폰 지점 설정 및 텔레포트 적용
             int currentFloor = GetCurrentFloor();
@@ -399,6 +355,10 @@ public class CreatureAI : NetworkBehaviour
             agent.isStopped = false;
             currentState = CreatureState.Patrol;
             SetNormalSight();
+
+            //포획 처리가 끝나고 순찰로 복귀할 때 조명 다시 켜기 명령 전달
+            ZoneLightingManager myZoneLightManager = ZoneLightingManager.GetManager(myZone);
+            if (myZoneLightManager != null) myZoneLightManager.SetCaptureDarkout(false);
         }
     }
 
