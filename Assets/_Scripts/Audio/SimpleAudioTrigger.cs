@@ -23,7 +23,7 @@ public class SimpleAudioTrigger : MonoBehaviour
         // 믹서 배선이 안 되어 있을 때를 대비한 안전 장치
         if (_source.outputAudioMixerGroup == null)
         {
-            // 필요시 기본 SFX 믹서를 찾아 연결하는 로직을 넣을 수도 있어.
+            // 필요시 기본 SFX 믹서를 찾아 연결하는 로직을 넣을 수도 있음.
         }
     }
 
