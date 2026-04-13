@@ -82,12 +82,14 @@ public class ZoneLightingManager : NetworkBehaviour
             {
                 data.light.intensity = Mathf.Lerp(data.light.intensity, 0f, Time.deltaTime * 5f);
             }
+
             //3막 상태일 경우 모든 조명을 설정된 색상과 밝기로 변경
             else if (IsAct3Active)
             {
                 data.light.color = Color.Lerp(data.light.color, act3LightColor, Time.deltaTime * 2f);
                 data.light.intensity = Mathf.Lerp(data.light.intensity, act3LightIntensity, Time.deltaTime * 2f);
             }
+
             //평상시 원래 설정된 색상과 밝기로 복구
             else
             {
