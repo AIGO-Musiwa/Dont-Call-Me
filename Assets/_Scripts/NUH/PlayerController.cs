@@ -60,6 +60,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [Networked] public NetworkBool NetMovementLocked { get; set; }
     [Networked] public NetworkBool NetLookLocked { get; set; }
 
+    //앉기 관련 네트워크 변수 추가
+    [Networked] public NetworkBool NetIsCrouching { get; set; }
+
     // 수신자 팀원이 수신 무전기 근처에 있는지 여부
     [Networked, OnChangedRender(nameof(OnNearWalkieChanged))]
     public NetworkBool NetIsNearReceiver { get; set; }

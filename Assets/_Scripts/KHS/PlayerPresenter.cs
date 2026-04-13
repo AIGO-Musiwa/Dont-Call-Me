@@ -1,35 +1,33 @@
 using UnityEngine;
-using UnityEngine.InputSystem.XR;
 
 /// <summary>
-/// 기존 컨트롤러의 데이터를 불러와 애니메이션과 시각 필터를 구동
+/// [기공사 전용] 네트워크 동기화 프레젠터
+/// 내 화면뿐만 아니라, 다른 플레이어의 화면에 떠 있는 '나의 분신' 애니메이션도 
+/// 서버의 NetIsCrouching 값을 보고 완벽하게 동기화합니다.
 /// </summary>
 public class PlayerPresenter : MonoBehaviour
 {
-    [Header("참조")]
+    [Header("참조 부품")]
     [SerializeField] private PlayerController controller;
 
     [Header("애니메이션")]
     [SerializeField] private Animator animator;
     [SerializeField] private Animator shadowAnimator;
 
-    [Header("플레이어 분류에 따른 비쥬얼 세터")]
+    [Header("비주얼 세터")]
     [SerializeField] private PlayerVisualSetter visualSetter;
 
-    //파라미터 해시
     private static readonly int HashX = Animator.StringToHash("x");
     private static readonly int HashY = Animator.StringToHash("y");
     private static readonly int HashIsCrouch = Animator.StringToHash("IsCrouch");
 
     private void Start()
     {
-        //컨트롤러의 권한을 확인 1인칭 시각 필터
         if (visualSetter != null && controller != null)
         {
             visualSetter.SetupVisual(controller.HasInputAuthority);
         }
     }
-
 
     private void Update()
     {
@@ -38,18 +36,34 @@ public class PlayerPresenter : MonoBehaviour
         var motor = controller.KCCMotor;
         if (motor == null || motor.KCC == null) return;
 
-        // 1. 앉기 상태 동기화 (KCCMotor의 _isCrouching 데이터 활용)
-        animator.SetBool(HashIsCrouch, motor.IsCrouching);
-        shadowAnimator.SetBool(HashIsCrouch, motor.IsCrouching);
+        // ─────────────────────────────────────────────────────────
+        // 1. 앉기 상태 동기화 (네트워크 변수 직결)
+        // ─────────────────────────────────────────────────────────
+        // [수리 포인트] motor.IsCrouching을 써도 되지만, 
+        // 명확하게 네트워크 변수인 controller.NetIsCrouching을 직접 읽어옵니다.
+        // 이제 다른 플레이어(Proxy) 화면에서도 이 값이 실시간으로 동기화됩니다.
+        bool syncCrouch = controller.NetIsCrouching;
 
+        animator.SetBool(HashIsCrouch, syncCrouch);
+
+        if (shadowAnimator != null)
+        {
+            shadowAnimator.SetBool(HashIsCrouch, syncCrouch);
+        }
+
+        // ─────────────────────────────────────────────────────────
         // 2. 이동 애니메이션 동기화
-        // SimpleKCC의 RealVelocity를 로컬 좌표계로 변환하여 x, y 값 추출
+        // ─────────────────────────────────────────────────────────
+        // KCC의 Velocity는 SimpleKCC가 내부적으로 이미 네트워크 동기화를 해줍니다.
         Vector3 localVelocity = transform.InverseTransformDirection(motor.KCC.RealVelocity);
 
-        // 애니메이터 파라미터 주입 (블렌드 트리용)
         animator.SetFloat(HashX, localVelocity.x);
-        shadowAnimator.SetFloat(HashX, localVelocity.x);
         animator.SetFloat(HashY, localVelocity.z);
-        shadowAnimator.SetFloat(HashY, localVelocity.z);
+
+        if (shadowAnimator != null)
+        {
+            shadowAnimator.SetFloat(HashX, localVelocity.x);
+            shadowAnimator.SetFloat(HashY, localVelocity.z);
+        }
     }
 }
