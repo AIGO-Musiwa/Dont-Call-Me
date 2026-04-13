@@ -1,7 +1,7 @@
 using Fusion;
 using UnityEngine;
 
-public class CreatureTestSpawner : MonoBehaviour
+public class CreatureSpawner : MonoBehaviour
 {
     [Header("1동 환경 설정")]
     public NetworkObject creaturePrefab_Bldg1;      //1동 크리처 프리팹
@@ -39,25 +39,25 @@ public class CreatureTestSpawner : MonoBehaviour
         {
             //1동 크리처 소환 및 환경 변수 주입
             SpawnCreature(
-                creaturePrefab_Bldg1, 
-                spawnPointBldg1, 
-                bldg1_Waypoint1F, 
-                bldg1_Waypoint2F, 
-                bldg1_Waypoint3F, 
-                bldg1_CreatureRespawn1F, 
-                bldg1_CreatureRespawn3F, 
+                creaturePrefab_Bldg1,
+                spawnPointBldg1,
+                bldg1_Waypoint1F,
+                bldg1_Waypoint2F,
+                bldg1_Waypoint3F,
+                bldg1_CreatureRespawn1F,
+                bldg1_CreatureRespawn3F,
                 playerRespawn_Bldg1
                 );
 
             //2동 크리처 소환 및 환경 변수 주입
             SpawnCreature(
-                creaturePrefab_Bldg2, 
-                spawnPointBldg2, 
-                bldg2_Waypoint1F, 
-                bldg2_Waypoint2F, 
-                bldg2_Waypoint3F, 
-                bldg2_CreatureRespawn1F, 
-                bldg2_CreatureRespawn3F, 
+                creaturePrefab_Bldg2,
+                spawnPointBldg2,
+                bldg2_Waypoint1F,
+                bldg2_Waypoint2F,
+                bldg2_Waypoint3F,
+                bldg2_CreatureRespawn1F,
+                bldg2_CreatureRespawn3F,
                 playerRespawn_Bldg2
                 );
 
@@ -75,22 +75,30 @@ public class CreatureTestSpawner : MonoBehaviour
 
         //크리처 소환
         NetworkObject spawnedObj = runner.Spawn(prefabToSpawn, spawnPos.position, spawnPos.rotation);
-        CreatureAI ai = spawnedObj.GetComponent<CreatureAI>();
 
+        //분리된 컴포넌트들 각각 가져오기
+        CreatureAI ai = spawnedObj.GetComponent<CreatureAI>();
+        CreatureMotor motor = spawnedObj.GetComponent<CreatureMotor>();
+
+        //AI에는 리스폰 좌표만 전달
         if (ai != null)
         {
-            //웨이포인트 주입
-            ai.waypoints1F = ExtractWaypoints(wp1);
-            ai.waypoints2F = ExtractWaypoints(wp2);
-            ai.waypoints3F = ExtractWaypoints(wp3);
-
             //리스폰 위치 주입
             ai.creatureRespawnPoint1F = respawn1;
             ai.creatureRespawnPoint3F = respawn3;
             ai.playerRespawnPoint = playerRespawn;
+        }
 
-            //순찰 초기화
-            ai.InitializeAllWaypoints();
+        //모터에는 웨이포인트를 전달하고 초기화
+        if (motor != null)
+        {
+            //웨이포인트 주입
+            motor.waypoints1F = ExtractWaypoints(wp1);
+            motor.waypoints2F = ExtractWaypoints(wp2);
+            motor.waypoints3F = ExtractWaypoints(wp3);
+
+            //순찰 웨이포인트 배열 초기화
+            motor.Initialize();
         }
     }
 
