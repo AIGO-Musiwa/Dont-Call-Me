@@ -273,6 +273,7 @@ GameObject:
   - component: {fileID: 5594434563323654496}
   - component: {fileID: 5364816265260964914}
   - component: {fileID: 7011368198581691965}
+  - component: {fileID: 5665900866637624891}
   m_Layer: 10
   m_Name: PlayerRoot
   m_TagString: Untagged
@@ -343,7 +344,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 1
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 64
   m_CollisionDetection: 0
 --- !u!114 &6280834204966514304
 MonoBehaviour:
@@ -399,6 +400,7 @@ MonoBehaviour:
   cameraLightRoot: {fileID: 0}
   eyeOffset: 0.1
   lockCursorForLocalPlayer: 1
+  capturedEyeHeight: 0.45
 --- !u!114 &3088230933189245652
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -412,19 +414,43 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   flashlightRoleItemPrefab: {fileID: 8306845425981146657, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
-  WalkieTalkieRoleItemPrefab: {fileID: 0}
+  walkieTalkieRoleItemPrefab: {fileID: 0}
   rightHandDropForwardOffset: 0.8
   rightHandDropUpOffset: 0.5
   rightHandDropImpulse: 2.5
+  leftHandDropForwardOffset: 0.6
+  leftHandDropSideOffset: -0.25
+  leftHandDropUpOffset: 0.45
+  leftHandDropImpulse: 2
+  captureTransitionSeconds: 1
+  traumaPenaltyCapture1: 10
+  traumaPenaltyCapture2: 20
+  traumaPenaltyCapture3Plus: 30
+  traumaIncreasePerSecond: 1
+  traumaDeathThreshold: 100
+  rescueBaseTimeSeconds: 100
   _NetPlayerState: 0
   _NetPlayerRole: 0
   _NetZone: 0
+  _NetHideState: 0
+  _NetCapturePhase: 0
+  _NetAftereffectPercent: 0
+  _NetCaptureCount: 0
+  _NetCaptureAnchorPosition: {x: 0, y: 0, z: 0}
+  _NetCaptureAnchorRotation: {x: 0, y: 0, z: 0, w: 0}
+  _NetCurrentHideSpotId:
+    Raw: 0
   _NetLeftHandItem: {fileID: 0}
   _NetRightHandItem: {fileID: 0}
   _NetMovementLocked:
     _value: 0
   _NetLookLocked:
     _value: 0
+  _NetIsNearReceiver:
+    _value: 0
+  _NetIsNearSender:
+    _value: 0
+  debugCaptureAnchor: {fileID: 0}
 --- !u!114 &2241217608438743324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -524,6 +550,29 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerFlashlightView
   _controller: {fileID: 3088230933189245652}
   _heldFlashlightLight: {fileID: 7584264087582762679}
+--- !u!136 &5665900866637624891
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8007863653030160040}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.3
+  m_Height: 1.8
+  m_Direction: 1
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!1 &8066230328438064542
 GameObject:
   m_ObjectHideFlags: 0
