@@ -28,10 +28,20 @@ public class PlayerKCCMotor : MonoBehaviour
     private Rigidbody _rigidbody;
 
     private bool _initialized;
-    private bool _isCrouching;
+
+    // [기존 코드 주석 처리] 
+    // 퓨전의 롤백 시 과거로 돌아가지 못해 탭댄스 버그를 유발하던 일반 변수.
+    // private bool _isCrouching; 
 
     public SimpleKCC KCC => _simpleKCC;
-    public bool IsCrouching => _isCrouching;
+
+    // [기존 코드 주석 처리]
+    // public bool IsCrouching => _isCrouching;
+
+    // [수정 사항] 이제 컨트롤러의 네트워크 변수를 직접 참조. 
+    // 엔진이 시간을 되돌려도 이 값은 완벽하게 과거 상태로 복구됨.
+    public bool IsCrouching => _controller != null && _controller.NetIsCrouching;
+
     public float StandHeight => standHeight;
     public float CrouchHeight => crouchHeight;
 
@@ -53,7 +63,9 @@ public class PlayerKCCMotor : MonoBehaviour
             _simpleKCC.SetHeight(standHeight);
         }
 
-        _isCrouching = false;
+        // [기존 코드 주석 처리] 더 이상 로컬 변수를 사용하지 않음
+        // _isCrouching = false; 
+
         _initialized = true;
     }
 
@@ -142,11 +154,24 @@ public class PlayerKCCMotor : MonoBehaviour
     {
         bool wantsCrouch = canMove && input.Buttons.IsSet(InputButtons.Crouch);
 
+        /* [기존 코드 주석 처리] 
+         * 퓨전의 재시뮬레이션 과정에서 이 if문이 엇갈리며 덜덜거림을 유발했음.
         if (wantsCrouch != _isCrouching)
         {
             _isCrouching = wantsCrouch;
             _simpleKCC.SetHeight(_isCrouching ? crouchHeight : standHeight);
         }
+        */
+
+        // [수정 사항] 네트워크 변수에 다이렉트로 상태 주입.
+        // 엔진 차원에서 관리가 되므로 매 프레임 덮어씌워도 엇갈리지 않음.
+        if (_controller != null)
+        {
+            _controller.NetIsCrouching = wantsCrouch;
+        }
+
+        // 콜라이더 높이 조절 (매 틱 호출해도 SimpleKCC 내부적으로 최적화 방어 코드가 있어 안전함)
+        _simpleKCC.SetHeight(IsCrouching ? crouchHeight : standHeight);
     }
 
     /// <summary>
@@ -197,7 +222,13 @@ public class PlayerKCCMotor : MonoBehaviour
     /// </summary>
     private float GetCurrentSpeed(PlayerNetworkInput input)
     {
+        /* [기존 코드 주석 처리] 
         if (_isCrouching)
+            return crouchSpeed;
+        */
+
+        // [수정 사항] 네트워크 프로퍼티로 판별
+        if (IsCrouching)
             return crouchSpeed;
 
         if (input.Buttons.IsSet(InputButtons.Sprint))
