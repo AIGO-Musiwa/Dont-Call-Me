@@ -12,7 +12,7 @@ public class VoiceManager : MonoBehaviour
     [SerializeField][Range(0.001f, 0.1f)] private float speakingThreshold = 0.02f;
 
     // ── 내부 ──────────────────────────────────────────────
-    private PlayerLobbyData localData;
+    private PlayerData localData;
     private Recorder recorder;
     private VoiceConnection voiceConnection;
     private bool wasSpeaking;
@@ -84,7 +84,7 @@ public class VoiceManager : MonoBehaviour
     #region 로비 API
 
     // 로컬 플레이어 데이터 등록 및 Voice 룸에 연결
-    public void RegisterLocalPlayer(PlayerLobbyData data)
+    public void RegisterLocalPlayer(PlayerData data)
     {
         localData = data;
         FetchComponents();

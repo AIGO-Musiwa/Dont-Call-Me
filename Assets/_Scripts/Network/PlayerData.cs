@@ -1,13 +1,25 @@
 using Fusion;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
-public class PlayerLobbyData : NetworkBehaviour
+public class PlayerData : NetworkBehaviour
 {
     // ── 네트워크 동기화 프로퍼티 ──────────────────────────
     [Networked] public NetworkString<_32> Nickname { get; set; }        // 플레이어 닉네임
     [Networked] public NetworkBool IsReady { get; set; }                // 준비 상태
     [Networked] public NetworkBool IsMicActive { get; set; }            // 마이크 활성화 상태
     [Networked] public int SlotIndex { get; set; } = -1;                // 로비 내 슬롯 인덱스 (0~3, -1은 미할당)
+    [Networked] public NetworkBool HasReturnedToLobby { get; set; }     // 로비로 복귀 했는지 확인
+
+    // ── 게임 전용 ────────────────────────────────────────
+    [Networked] public NetworkId PlayerControllerNetId { get; set; }
+
+    public PlayerController GetPlayerController()
+    {
+        if (PlayerControllerNetId == default) return null;
+        Runner.TryFindObject(PlayerControllerNetId, out NetworkObject obj);
+        return obj?.GetComponent<PlayerController>();
+    }
 
     #region FusionLifecycle
 
@@ -26,11 +38,17 @@ public class PlayerLobbyData : NetworkBehaviour
         {
             Rpc_SetReady(true);
         }
+        else
+        {
+            bool isReturning = GameLauncher.Instance?.IsReturningToLobby ?? false;
+            if (isReturning)
+                Rpc_SetReady(false);
+        }
 
         // VoiceManager에 로컬 플레이어 등록
         VoiceManager.Instance?.RegisterLocalPlayer(this);
 
-        Debug.Log($"[PlayerLobbyData] 스폰 완료 | 닉네임={nickname} | IsHost={Runner.IsServer}");
+        Debug.Log($"[PlayerData] 스폰 완료 | 닉네임={nickname} | IsHost={Runner.IsServer}");
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState)
@@ -52,6 +70,9 @@ public class PlayerLobbyData : NetworkBehaviour
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void Rpc_SetMicActive(NetworkBool isActive) => IsMicActive = isActive;
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void Rpc_SetHasReturnedToLobby(NetworkBool value) => HasReturnedToLobby = value;
 
     #endregion
 }

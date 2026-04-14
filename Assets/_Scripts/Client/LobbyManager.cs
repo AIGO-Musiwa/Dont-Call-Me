@@ -29,7 +29,7 @@ public class LobbyManager : MonoBehaviour
 
     private GameLauncher _launcher;
     private bool _isReady;
-    private readonly PlayerLobbyData[] _slots = new PlayerLobbyData[4];
+    private readonly PlayerData[] _slots = new PlayerData[4];
 
     private void Start()
     {
@@ -42,8 +42,18 @@ public class LobbyManager : MonoBehaviour
         _launcher.OnPlayerJoinedEvent += HandlePlayerJoined;
         _launcher.OnPlayerLeftEvent   += HandlePlayerLeft;
         _launcher.OnHostDisconnected  += HandleHostDisconnected;
-        
-        lobbyPanel.SetActive(false);
+
+        // 로비 복귀 시 커서 복원
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        if (_launcher.Runner != null)
+            ShowLobby(_launcher.Runner);
+
+        // 슬롯 재스캔
+        StartCoroutine(RebuildSlotsNextFrame());
+
+        Debug.Log($"[LobbyManager] Start() 실행 | Runner={_launcher.Runner != null}");
     }
 
     private void OnDestroy()
@@ -102,6 +112,35 @@ public class LobbyManager : MonoBehaviour
         errorPanel.SetActive(true);
     }
 
+    private void HandleReturnedToLobby()
+    {
+        Debug.Log($"[LobbyManager] HandleReturnedToLobby 실행");
+        // 슬롯 캐시 초기화
+        for (int i = 0; i < _slots.Length; i++)
+            _slots[i] = null;
+
+        _isReady = false;
+
+        // 대기실 UI 다시 열기
+        ShowLobby(_launcher.Runner);
+
+        // 현재 슬롯 상태 재스캔
+        StartCoroutine(RebuildSlotsNextFrame());
+    }
+
+    private IEnumerator RebuildSlotsNextFrame()
+    {
+        yield return null;
+
+        var allData = FindObjectsByType<PlayerData>(FindObjectsSortMode.None);
+        foreach (var data in allData)
+        {
+            if (data.SlotIndex >= 0 && data.SlotIndex < _slots.Length)
+                _slots[data.SlotIndex] = data;
+        }
+        RefreshSlots();
+    }
+
     #endregion
 
     #region 버튼 콜백
@@ -112,7 +151,7 @@ public class LobbyManager : MonoBehaviour
 
         var myData = _launcher.Runner
             ?.GetPlayerObject(_launcher.Runner.LocalPlayer)
-            ?.GetComponent<PlayerLobbyData>();
+            ?.GetComponent<PlayerData>();
         myData?.Rpc_SetReady(_isReady);
     }
 
@@ -147,8 +186,8 @@ public class LobbyManager : MonoBehaviour
     {
         yield return null;
        
-        // PlayerLobbyData 찾기
-        var allData = FindObjectsByType<PlayerLobbyData>(FindObjectsSortMode.None);
+        // PlayerData 찾기
+        var allData = FindObjectsByType<PlayerData>(FindObjectsSortMode.None);
         var data = allData.FirstOrDefault(d => d.Object.InputAuthority == player);
         if (data == null || data.SlotIndex < 0) yield break;
 
