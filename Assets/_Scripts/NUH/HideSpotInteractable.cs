@@ -118,7 +118,7 @@ public class HideSpotInteractable : NetworkBehaviour, IInteractable
 
         NetIsOccupied = true;
         NetOccupant = actor.Object.InputAuthority;
-        Debug.LogError("숨음");
+        Debug.LogWarning("숨음");
         return true;
     }
 
@@ -145,7 +145,7 @@ public class HideSpotInteractable : NetworkBehaviour, IInteractable
 
         NetIsOccupied = false;
         NetOccupant = PlayerRef.None;
-        Debug.LogError("숨은 데서 나옴");
+        Debug.LogWarning("숨은 데서 나옴");
         return true;
     }
 

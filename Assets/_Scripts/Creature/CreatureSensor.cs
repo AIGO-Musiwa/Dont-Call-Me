@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 
 public class CreatureSensor : MonoBehaviour
@@ -17,6 +18,10 @@ public class CreatureSensor : MonoBehaviour
     [Header("포획 판정 설정")]
     public float captureRange = 2.0f;
     public float captureAngle = 90.0f;
+
+    [Header("은신 발각 설정")]
+    public float cabinetDetectRange = 1.5f;
+    public float deskDetectRange = 1.2f;
 
     private float currentWalkieCost = 0f;
     private float actMultiplier = 1f;
@@ -49,11 +54,13 @@ public class CreatureSensor : MonoBehaviour
     public float CalculatePerceivedDb(Vector3 noisePosition, float rawDb, bool isGlobal)
     {
         float perceivedDb = rawDb;
+
         //글로벌 소리가 아닐 경우 거리에 따른 소리 감쇠 적용
         if (!isGlobal)
         {
             perceivedDb -= (Vector3.Distance(transform.position, noisePosition) * dbDropPerMeter);
         }
+
         return perceivedDb;
     }
 
@@ -62,10 +69,13 @@ public class CreatureSensor : MonoBehaviour
         //타겟이 존재하지 않으면 무시
         if (target == null) return false;
 
-        //층간 시야 차단 로직
-        //Y축 높이 차이가 4.5m 이상 나면 다른 층으로 간주하고 시야 검사 생략
+        //크리처의 눈 높이와 플레이어 몸통 기준(1m)의 실제 높이 차이 계산
+        float eyeY = transform.position.y + eyeHeight;
+        float targetCenterY = target.position.y + 1.0f;
         float yDiff = Mathf.Abs(transform.position.y - target.position.y);
-        if (yDiff > 4.5f) return false;
+
+        //Y축 높이 차이가 8m 이상 나면 다른 층으로 간주하고 시야 검사 생략
+        if (yDiff > 8.0f) return false;
 
         //타겟 방향 및 거리 계산
         Vector3 directionToTarget = (target.position - transform.position).normalized;
@@ -80,6 +90,7 @@ public class CreatureSensor : MonoBehaviour
             {
                 //크리처 눈 위치 설정
                 Vector3 eyePosition = transform.position + Vector3.up * eyeHeight;
+
                 //플레이어 머리와 허리 지점 설정
                 Vector3[] targetPoints = {
                     target.position + Vector3.up * 1.6f,
@@ -90,6 +101,7 @@ public class CreatureSensor : MonoBehaviour
                 foreach (Vector3 targetPlayer in targetPoints)
                 {
                     Vector3 dirtoTarget = (targetPlayer - eyePosition).normalized;
+
                     //레이캐스트가 장애물에 부딪히지 않으면 시야에 보인다고 판정
                     if (!Physics.Raycast(eyePosition, dirtoTarget, distanceToTarget, obstaclMask)) return true;
                 }
@@ -123,4 +135,51 @@ public class CreatureSensor : MonoBehaviour
         }
         return false;
     }
+
+    public bool CheckHiddenPlayerDetect(Transform target, HideState hideState)
+    {
+        //타겟이 존재하지 않으면 무시
+        if (target == null) return false;
+
+        //평면 거리 및 높이 차이 계산
+        Vector3 flatCreaturePos = new Vector3(transform.position.x, 0, transform.position.z);
+        Vector3 flatTargetPos = new Vector3(target.position.x, 0, target.position.z);
+
+        float distance = Vector3.Distance(flatCreaturePos, flatTargetPos);
+        float yDiff = Mathf.Abs(transform.position.y - target.position.y);
+
+        //층이 다르면 발각되지 않음
+        if (yDiff > 2.0f) return false;
+
+        //숨은 상태에 따른 발각 거리 설정
+        float detectRange = (hideState == HideState.Cabinet) ? cabinetDetectRange : deskDetectRange;
+
+        //발각 거리 이내로 들어오면 들킴
+        return distance <= detectRange;
+    }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
+    {
+        //시야 범위 기즈모 (반투명 노란색 부채꼴)
+        Vector3 eyePosition = transform.position + Vector3.up * eyeHeight;
+        Vector3 leftDir = Quaternion.Euler(0, -losAngle / 2f, 0) * transform.forward;
+        Vector3 rightDir = Quaternion.Euler(0, losAngle / 2f, 0) * transform.forward;
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawRay(eyePosition, leftDir * losRange);
+        Gizmos.DrawRay(eyePosition, rightDir * losRange);
+
+        Handles.color = new Color(1f, 0.92f, 0.016f, 0.1f);
+        Handles.DrawSolidArc(eyePosition, Vector3.up, leftDir, losAngle, losRange);
+
+        //포획 범위 기즈모 (반투명 빨간색 원)
+        Handles.color = new Color(1f, 0f, 0f, 0.2f);
+        Handles.DrawSolidDisc(transform.position, Vector3.up, captureRange);
+
+        ////은신 발각 범위 기즈모 (반투명 보라색 원 - 캐비닛 기준)
+        //Handles.color = new Color(0.5f, 0f, 0.5f, 0.2f);
+        //Handles.DrawSolidDisc(transform.position, Vector3.up, cabinetDetectRange);
+    }
+#endif
 }
