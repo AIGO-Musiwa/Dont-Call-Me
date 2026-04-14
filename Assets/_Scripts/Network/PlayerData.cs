@@ -1,4 +1,5 @@
 using Fusion;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class PlayerData : NetworkBehaviour
@@ -8,6 +9,7 @@ public class PlayerData : NetworkBehaviour
     [Networked] public NetworkBool IsReady { get; set; }                // 준비 상태
     [Networked] public NetworkBool IsMicActive { get; set; }            // 마이크 활성화 상태
     [Networked] public int SlotIndex { get; set; } = -1;                // 로비 내 슬롯 인덱스 (0~3, -1은 미할당)
+    [Networked] public NetworkBool HasReturnedToLobby { get; set; }     // 로비로 복귀 했는지 확인
 
     // ── 게임 전용 ────────────────────────────────────────
     [Networked] public NetworkId PlayerControllerNetId { get; set; }
@@ -36,6 +38,12 @@ public class PlayerData : NetworkBehaviour
         {
             Rpc_SetReady(true);
         }
+        else
+        {
+            bool isReturning = GameLauncher.Instance?.IsReturningToLobby ?? false;
+            if (isReturning)
+                Rpc_SetReady(false);
+        }
 
         // VoiceManager에 로컬 플레이어 등록
         VoiceManager.Instance?.RegisterLocalPlayer(this);
@@ -62,6 +70,9 @@ public class PlayerData : NetworkBehaviour
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void Rpc_SetMicActive(NetworkBool isActive) => IsMicActive = isActive;
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void Rpc_SetHasReturnedToLobby(NetworkBool value) => HasReturnedToLobby = value;
 
     #endregion
 }

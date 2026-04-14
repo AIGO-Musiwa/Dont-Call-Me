@@ -22,6 +22,7 @@ public class GameSessionManager : NetworkBehaviour
     public override void Spawned()
     {
         Instance = this;
+        sessionEnded = false;
 
         var launcher = GameLauncher.Instance;
         if (launcher == null) return;
@@ -49,7 +50,11 @@ public class GameSessionManager : NetworkBehaviour
     public void EvaluateEndCondition()
     {
         if (!Runner.IsServer) return;
-        if (sessionEnded) return;
+        if (sessionEnded)
+        {
+            Debug.Log("[GameSessionManager] sessionEnded=true라 무시됨");
+            return;
+        }
 
         var players = GetAllPlayers();
         if (players.Length == 0) return;
@@ -103,6 +108,10 @@ public class GameSessionManager : NetworkBehaviour
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void Rpc_ShowResult(NetworkBool isClear)
     {
+        // [TODO] 커서 복원
+        //Cursor.lockState = CursorLockMode.None;
+        //Cursor.visible = true;
+
         resultPanel.SetActive(true);
         resultUI?.Setup(isClear);
     }

@@ -42,9 +42,16 @@ public class LobbyManager : MonoBehaviour
         _launcher.OnPlayerJoinedEvent += HandlePlayerJoined;
         _launcher.OnPlayerLeftEvent   += HandlePlayerLeft;
         _launcher.OnHostDisconnected  += HandleHostDisconnected;
-        _launcher.OnReturnedToLobby += HandleReturnedToLobby;
-        
-        lobbyPanel.SetActive(false);
+
+        // 로비 복귀 시 커서 복원
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        if (_launcher.Runner != null)
+            ShowLobby(_launcher.Runner);
+
+        // 슬롯 재스캔
+        StartCoroutine(RebuildSlotsNextFrame());
 
         Debug.Log($"[LobbyManager] Start() 실행 | Runner={_launcher.Runner != null}");
     }
@@ -55,7 +62,6 @@ public class LobbyManager : MonoBehaviour
         _launcher.OnPlayerJoinedEvent -= HandlePlayerJoined;
         _launcher.OnPlayerLeftEvent   -= HandlePlayerLeft;
         _launcher.OnHostDisconnected  -= HandleHostDisconnected;
-        _launcher.OnReturnedToLobby   -= HandleReturnedToLobby;
     }
 
     private void Update()

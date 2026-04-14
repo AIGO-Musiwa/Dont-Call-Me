@@ -36,10 +36,6 @@ public class ResultUI : MonoBehaviour
     {
         isActive = true;
 
-        // 커서 복원
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-
         resultText.text = isClear ? "게임 클리어" : "게임 오버";
 
         foreach (var slot in playerSlots)
@@ -48,25 +44,13 @@ public class ResultUI : MonoBehaviour
         var runner = GameLauncher.Instance?.Runner;
         if (runner == null) return;
 
-        var allControllers = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
-
         int debugSlot = 0;
         foreach (var player in runner.ActivePlayers)
         {
-            PlayerController pc = null;
-            foreach(var c in allControllers)
-            {
-                if ( c.Object.InputAuthority == player)
-                {
-                    pc = c;
-                    break;
-                }
-            }
-            if (pc == null) continue;
-
             // 닉네임, 슬롯 인덱스 -> PlayerData
             // 게임 상태 -> PlayerController
             var data = runner.GetPlayerObject(player)?.GetComponent<PlayerData>();
+            PlayerController pc = data.GetPlayerController();
 
             if (data != null && data.SlotIndex >= 0 && data.SlotIndex < playerSlots.Length)
             {
@@ -91,6 +75,10 @@ public class ResultUI : MonoBehaviour
     private void OnReturnClicked()
     {
         isActive = false;
-        GameLauncher.Instance?.ReturnToLobby();
+
+        if (GameLauncher.Instance.Runner.IsServer)
+            GameLauncher.Instance.ReturnToLobby();
+        else
+            GameSessionManager.Instance?.Rpc_RequestReturnToLobby();
     }
 }

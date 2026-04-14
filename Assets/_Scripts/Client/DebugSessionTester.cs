@@ -9,7 +9,7 @@ public class DebugSessionTester : MonoBehaviour
         if (!Application.isPlaying) return;
 
         var runner = GameLauncher.Instance?.Runner;
-        if (runner == null || !runner.IsServer) return;
+        if (runner == null) return;
 
         var keyboard = Keyboard.current;
         if (keyboard == null) return;
@@ -19,6 +19,8 @@ public class DebugSessionTester : MonoBehaviour
 
         if (keyboard.f2Key.wasPressedThisFrame)
             SetLocalPlayerState(runner, PlayerState.Dead);
+
+        if (!runner.IsServer) return;
 
         if (keyboard.f3Key.wasPressedThisFrame)
             SetAllPlayerState(runner, PlayerState.Dead);
@@ -38,9 +40,6 @@ public class DebugSessionTester : MonoBehaviour
             pc.NetPlayerState = state;
         }
 
-        // ChangeDetector가 못 잡을 경우를 대비해 직접 호출
-        GameSessionManager.Instance?.EvaluateEndCondition();
-
         Debug.Log($"[DebugSessionTester] 전원 → {state} | 대상 수: {controllers.Length}");
     }
 
@@ -51,7 +50,7 @@ public class DebugSessionTester : MonoBehaviour
         {
             if (pc.HasInputAuthority)
             {
-                pc.NetPlayerState = state;
+                pc.Rpc_DebugSetState(state); // ★ RPC로 Host에게 요청
                 Debug.Log($"[DebugSessionTester] 로컬 플레이어 → {state}");
                 return;
             }

@@ -39,7 +39,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [SerializeField] private float traumaDeathThreshold = 100f;
     [SerializeField] private float rescueBaseTimeSeconds = 100f;
 
-    public PlayerState NetPlayerState { get; set; }
+    [Networked] public PlayerState NetPlayerState { get; set; }
     [Networked] public PlayerRole NetPlayerRole { get; set; }
     [Networked, OnChangedRender(nameof(OnZoneChanged))]
     public Zone NetZone { get; set; }
@@ -972,4 +972,13 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
         ServerExitCapturedToNormal();
     }
+
+
+    #region 게임 종료 이벤트 확인용 RPC
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void Rpc_DebugSetState(PlayerState state)
+    {
+        NetPlayerState = state;
+    }
+    #endregion
 }

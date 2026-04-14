@@ -59,7 +59,8 @@ public class NetworkDebugStarter : MonoBehaviour
             GameMode = GameMode.AutoHostOrClient,           // MPM: 첫 인스턴스: Host, 나머지 Client
             SessionName = sessionName,
             Scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex),
-            SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
+            SceneManager = runner.GetComponent<INetworkSceneManager>()
+                           ?? runner.gameObject.AddComponent<NetworkSceneManagerDefault>()
         });
 
         if (!result.Ok)

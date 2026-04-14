@@ -21,19 +21,18 @@ public class GameLauncher : MonoBehaviour
     public NetworkRunner Runner { get; private set; }
     public string RoomCode { get; private set; }
     public string LocalNickname { get; private set; }
+    public bool IsReturningToLobby { get; private set; }
 
     // ── 이벤트 (Lobby 씬 내 UI에서 구독) ─────────────────
     public event Action<string> OnJoinFailed;                           // 방 참가/생성 실패 시 (TitleManager에서 구독)
     public event Action OnHostDisconnected;                             // 호스트 끊김 시 (LobbyManager에서 구독)
     public event Action<NetworkRunner, PlayerRef> OnPlayerJoinedEvent;  // 플레이어 입장 (LobbyManagert에서 구독)
     public event Action<NetworkRunner, PlayerRef> OnPlayerLeftEvent;    // 플레이어 퇴장 (LobbyManager에서 구독)
-    public event Action OnReturnedToLobby;                              // 게임 종료 후 대기실 복귀 완료
 
     // ── 내부 ──────────────────────────────────────────────
     private bool _intentionalShutdown;                  // 본인이 직접 종료했는지 확인
     private FusionCallbackHandler _callbackHandler;     // Fusion 콜백 핸들러
     private bool _isConnecting;                         // Runner.StartGame 진행 중 플래그
-    private bool isReturningToLobby;
 
     // 서버에서만 사용하는 슬롯  추적
     private readonly Dictionary<PlayerRef, int> _playerSlots = new();
@@ -92,12 +91,9 @@ public class GameLauncher : MonoBehaviour
     {
         if (Runner == null) return;
 
-        // Fusion SceneManager로 Title씬 로드 (Host 호출)
         if (Runner.IsServer)
-        {
-            isReturningToLobby = true;
-            Runner.LoadScene(SceneRef.FromIndex(SceneNames.TITLE_INDEX));
-        }
+            Runner.LoadScene(SceneRef.FromIndex(SceneNames.LOBBY_INDEX));
+        
     }
 
     #endregion
@@ -119,41 +115,15 @@ public class GameLauncher : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.buildIndex != SceneNames.TITLE_INDEX) return;
-
-        // 복귀 중일 때만 처리
-        if (!isReturningToLobby) return;
-
-        isReturningToLobby = false;
-        ResetLobbyState();
-        StartCoroutine(InvokeReturnedToLobbyNextFrame()); 
-    }
-
-    private IEnumerator InvokeReturnedToLobbyNextFrame()
-    {
-        Debug.Log($"[GameLauncher] OnReturnedToLobby 발생");
-        yield return null;
-
-        // TitlePanel이 혹시 열려있으면 닫기
-        FindFirstObjectByType<TitleManager>()?.Hide();
-        OnReturnedToLobby?.Invoke();
-    }
-
-    // 대기실 복귀 시 ready 상태 초기화
-    private void ResetLobbyState()
-    {
-        if (Runner == null) return;
-
-        var myData = Runner.GetPlayerObject(Runner.LocalPlayer)?.GetComponent<PlayerData>();
-
-        if (myData == null) return;
-
-        if (Runner.IsServer)
-            myData.Rpc_SetReady(true);      // 호스트는 항상 레디
+        if (scene.buildIndex == SceneNames.LOBBY_INDEX)
+        {
+            IsReturningToLobby = true;
+        }
         else
-            myData.Rpc_SetReady(false);     // 클라이언트
+        {
+            IsReturningToLobby = false;
+        }
     }
-
     #endregion
 
     #region 내부 연결 처리
