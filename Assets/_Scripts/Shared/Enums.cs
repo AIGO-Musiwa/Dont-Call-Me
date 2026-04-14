@@ -7,14 +7,14 @@ using UnityEngine;
 // 플레이어 역할 아이템
 public enum PlayerRole
 {           
-    WalkieTalkie,       // 무전기
-    Flashlight          // 손전등
+    WalkieTalkie,       //무전기
+    Flashlight          //손전등
 }
 
 // 플레이어 생존 상태
 public enum PlayerState
 {
-    Normal,              // 생존 상태
+    Normal,             // 생존 상태
     Captured,           // 크리처에게 납치된 (게이지 진행 중)
     Dead,               // 후유증 게이지 100% 도달 -> 사망
     Escaped,            // 탈출 성공
@@ -49,11 +49,19 @@ public enum  Zone
 
 public enum CreatureState
 {
-    Patrol,             //순찰
-    AlerMove,           //경계 이동
-    Search,             //수색(탐색)
-    Chaser,             //추척
-    Capture             //포획
+    Patrol,             // 순찰
+    AlerMove,           // 경계 이동
+    Search,             // 수색(탐색)
+    Chaser,             // 추척
+    Capture             // 포획
+}
+
+public enum SearchPhase
+{
+    None,                   // 수색 아님
+    InitialLookAround,      // 최초 제자리 두리번거리기
+    MovingToRandomPoint,    // 주변 랜덤 지점으로 1회 이동
+    SecondaryLookAround     // 이동한 지점에서 추가 두리번거리기
 }
 
 // ── 소리 ──────────────────────────────────────────────────
