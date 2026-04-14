@@ -77,7 +77,7 @@ public class CreaturePresenter : MonoBehaviour
     /// </summary>
     private void OnStateChanged(CreatureState oldState, CreatureState newState)
     {
-        Debug.Log($"[제미니 모니터링] 크리처 상태 변속: {oldState} -> {newState}");
+        Debug.Log($"크리처 상태 변속: {oldState} -> {newState}");
 
         // 특정 상태 진입 시 필요한 애니메이션 트리거/사운드 작동
         switch (newState)

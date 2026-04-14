@@ -1,7 +1,6 @@
 using UnityEngine;
 
 /// <summary>
-/// [기공사 전용] 네트워크 동기화 프레젠터
 /// 내 화면뿐만 아니라, 다른 플레이어의 화면에 떠 있는 '나의 분신' 애니메이션도 
 /// 서버의 NetIsCrouching 값을 보고 완벽하게 동기화합니다.
 /// </summary>
@@ -39,7 +38,7 @@ public class PlayerPresenter : MonoBehaviour
         // ─────────────────────────────────────────────────────────
         // 1. 앉기 상태 동기화 (네트워크 변수 직결)
         // ─────────────────────────────────────────────────────────
-        // [수리 포인트] motor.IsCrouching을 써도 되지만, 
+        // motor.IsCrouching을 써도 되지만, 
         // 명확하게 네트워크 변수인 controller.NetIsCrouching을 직접 읽어옵니다.
         // 이제 다른 플레이어(Proxy) 화면에서도 이 값이 실시간으로 동기화됩니다.
         bool syncCrouch = controller.NetIsCrouching;
