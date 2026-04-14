@@ -393,8 +393,8 @@ MonoBehaviour:
   searchDuration: 15
   lockOnBreakTime: 3
   chaseMinDuration: 3
-  searchRadius: 10
-  searchLookAroundTime: 6
+  searchRadius: 7
+  searchLookAroundTime: 3.1
   playerRespawnPoint: {fileID: 0}
   creatureRespawnPoint1F: {fileID: 0}
   creatureRespawnPoint3F: {fileID: 0}
@@ -427,10 +427,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CreatureSensor
   losRange: 20
   losAngle: 90
-  eyeHeight: 1.4
+  eyeHeight: 2
   obstaclMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 8
   alertThresholdDB: 18
   criticalThresholdDB: 28
   maxWalkieCost: 100
