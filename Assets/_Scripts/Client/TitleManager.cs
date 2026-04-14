@@ -82,7 +82,8 @@ public class TitleManager : MonoBehaviour
     {
         if (player == runner.LocalPlayer)
         {
-            Hide();
+            if (runner.IsServer)
+                runner.LoadScene(SceneRef.FromIndex(SceneNames.LOBBY_INDEX));
         }
     }
 
