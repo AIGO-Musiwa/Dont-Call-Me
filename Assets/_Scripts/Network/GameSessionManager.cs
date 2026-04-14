@@ -130,15 +130,7 @@ public class GameSessionManager : NetworkBehaviour
     private void HandleHostDisconnected()
     {
         Debug.LogWarning("[GameSessionManager] 호스트 이탈 → 타이틀 이동");
-        SceneManager.sceneLoaded += OnTitleSceneLoaded;
         SceneManager.LoadScene(SceneNames.TITLE_INDEX);
-    }
-    
-    private void OnTitleSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        if (scene.buildIndex != SceneNames.TITLE_INDEX) return;
-        SceneManager.sceneLoaded -= OnTitleSceneLoaded;
-        FindFirstObjectByType<TitleManager>()?.Show();
     }
 
     // 클라이언트 이탈 -> Dead 처리 후 게임 유지
