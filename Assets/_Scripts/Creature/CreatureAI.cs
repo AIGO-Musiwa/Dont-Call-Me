@@ -4,6 +4,7 @@ using UnityEngine.AI;
 
 [RequireComponent(typeof(CreatureMotor))]
 [RequireComponent(typeof(CreatureSensor))]
+[RequireComponent(typeof(CreatureWalkieTracker))]
 public class CreatureAI : NetworkBehaviour
 {
     [Header("상태 및 구역")]
@@ -39,6 +40,7 @@ public class CreatureAI : NetworkBehaviour
 
     private CreatureMotor motor;
     private CreatureSensor sensor;
+    private CreatureWalkieTracker walkieTracker;
 
     private Vector3 targetLocation;
     private float stateTimer = 0f;
@@ -50,12 +52,17 @@ public class CreatureAI : NetworkBehaviour
     private Vector3 searchCenter;    
     private float overallSearchTimer = 0f;
 
+    //현재 추적 중인 소리의 정보 기억
+    private float currentTrackedDb = 0f;
+    private SoundChannel currentTrackedChannel = SoundChannel.Natural;
+
     #region 초기화 및 기본 설정
     public override void Spawned()
     {
-        //모터 및 센서 컴포넌트 초기화
+        //컴포넌트 초기화
         motor = GetComponent<CreatureMotor>();
         sensor = GetComponent<CreatureSensor>();
+        walkieTracker = GetComponent<CreatureWalkieTracker>();
 
         //모터 웨이포인트 초기화
         motor.Initialize();
@@ -74,10 +81,22 @@ public class CreatureAI : NetworkBehaviour
             
             //순찰 속도 설정
             motor.SetSpeed(patrolSpeed);
+
+            //호스트(서버) 권한일 때 글로벌 소리 이벤트 구독
+            SoundEventBus.OnSoundEmitted += OnSoundEventReceived;
         }
 
         //클라이언트(프록시) 측 길찾기 에이전트 끄기
         else motor.EnableAgent(false);        
+    }
+
+    //오브젝트 소멸 시 이벤트 구독 해제
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {        
+        if (hasState)
+        {
+            SoundEventBus.OnSoundEmitted -= OnSoundEventReceived;
+        }
     }
 
     //기본 속도에 배율을 곱해 실제 속도값 캐싱
@@ -130,12 +149,162 @@ public class CreatureAI : NetworkBehaviour
         ManageChaseLosLost();
 
         //순찰 중 무전 코스트 초과 여부 관리
-        CheckPatrolWalkieCost();
+        ProcessWalkieCostAndTrigger();
+    }
+
+    //글로벌 소리 이벤트 수신 핸들러
+    private void OnSoundEventReceived(SoundEvent soundEvent)
+    {
+        if (!Object.HasStateAuthority) return;
+        if (currentState == CreatureState.Capture) return;
+
+        //크리처와 소리 발생원 간의 거리 계산
+        float distance = Vector3.Distance(transform.position, soundEvent.sourcePosition);
+
+        //실제 체감 dB 연산
+        float perceivedDb = sensor.CalculatePerceivedDb(soundEvent.voicedB, distance, soundEvent.obstaclePenaltydB);
+
+        float currentAlertThresh = sensor.alertThresholdDB;
+        float currentCriticalThresh = sensor.criticalThresholdDB;
+
+        //3막 이벤트 발동에 따른 예민도 처리
+        ZoneLightingManager manager = ZoneLightingManager.GetManager(myZone);
+
+        if (manager != null && manager.IsAct3Active)
+        {
+            currentAlertThresh *= 0.5f;
+            currentCriticalThresh *= 0.5f;
+        }
+
+        //Critical dB 이상 자극 감지 시 즉지 Chase로 상태 변경
+        if (perceivedDb >= currentCriticalThresh)
+        {
+            //현재 상태가 이미 추적이나 경계라면 타겟 갱신
+            if (currentState == CreatureState.Chaser || currentState == CreatureState.AlerMove)
+            {
+                if (ShouldUpdateTarget(perceivedDb, soundEvent.channel, distance))
+                {
+                    targetLocation = soundEvent.sourcePosition;
+                    currentTrackedDb = perceivedDb;
+                    currentTrackedChannel = soundEvent.channel;
+                }
+            }
+
+            //순찰이나 수색 중이면 바로 상태 변경
+            else
+            {
+                currentState = CreatureState.Chaser;
+                currentSearchPhase = SearchPhase.None;
+                stateTimer = 0f;
+
+                motor.SetSpeed(chaseSpeed);
+                targetLocation = soundEvent.sourcePosition;
+                currentTrackedDb = perceivedDb;
+                currentTrackedChannel = soundEvent.channel;
+                walkieTracker.ResetCost();
+            }
+        }
+
+        //Alert dB 이상 감지
+        else if (perceivedDb >= currentAlertThresh && currentState != CreatureState.Chaser)
+        {
+            //Search 중 Alert dB를 들으면 즉기 Chase로 상태 변경
+            if (currentState == CreatureState.Search)
+            {
+                currentState = CreatureState.Chaser;
+                currentSearchPhase = SearchPhase.None;
+                stateTimer = 0f;
+
+                motor.SetSpeed(chaseSpeed);
+                targetLocation = soundEvent.sourcePosition;
+                currentTrackedDb = perceivedDb;
+                currentTrackedChannel = soundEvent.channel;
+                walkieTracker.ResetCost();
+            }
+
+            //AlertMove 중 타깃 갱신
+            else if (currentState == CreatureState.AlerMove)
+            {                
+                if (ShouldUpdateTarget(perceivedDb, soundEvent.channel, distance))
+                {
+                    targetLocation = soundEvent.sourcePosition;
+                    currentTrackedDb = perceivedDb;
+                    currentTrackedChannel = soundEvent.channel;
+                }
+            }
+
+            //Patrol 중 Alert dB를 들으면 AlertMove로 상태 변경
+            else if (currentState == CreatureState.Patrol)
+            {
+                currentState = CreatureState.AlerMove;
+                currentSearchPhase = SearchPhase.None;
+                stateTimer = 0f;
+
+                motor.SetSpeed(alertMoveSpeed);
+                targetLocation = soundEvent.sourcePosition;
+                currentTrackedDb = perceivedDb;
+                currentTrackedChannel = soundEvent.channel;
+                walkieTracker.ResetCost();
+            }
+        }
+    }
+
+    private bool ShouldUpdateTarget(float newDb, SoundChannel newChannel, float newDistance)
+    {
+        //새로운 소리가 현재 타겟의 dB보다 크면 즉시 갱신
+        if (newDb > currentTrackedDb + 0.1f) return true;
+
+        //새로운 소리가 작으면 무시
+        if (newDb < currentTrackedDb - 0.1f) return false;
+
+        //소리 크기가 거의 같을 때
+        if (Mathf.Abs(newDb - currentTrackedDb) <= 0.1f)
+        {
+            //자연음 dB >= 무전음 dB이면 자연음 우선
+            if (newChannel == SoundChannel.Natural && currentTrackedChannel == SoundChannel.Walkie) return true;
+            if (newChannel == SoundChannel.Walkie && currentTrackedChannel == SoundChannel.Natural) return false;
+
+            //채널마저 동일하다면, 거리가 더 가까운 곳으로 타겟 갱신
+            float currentDist = Vector3.Distance(transform.position, targetLocation);
+            if (newDistance < currentDist) return true;
+        }
+
+        return false;
+    }
+
+    private void ProcessWalkieCostAndTrigger()
+    {
+        //Patrol 상태가 아닐 때는 무전 소리를 들어도 코스트가 쌓이지 않도록 초기화 후 반환
+        if (currentState != CreatureState.Patrol)
+        {
+            walkieTracker.ResetCost();
+            return;
+        }
+
+        //트래커에게 현 시간, 구역, 위치 값을 넘겨주고 코스트 누적 계산
+        if (walkieTracker.ProcessWalkieCost(Runner.DeltaTime, myZone, transform.position, out Vector3 walkieLocation))
+        {
+            //경계 이동 상태로 전환
+            currentState = CreatureState.AlerMove;
+            currentSearchPhase = SearchPhase.None;
+            stateTimer = 0f;
+
+            //이동 속도를 경계 속도로 올리고, 타겟 위치를 무전기 위치로 설정하여 출발
+            motor.SetSpeed(alertMoveSpeed);
+            targetLocation = walkieLocation;
+
+            //무전 코스트 누적으로 인한 이동이므로, 이후 소리 비교를 위해 최소 Alert 수준 dB 세팅
+            currentTrackedDb = sensor.alertThresholdDB;
+            currentTrackedChannel = SoundChannel.Walkie;
+
+            //트리거가 발동하여 이동을 시작했으므로 누적된 코스트는 0으로 싹 비워줌
+            walkieTracker.ResetCost();
+        }
     }
 
     private bool CheckAndHanledSearchTimeout()
     {
-        //수색 주잉 아니면 무시
+        //수색 중이 아니면 무시
         if (currentSearchPhase == SearchPhase.None) return false;
 
         //전체 수색 타이머 증가
@@ -220,7 +389,7 @@ public class CreatureAI : NetworkBehaviour
                     motor.SetSpeed(chaseSpeed);
 
                     //무전 코스트 초기화
-                    sensor.ResetWalkieCost();                    
+                    walkieTracker.ResetCost();                    
                 }
 
                 //플레이어를 발견했으므로 탐색 중단하고 트루 반환
@@ -263,84 +432,14 @@ public class CreatureAI : NetworkBehaviour
             overallSearchTimer = 0f;
             searchCenter = targetLocation;
             stateTimer = 0f;
+            currentTrackedDb = 0f;
 
             //타겟 초기화 및 제자리 대기
             playerTarget = null;
             motor.StopMoving();
         }
         
-    }
-
-    private void CheckPatrolWalkieCost()
-    {
-        //순찰 중 무전 코스트 임계치 도달 시 경계 이동 상태로 전환
-        if (currentState == CreatureState.Patrol && sensor.IsCostThresholdReached())
-        {
-            currentState = CreatureState.AlerMove;
-
-            //새로운 소리를 들었으므로 도착 시 1단계부터 수색할 수 있도록 진행 상황 초기화
-            currentSearchPhase = SearchPhase.None;
-            stateTimer = 0f;
-
-            //경계 이동 속도로 변경
-            motor.SetSpeed(alertMoveSpeed);
-
-            //무전 코스트 초기화
-            sensor.ResetWalkieCost();
-        }
-    }
-
-    public void OnHearRadioSound(Vector3 noisePosition, float rawDb, bool isGlobal)
-    {
-        //센서를 통해 거리 감쇠가 적용된 소리 크기 계산
-        float perceivedDb = sensor.CalculatePerceivedDb(noisePosition, rawDb, isGlobal);
-
-        //기본 소리 임계치 설정
-        float alertDbThreshold = sensor.alertThresholdDB;
-        float criticalDbThreshold = sensor.criticalThresholdDB;
-
-        //해당 구역 조명 관리자 확인
-        ZoneLightingManager manager = ZoneLightingManager.GetManager(myZone);
-
-        //3막 활성화 시 소리 임계치 절반으로 감소시켜 예민도 증가
-        if (manager != null && manager.IsAct3Active)
-        {
-            alertDbThreshold *= 0.5f;
-            criticalDbThreshold *= 0.5f;
-        }
-
-        //치명적 소리 임계치 초과 시 즉시 추적 상태로 전환
-        if (perceivedDb >= criticalDbThreshold)
-        {
-            currentState = CreatureState.Chaser;
-
-            //새로운 소리를 들었으므로 도착 시 1단계부터 수색할 수 있도록 진행 상황 초기화
-            currentSearchPhase = SearchPhase.None;
-            stateTimer = 0f;
-
-            //추적 속도로 변경 및 타겟 위치 설정
-            motor.SetSpeed(chaseSpeed);
-            targetLocation = noisePosition;
-
-            //무전 코스트 초기화
-            sensor.ResetWalkieCost();
-        }
-
-        //경계 소리 임계치 초과 시 경계 이동 상태로 전환
-        else if (perceivedDb >= alertDbThreshold && currentState != CreatureState.Chaser)
-        {
-            currentState = CreatureState.AlerMove;
-
-            //새로운 소리를 들었으므로 도착 시 1단계부터 수색할 수 있도록 진행 상황 초기화
-            currentSearchPhase = SearchPhase.None;
-            stateTimer = 0f;
-
-            //경계 이동 속도로 변경 및 타겟 위치로 이동
-            targetLocation = noisePosition;
-            motor.SetSpeed(alertMoveSpeed);
-            motor.MoveToDestination(targetLocation);
-        }
-    }
+    }  
 
     //수색 페이즈를 종료하고 순찰로 복귀
     private void EndSearchPhase()
@@ -378,7 +477,8 @@ public class CreatureAI : NetworkBehaviour
             if (currentSearchPhase == SearchPhase.None)
             {                
                 currentState = CreatureState.Search;
-                stateTimer = 0f;
+                currentTrackedDb = 0f;
+                stateTimer = 0f;                
                 motor.StopMoving();
 
                 //수색 시작 지점 설정
@@ -463,6 +563,7 @@ public class CreatureAI : NetworkBehaviour
         isCapturing = true;
         stateTimer = 0f;
         currentSearchPhase = SearchPhase.None;
+        currentTrackedDb = 0f;
 
         //모터 이동 중지
         motor.StopMoving();
@@ -524,7 +625,7 @@ public class CreatureAI : NetworkBehaviour
             chaseSpeed *= 1.25f;
 
             //센서 예민도 증가
-            sensor.SetActMultiplier(0.5f);
+            walkieTracker.SetAct3(true);
         }
     }
     #endregion
