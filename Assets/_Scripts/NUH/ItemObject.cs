@@ -7,6 +7,18 @@ public class ItemObject : NetworkBehaviour, IInteractable
     [Header("아이템 정보")]
     [SerializeField] protected ItemType itemType = ItemType.None;
     [SerializeField] protected bool isRoleItem = false;
+    [SerializeField] protected string itemName = "알 수 없는 아이템";
+    public string ItemName => itemName; // 외부(HUD)에서 이 이름을 읽어감!
+
+    [Header("1인칭 뷰모델 설정")]
+    [SerializeField] private GameObject localViewPrefab; // 내 화면(1인칭) 전용 모델 프리팹
+    public GameObject LocalViewPrefab => localViewPrefab;
+
+    [SerializeField] private Vector3 viewRotationOffset = new Vector3(0, 180, 0); // 1인칭 전용 회전 오프셋
+    public Vector3 ViewRotationOffset => viewRotationOffset;
+
+    [Header("시각 효과")]
+    [SerializeField] protected MonoBehaviour outlineComponent; // 외곽선 스크립트 참조
 
     [Networked] public ItemType NetItemType { get; private set; }
     [Networked] public NetworkBool NetIsRoleItem { get; private set; }
@@ -23,6 +35,9 @@ public class ItemObject : NetworkBehaviour, IInteractable
     {
         _colliders = GetComponentsInChildren<Collider>(true);
         _rigidbody = GetComponent<Rigidbody>();
+
+        // 초기화 시 외곽선 비활성화
+        if (outlineComponent != null) outlineComponent.enabled = false;
     }
 
     /// <summary>
@@ -47,6 +62,24 @@ public class ItemObject : NetworkBehaviour, IInteractable
     public override void Render()
     {
         ApplyPresentationState();
+    }
+
+    /// <summary>
+    /// 플레이어의 시선이 아이템에 머물 때 외곽선을 활성화한다.
+    /// </summary>
+    public virtual void OnFocus()
+    {
+        if (outlineComponent != null && !NetIsEquipped)
+            outlineComponent.enabled = true;
+    }
+
+    /// <summary>
+    /// 플레이어의 시선이 아이템에서 벗어날 때 외곽선을 비활성화한다.
+    /// </summary>
+    public virtual void LoseFocus()
+    {
+        if (outlineComponent != null)
+            outlineComponent.enabled = false;
     }
 
     /// <summary>
@@ -80,6 +113,8 @@ public class ItemObject : NetworkBehaviour, IInteractable
         if (!CanInteract(actor))
             return;
 
+        // 상호작용 시 외곽선 효과 정리
+        LoseFocus();
         actor.ServerTryPickupRightHand(this);
     }
 
@@ -89,9 +124,9 @@ public class ItemObject : NetworkBehaviour, IInteractable
     public virtual string GetPromptText(PlayerController actor)
     {
         if (actor != null && actor.NetRightHandItem != null)
-            return "기존 아이템 내려놓고 줍기";
+            return $"{itemName}으로 교체";
 
-        return "줍기";
+        return $"{itemName} 줍기";
     }
 
     /// <summary>
@@ -110,6 +145,10 @@ public class ItemObject : NetworkBehaviour, IInteractable
 
         NetIsEquipped = true;
         NetCurrentHolder = holder.Object.InputAuthority;
+
+        // 장착 시 외곽선 강제 종료
+        if (outlineComponent != null) outlineComponent.enabled = false;
+
         ApplyPresentationState();
     }
 
