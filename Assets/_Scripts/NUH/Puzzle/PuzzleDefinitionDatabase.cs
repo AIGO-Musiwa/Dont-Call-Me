@@ -10,7 +10,7 @@ public class PuzzleDefinitionDatabase : ScriptableObject
 {
     [SerializeField] private List<PuzzleDefinition> def = new();        //전체 퍼즐 정의 목록
 
-    public List<PuzzleDefinition> GetDefinitionsByStage(PuzzleDefinition.PuzzleStage stage)
+    public List<PuzzleDefinition> GetDefinitionsByStage(PuzzleStage stage)
     {
         List<PuzzleDefinition> result = new();
 

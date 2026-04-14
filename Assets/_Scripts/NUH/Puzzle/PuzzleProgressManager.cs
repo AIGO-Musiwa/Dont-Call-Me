@@ -12,8 +12,6 @@ using UnityEngine;
 /// </summary>
 public class PuzzleProgressManager : MonoBehaviour
 {
-    [Header("디버그")]
-    [SerializeField] private bool enableDebugLog = true;        //진행 로그 출력 여부
 
     private readonly List<PuzzleInteractableBase> _stage1Puzzles = new();   // 이번 판 1단계 퍼즐 목록
     private readonly List<GameObject> _stage2Screens = new();               // 이번 판 2단계 화면 목록

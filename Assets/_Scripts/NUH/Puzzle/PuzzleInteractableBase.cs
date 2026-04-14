@@ -64,7 +64,7 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
         if (actor != null && actor.NetRightHandItem != null)
             return promptWhenHoldingItem;
 
-        return default;
+        return defaultPromptText;
     }
 
     /// <summary>

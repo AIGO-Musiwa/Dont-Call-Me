@@ -7,13 +7,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "PuzzleDefinition", menuName = "Puzzle/Puzzle Definition")]
 public class PuzzleDefinition : ScriptableObject
 {
-    public enum PuzzleStage
-    {
-        Stage1,
-        Stage2,
-        Stage3,
-    }
-
     [Header("기본 정보")]
     [SerializeField] private string puzzleId;               // 퍼즐 고유 Id
     [SerializeField] private PuzzleStage puzzleStage;       // 퍼즐 단계

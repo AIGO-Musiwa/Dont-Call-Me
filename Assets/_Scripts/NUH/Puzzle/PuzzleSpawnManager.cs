@@ -8,8 +8,8 @@ public class PuzzleSpawnManager : MonoBehaviour
     [SerializeField] private PuzzleProgressManager puzzleProgressManager;        // 퍼즐 진행도 매니저
 
     [Header("건물 슬롯 세트")]
-    [SerializeField] private BuildingPuzzleSlotSet buildingASlots;               // A동 슬롯 세트
-    [SerializeField] private BuildingPuzzleSlotSet buildingBSlots;               // B동 슬롯 세트
+    [SerializeField] private ZonePuzzleSlotSet AZoneSlots;               // A동 슬롯 세트
+    [SerializeField] private ZonePuzzleSlotSet BZoneSlots;               // B동 슬롯 세트
 
     [Header("각 건물 퍼즐 갯수")]
     [SerializeField] private int stage1SelectCount = 3;
@@ -28,14 +28,14 @@ public class PuzzleSpawnManager : MonoBehaviour
     {
         ClearSpawnedObjects();
 
-        if (puzzleDefinitionDatabase == null || puzzleProgressManager == null || buildingASlots == null || buildingBSlots == null)
+        if (puzzleDefinitionDatabase == null || puzzleProgressManager == null || AZoneSlots == null || BZoneSlots == null)
         {
             Debug.LogWarning("필수 참조가 비어있어 랜덤 배치 시작 불가능");
             return;
         }
 
-        List<PuzzleDefinition> stage1Pool = puzzleDefinitionDatabase.GetDefinitionsByStage(PuzzleDefinition.PuzzleStage.Stage1);
-        List<PuzzleDefinition> stage2Pool = puzzleDefinitionDatabase.GetDefinitionsByStage(PuzzleDefinition.PuzzleStage.Stage2);
+        List<PuzzleDefinition> stage1Pool = puzzleDefinitionDatabase.GetDefinitionsByStage(PuzzleStage.Stage1);
+        List<PuzzleDefinition> stage2Pool = puzzleDefinitionDatabase.GetDefinitionsByStage(PuzzleStage.Stage2);
 
         List<PuzzleDefinition> aStage1 = SelectUniqueRandom(stage1Pool, stage1SelectCount);
         List<PuzzleDefinition> bStage1 = SelectUniqueRandom(stage1Pool, stage1SelectCount);
@@ -43,31 +43,31 @@ public class PuzzleSpawnManager : MonoBehaviour
         List<PuzzleDefinition> bStage2 = SelectUniqueRandom(stage2Pool, stage2SelectCount);
 
         SpawnStageGroup(
-            buildingASlots.BuildingName,
+            AZoneSlots.Zone,
             aStage1,
-            buildingASlots.Stage1PuzzleSlots,
-            buildingBSlots.Stage1HintSlots,
+            AZoneSlots.Stage1PuzzleSlots,
+            BZoneSlots.Stage1HintSlots,
             true);
 
         SpawnStageGroup(
-            buildingBSlots.BuildingName,
+            BZoneSlots.Zone,
             bStage1,
-            buildingBSlots.Stage1PuzzleSlots,
-            buildingASlots.Stage1HintSlots,
+            BZoneSlots.Stage1PuzzleSlots,
+            AZoneSlots.Stage1HintSlots,
             true);
 
         SpawnStageGroup(
-            buildingASlots.BuildingName,
+            AZoneSlots.Zone,
             aStage2,
-            buildingASlots.Stage2PuzzleSlots,
-            buildingBSlots.Stage2HintSlots,
+            AZoneSlots.Stage2PuzzleSlots,
+            BZoneSlots.Stage2HintSlots,
             false);
 
         SpawnStageGroup(
-            buildingBSlots.BuildingName,
+            BZoneSlots.Zone,
             bStage2,
-            buildingBSlots.Stage2PuzzleSlots,
-            buildingASlots.Stage2HintSlots,
+            BZoneSlots.Stage2PuzzleSlots,
+            AZoneSlots.Stage2HintSlots,
             false);
 
         puzzleProgressManager.InitializeRound(_spawnedStage1Puzzles, _spawnedStage2Screens);
@@ -95,13 +95,15 @@ public class PuzzleSpawnManager : MonoBehaviour
     }
 
     private void SpawnStageGroup(
-        string buildingName,
+        Zone zone,
         List<PuzzleDefinition> selectedDefinitions,
         List<PuzzlePlacementSlot> puzzleSlots,
         List<HintPlacementSlot> oppositeHintSlots,
         bool collectStage1Progress)
     {
         int spawnCount = Mathf.Min(selectedDefinitions.Count, puzzleSlots.Count, oppositeHintSlots.Count);
+        if (spawnCount < selectedDefinitions.Count)
+            Debug.LogWarning($"{zone} 배치 슬롯 또는 힌트 슬롯 수가 부족합니다. 선택된 퍼즐 {selectedDefinitions.Count}개 중 {spawnCount}개만 배치합니다");
 
         for (int i = 0; i < spawnCount; i++)
         {
@@ -117,14 +119,14 @@ public class PuzzleSpawnManager : MonoBehaviour
             if (spawnedPuzzle != null)
             {
                 RegisterSpawnedPuzzle(spawnedPuzzle, collectStage1Progress);
-                Debug.Log($"{buildingName} 퍼즐 배치 : {definition.PuzzleId} -> {puzzleSlot.SlotId}");
+                Debug.Log($"{zone} 퍼즐 배치 : {definition.PuzzleId} -> {puzzleSlot.SlotId}");
             }
 
             // 반대편 힌트 배치
             GameObject spawnedHint = SpawnPrefabAt(definition.HintPrefab, hintSlot.transform);
             if (spawnedHint != null)
             {
-                Debug.Log($"{buildingName} 힌트 교차 배치 : {definition.PuzzleId} -> {hintSlot.SlotId}");
+                Debug.Log($"{zone} 힌트 교차 배치 : {definition.PuzzleId} -> {hintSlot.SlotId}");
             }
         }
     }
