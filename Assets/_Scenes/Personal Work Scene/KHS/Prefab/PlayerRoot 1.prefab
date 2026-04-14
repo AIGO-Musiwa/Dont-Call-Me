@@ -25,7 +25,6 @@ GameObject:
   - component: {fileID: -8854411365576175989}
   - component: {fileID: 6872417279680758967}
   - component: {fileID: 2631477015144606700}
-  - component: {fileID: 7216238260378367629}
   m_Layer: 0
   m_Name: PlayerRoot 1
   m_TagString: Untagged
@@ -472,25 +471,6 @@ MonoBehaviour:
   playerCamera: {fileID: 1283061483550928000}
   localLayerName: PlayerSelf
   remoteLayerName: RemotePlayer
---- !u!114 &7216238260378367629
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 827289365566288008}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 99412e9479d535040b97d1fc98b9249f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UniversalAudioModule
-  mainSource: {fileID: 577717408381972418}
-  subSource: {fileID: 0}
-  minDistance: 1
-  maxDistance: 20
-  rolloffMode: 0
-  footstepLibrary: []
-  actionLibrary: []
 --- !u!1 &889979416615262713
 GameObject:
   m_ObjectHideFlags: 0
@@ -2138,9 +2118,11 @@ MonoBehaviour:
   footstepLibrary:
   - type: 0
     cartridge: {fileID: 11400000, guid: 928ca54e5b00ce548b4e31f96f221e89, type: 2}
-  actionLibrary:
-  - soundID: 
-    cartridge: {fileID: 0}
+  - type: 1
+    cartridge: {fileID: 11400000, guid: ad993c43d399bc94f9887abc0467c56f, type: 2}
+  - type: 2
+    cartridge: {fileID: 11400000, guid: 96b58f6d98bcab148b1d594b654b8326, type: 2}
+  actionLibrary: []
 --- !u!4 &737299014022943070 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 729905749620531292, guid: 5e6eaf898370c324ea877c5e66053101, type: 3}
@@ -3140,6 +3122,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 497813117079571487, guid: 5e6eaf898370c324ea877c5e66053101, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5396118704299936106}
+    - targetCorrespondingSourceObject: {fileID: 497813117079571487, guid: 5e6eaf898370c324ea877c5e66053101, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 235242821454567471}
   m_SourcePrefab: {fileID: 100100000, guid: 5e6eaf898370c324ea877c5e66053101, type: 3}
 --- !u!4 &664813772402845644 stripped
 Transform:
@@ -3189,6 +3174,18 @@ MonoBehaviour:
   spineWeight: 0.3
   neckWeight: 0.5
   rotationSmoothSpeed: 15
+--- !u!114 &235242821454567471
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5243512016377668001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0506664b2de73064a94dc293590ebdd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimationEventCatcher
 --- !u!4 &8785608861672087371 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4017462344809263861, guid: 5e6eaf898370c324ea877c5e66053101, type: 3}

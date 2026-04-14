@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
+/// <summary>
+///  비주얼 및 오디오 수신 장치 동기화 모듈
+/// </summary>
 public class PlayerVisualSetter : MonoBehaviour
 {
     [Header("메쉬")]
@@ -18,6 +21,13 @@ public class PlayerVisualSetter : MonoBehaviour
 
         Renderer[] allRenderers = fullBodyMesh.GetComponentsInChildren<Renderer>(true);
 
+        // [증설] 오디오 리스너 참조 확인
+        AudioListener listener = null;
+        if (playerCamera != null)
+        {
+            listener = playerCamera.GetComponent<AudioListener>();
+        }
+
         if (isLocal)
         {
             // --- [로컬 플레이어 설정] ---
@@ -29,9 +39,12 @@ public class PlayerVisualSetter : MonoBehaviour
             if (playerCamera != null)
             {
                 playerCamera.enabled = true; // 내 카메라는 켠다
+
+                //  내 귀(Listener)는 연다!
+                if (listener != null) listener.enabled = true;
+
                 playerCamera.cullingMask &= ~(1 << localLayer);
 
-                // [보강] 내 카메라가 상대방 레이어는 확실히 보도록 추가
                 int remoteLayer = LayerMask.NameToLayer(remoteLayerName);
                 if (remoteLayer != -1) playerCamera.cullingMask |= (1 << remoteLayer);
             }
@@ -40,8 +53,6 @@ public class PlayerVisualSetter : MonoBehaviour
             {
                 renderer.enabled = true;
                 renderer.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
-
-                // [추가] 내 몸이 내 손전등 빛을 받아서 밝아지거나 시야를 방해하지 않게 함
                 renderer.receiveShadows = false;
                 renderer.lightProbeUsage = LightProbeUsage.Off;
             }
@@ -56,21 +67,21 @@ public class PlayerVisualSetter : MonoBehaviour
 
             SetLayerRecursively(fullBodyMesh, remoteLayer);
 
-            // [수정] 상대방의 프리팹에 붙어있는 카메라는 무조건 끈다
             if (playerCamera != null)
             {
-                playerCamera.enabled = false;
+                playerCamera.enabled = false; // 남의 카메라는 끈다
+
+                //  남의 귀(Listener)는 무조건 닫는다!
+                if (listener != null) listener.enabled = false;
             }
 
-            // 상대방 몸체 렌더러 설정
             foreach (var renderer in allRenderers)
             {
                 renderer.enabled = true;
-                renderer.shadowCastingMode = ShadowCastingMode.On; // 그림자 던지기 ON
-                renderer.receiveShadows = true; // 그림자 받기 ON
+                renderer.shadowCastingMode = ShadowCastingMode.On;
+                renderer.receiveShadows = true;
             }
 
-            // 리모트 플레이어는 별도 그림자 메쉬가 필요 없음
             if (shadowMesh != null) shadowMesh.SetActive(false);
         }
     }
