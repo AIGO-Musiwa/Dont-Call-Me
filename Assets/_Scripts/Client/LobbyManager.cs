@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class LobbyManager : MonoBehaviour
@@ -29,7 +30,7 @@ public class LobbyManager : MonoBehaviour
 
     private GameLauncher _launcher;
     private bool _isReady;
-    private readonly PlayerLobbyData[] _slots = new PlayerLobbyData[4];
+    private readonly PlayerData[] _slots = new PlayerData[4];
 
     private void Start()
     {
@@ -42,8 +43,18 @@ public class LobbyManager : MonoBehaviour
         _launcher.OnPlayerJoinedEvent += HandlePlayerJoined;
         _launcher.OnPlayerLeftEvent   += HandlePlayerLeft;
         _launcher.OnHostDisconnected  += HandleHostDisconnected;
-        
-        lobbyPanel.SetActive(false);
+
+        // 로비 복귀 시 커서 복원
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        if (_launcher.Runner != null)
+            ShowLobby(_launcher.Runner);
+
+        // 슬롯 재스캔
+        StartCoroutine(RebuildSlotsNextFrame());
+
+        Debug.Log($"[LobbyManager] Start() 실행 | Runner={_launcher.Runner != null}");
     }
 
     private void OnDestroy()
@@ -96,10 +107,22 @@ public class LobbyManager : MonoBehaviour
     
     private void HandleHostDisconnected()
     {
-        lobbyPanel.SetActive(false);
-        FindFirstObjectByType<TitleManager>()?.Show();
+        SceneManager.LoadScene(SceneNames.TITLE_INDEX);
         errorText.text = "호스트 연결이 끊겼습니다.";
         errorPanel.SetActive(true);
+    }
+
+    private IEnumerator RebuildSlotsNextFrame()
+    {
+        yield return null;
+
+        var allData = FindObjectsByType<PlayerData>(FindObjectsSortMode.None);
+        foreach (var data in allData)
+        {
+            if (data.SlotIndex >= 0 && data.SlotIndex < _slots.Length)
+                _slots[data.SlotIndex] = data;
+        }
+        RefreshSlots();
     }
 
     #endregion
@@ -112,7 +135,7 @@ public class LobbyManager : MonoBehaviour
 
         var myData = _launcher.Runner
             ?.GetPlayerObject(_launcher.Runner.LocalPlayer)
-            ?.GetComponent<PlayerLobbyData>();
+            ?.GetComponent<PlayerData>();
         myData?.Rpc_SetReady(_isReady);
     }
 
@@ -124,9 +147,9 @@ public class LobbyManager : MonoBehaviour
     public async void OnExitClicked()
     {
         await _launcher.LeaveRoom();
-        lobbyPanel.SetActive(false);
         _isReady = false;
-        FindFirstObjectByType<TitleManager>()?.Show();
+        SceneManager.LoadScene(SceneNames.TITLE_INDEX);
+
     }
     #endregion
 
@@ -147,8 +170,8 @@ public class LobbyManager : MonoBehaviour
     {
         yield return null;
        
-        // PlayerLobbyData 찾기
-        var allData = FindObjectsByType<PlayerLobbyData>(FindObjectsSortMode.None);
+        // PlayerData 찾기
+        var allData = FindObjectsByType<PlayerData>(FindObjectsSortMode.None);
         var data = allData.FirstOrDefault(d => d.Object.InputAuthority == player);
         if (data == null || data.SlotIndex < 0) yield break;
 

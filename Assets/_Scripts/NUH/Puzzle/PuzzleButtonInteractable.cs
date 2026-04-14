@@ -23,6 +23,8 @@ public class PuzzleButtonInteractable : PuzzleInteractableBase
     [Networked]
     public int NetPressCount { get; private set; }
 
+    [SerializeField] private SimpleAudioTrigger audioTrigger; // 연결 단자
+
 
     public override void Spawned()
     {
@@ -73,6 +75,10 @@ public class PuzzleButtonInteractable : PuzzleInteractableBase
     private void OnPressedChanged()
     {
         ApplyPresentation();
+
+        // 심플오디오트리거에 신호 전달해서 사운드 재생 
+        // 논리는 안 건드리고 신호만 전달하는 거지.
+        if (NetIsPressed && audioTrigger != null) audioTrigger.Play();
     }
 
     private void ApplyPresentation()
@@ -80,4 +86,6 @@ public class PuzzleButtonInteractable : PuzzleInteractableBase
         if (buttonView != null)
             buttonView.SetPressed(NetIsPressed);
     }
+
+   
 }

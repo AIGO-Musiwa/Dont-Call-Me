@@ -46,8 +46,8 @@ public class CreatureAI : NetworkBehaviour
     private bool isCapturing = false;
 
     //수색 상태 전용 변수
-    private Vector3 searchCenter;
-    private int searchPhaseStep = 0;
+    private SearchPhase currentSearchPhase = SearchPhase.None;
+    private Vector3 searchCenter;    
     private float overallSearchTimer = 0f;
 
     #region 초기화 및 기본 설정
@@ -117,55 +117,95 @@ public class CreatureAI : NetworkBehaviour
     }
     #endregion
 
-    #region 상황 판단 및 감지
+    #region 상황 판단 및 감지 (역할별 분리)
     private void UpdateSensingAndPriorities()
     {
-        //총 수색 시간이 끝났다면 순찰 상태로 복귀
-        if (searchPhaseStep > 0)
+        //수색 전체 제한 시간이 지났으면 강제 종료 후 순찰로 복귀
+        if (CheckAndHanledSearchTimeout()) return;
+
+        //플레이어를 발견했ㅇ거나 포획 조건을 만족했다면 리턴
+        if (DetectAndHandlePlayer()) return;
+
+        //추격 중 시야 상실 여부 관리
+        ManageChaseLosLost();
+
+        //순찰 중 무전 코스트 초과 여부 관리
+        CheckPatrolWalkieCost();
+    }
+
+    private bool CheckAndHanledSearchTimeout()
+    {
+        //수색 주잉 아니면 무시
+        if (currentSearchPhase == SearchPhase.None) return false;
+
+        //전체 수색 타이머 증가
+        overallSearchTimer += Runner.DeltaTime;
+
+        //수색 애니메이션 재생 중일 때는 제한 시간이 지나도 끝까지 실행
+        if (overallSearchTimer >= searchDuration && currentState != CreatureState.Search)
         {
-            overallSearchTimer += Runner.DeltaTime;
-
-            if (overallSearchTimer >= searchDuration)
-            {
-                EndSearchPhase();
-
-                //수색이 끝났으므로 이번 프레임의 다른 판단은 스킵하고 바로 순찰로 넘김
-                return;
-            }
+            //이동 중 너무 오래 걸린 경우에만 안전장치로 순찰 상태 강제 복귀
+            EndSearchPhase();
+            return true;
         }
+        
+        return false;
+    }
 
+    private bool DetectAndHandlePlayer()
+    {
         //씬에 있는 모든 플레이어를 찾아 가져옴
         PlayerController[] allPlayer = FindObjectsByType<PlayerController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
 
-        //시야 확보 여부 플래그
-        bool hasLoS = false;
-
-        //모든 플레이어 중 조건에 맞는 플레이어 탐색
         foreach (PlayerController p in allPlayer)
         {
             //크리처 담당 구역과 플레이어 소속 구역이 다르면 무시
             if (p.NetZone != this.myZone) continue;
 
-            //플레이어가 정상 상태가 아니거나 숨어 있으면 무시
-            if (p.NetPlayerState != PlayerState.Normal || p.NetHideState != HideState.None) continue;
+            //플레이어가 정상 상태(생존)가 아니면 무시
+            if (p.NetPlayerState != PlayerState.Normal) continue;
 
-            //현재 추적 중인 타겟에 대한 포획 조건 확인
+            //플레이어가 어딘가에 숨어있는 상태인지 확인
+            if (p.NetHideState != HideState.None)
+            {
+                //시야에 있는 상태에서 대놓고 숨었을 경우 즉시 포획
+                if (currentState == CreatureState.Chaser && playerTarget == p.transform)
+                {
+                    //추적 중인 타겟이고, 아직 시야에 있거나 시야에서 사라진지 0.5초 이내라면 눈 앞에서 숨은 것으로 간주
+                    if (sensor.CheckCaptureCondition(p.transform) || losLostTimer < 0.5f)
+                    {
+                        ExecuteCapture(p);
+                        return true;
+                    }
+                }
+
+                //몰래 숨었지만 크리처가 수색 중 너무 가까이 와서 은신 발각 범위에 들어온 경우 포획
+                if (sensor.CheckHiddenPlayerDetect(p.transform, p.NetHideState))
+                {
+                    ExecuteCapture(p);
+                    return true;
+                }
+
+                //시야 밖에서 안전하게 숨은 경우 시야 검사 무시
+                continue;
+            }
+
+            //추적 중 포획 거리 내에 들어왔는지 확인 (안 숨은 상태)
             if (currentState == CreatureState.Chaser && playerTarget == p.transform)
             {
                 //포획 조건 만족 시 포획 실행
                 if (sensor.CheckCaptureCondition(p.transform))
                 {
                     ExecuteCapture(p);
-                    return;
+                    return true;
                 }
             }
 
-            //시야에 보인 플레이어 확인
+            //플레이어가 시야에 들어왔는지 확인
             if (sensor.CheckLineOfSight(p.transform))
             {
-                //시야 확보 플래그 활성화
-                hasLoS = true;
-                searchPhaseStep = 0;
+                //새로운 위협 발견 시 기존 수색 즉시 강제 종료
+                currentSearchPhase = SearchPhase.None;
 
                 //타겟 설정 및 타겟 위치 저장
                 playerTarget = p.transform;
@@ -176,56 +216,70 @@ public class CreatureAI : NetworkBehaviour
                 {
                     currentState = CreatureState.Chaser;
 
-                    //추적 속도로 변경
+                    //추적 속도 변경
                     motor.SetSpeed(chaseSpeed);
 
                     //무전 코스트 초기화
-                    sensor.ResetWalkieCost();
+                    sensor.ResetWalkieCost();                    
                 }
-                break;
+
+                //플레이어를 발견했으므로 탐색 중단하고 트루 반환
+                return true;
             }
         }
 
-        //추적 상태일 때의 로직
-        if (currentState == CreatureState.Chaser)
+        return false;
+    }
+
+    private void ManageChaseLosLost()
+    {
+        //추적 상태가 아닐 경우 시야 상실 로직 무시
+        if (currentState != CreatureState.Chaser) return;
+
+        //타겟을 완전히 잃어버린 상태면 무시
+        if (playerTarget == null) return;
+
+        //타겟을 시야에 담고 있다면 타이머 초기화
+        if (sensor.CheckLineOfSight(playerTarget))
         {
-            //시야에 타겟이 보일 경우
-            if (hasLoS)
-            {
-                //시야 상실 타이머 초기화 및 타겟 위치 갱신
-                losLostTimer = 0f;
-                targetLocation = playerTarget.position;
-            }
-
-            //시야에서 타겟이 사라졌을 경우
-            else
-            {
-                //시야 상실 타이머 증가
-                losLostTimer += Runner.DeltaTime;
-
-                //시야 차단 유지 시간 초과 시 수색 상태로 전환
-                if (losLostTimer >= lockOnBreakTime)
-                {
-                    currentState = CreatureState.Search;
-
-                    //수색 상태 초기화
-                    stateTimer = 0f;
-                    overallSearchTimer = 0f;
-                    searchPhaseStep = 1;
-                    searchCenter = targetLocation;
-
-                    //타겟 초기화 및 수색 속도로 변경
-                    playerTarget = null;
-                    motor.StopMoving();
-                }
-            }
+            losLostTimer = 0f;
+            targetLocation = playerTarget.position;
+            return;
         }
 
+        //시야에서 놓쳤을 경우 타이머 증가
+        losLostTimer += Runner.DeltaTime;
+
+        //시야에서 사라져도 lockOnBreakTime 동안에는 타겟의 실제 위치를 정확히 추적
+        if (losLostTimer < lockOnBreakTime) targetLocation = playerTarget.position;
+
+        //시야 상실 후 lockOnBreakTime 초과 시, 타겟의 마지막 위치를 중심으로 수색 시작
+        else if (losLostTimer >= lockOnBreakTime)
+        {
+            currentState = CreatureState.Search;
+
+            //최초 주변 수색 페이즈 설정
+            currentSearchPhase = SearchPhase.InitialLookAround;
+            overallSearchTimer = 0f;
+            searchCenter = targetLocation;
+            stateTimer = 0f;
+
+            //타겟 초기화 및 제자리 대기
+            playerTarget = null;
+            motor.StopMoving();
+        }
+        
+    }
+
+    private void CheckPatrolWalkieCost()
+    {
         //순찰 중 무전 코스트 임계치 도달 시 경계 이동 상태로 전환
         if (currentState == CreatureState.Patrol && sensor.IsCostThresholdReached())
         {
             currentState = CreatureState.AlerMove;
-            searchPhaseStep = 0;
+
+            //새로운 소리를 들었으므로 도착 시 1단계부터 수색할 수 있도록 진행 상황 초기화
+            currentSearchPhase = SearchPhase.None;
             stateTimer = 0f;
 
             //경계 이동 속도로 변경
@@ -248,7 +302,7 @@ public class CreatureAI : NetworkBehaviour
         //해당 구역 조명 관리자 확인
         ZoneLightingManager manager = ZoneLightingManager.GetManager(myZone);
 
-        //삼막 활성화 시 소리 임계치 절반으로 감소시켜 예민도 증가
+        //3막 활성화 시 소리 임계치 절반으로 감소시켜 예민도 증가
         if (manager != null && manager.IsAct3Active)
         {
             alertDbThreshold *= 0.5f;
@@ -259,7 +313,9 @@ public class CreatureAI : NetworkBehaviour
         if (perceivedDb >= criticalDbThreshold)
         {
             currentState = CreatureState.Chaser;
-            searchPhaseStep = 0;
+
+            //새로운 소리를 들었으므로 도착 시 1단계부터 수색할 수 있도록 진행 상황 초기화
+            currentSearchPhase = SearchPhase.None;
             stateTimer = 0f;
 
             //추적 속도로 변경 및 타겟 위치 설정
@@ -274,14 +330,30 @@ public class CreatureAI : NetworkBehaviour
         else if (perceivedDb >= alertDbThreshold && currentState != CreatureState.Chaser)
         {
             currentState = CreatureState.AlerMove;
-            searchPhaseStep = 0;
-            targetLocation = noisePosition;
+
+            //새로운 소리를 들었으므로 도착 시 1단계부터 수색할 수 있도록 진행 상황 초기화
+            currentSearchPhase = SearchPhase.None;
+            stateTimer = 0f;
 
             //경계 이동 속도로 변경 및 타겟 위치로 이동
+            targetLocation = noisePosition;
             motor.SetSpeed(alertMoveSpeed);
             motor.MoveToDestination(targetLocation);
         }
     }
+
+    //수색 페이즈를 종료하고 순찰로 복귀
+    private void EndSearchPhase()
+    {
+        currentSearchPhase = SearchPhase.None;
+        overallSearchTimer = 0f;
+        currentState = CreatureState.Patrol;
+        stateTimer = 0f;
+
+        //순찰 로직이 제대로 작동하도록 이동 중지
+        motor.StopMoving();
+    }
+
     #endregion
 
     #region 상태별 행동 제어 (FSM)
@@ -299,28 +371,31 @@ public class CreatureAI : NetworkBehaviour
         //NavMesh의 경로 계산 딜레이로 인한 즉시 도착 판정 버그 방지
         stateTimer += Runner.DeltaTime;
         
-        //목표 위치 도달 시 수색 상태로 전환
+        //대기 시간 이후 목적지 도달 여부 확인
         if (stateTimer > 0.2f && motor.HasReachedDestination())
         {
-            if (searchPhaseStep == 0)
-            {
-                //최초 소리 근원지에 도착 후 제자리 탐색 시작
+            //최초 소리 근원지에 도착했다면 제자리에서 주변 수색 시작
+            if (currentSearchPhase == SearchPhase.None)
+            {                
                 currentState = CreatureState.Search;
                 stateTimer = 0f;
                 motor.StopMoving();
 
-                searchPhaseStep = 1;
+                //수색 시작 지점 설정
+                currentSearchPhase = SearchPhase.InitialLookAround;
                 overallSearchTimer = 0f;
                 searchCenter = transform.position;
             }
-            else if (searchPhaseStep == 2)
-            {
-                //주변 1회 이동 후 랜덤 지점에 도착하면 해당 지점에서 1회 추가 탐색
+
+            //주변 랜덤 지점까지의 이동을 마쳤다면 해당 지점에서 다시 수색 시작
+            else if (currentSearchPhase == SearchPhase.MovingToRandomPoint)
+            {                
                 currentState = CreatureState.Search;
                 stateTimer = 0f;
                 motor.StopMoving();
 
-                searchPhaseStep = 3;
+                //추가 주변 수색 상태로 전환
+                currentSearchPhase = SearchPhase.SecondaryLookAround;
             }
         }
     }
@@ -331,32 +406,21 @@ public class CreatureAI : NetworkBehaviour
         stateTimer += Runner.DeltaTime;        
         
         //설정된 시간 동안 탐색 후 주변 수색 이동 시작
-        if (searchPhaseStep == 1 && stateTimer >= searchLookAroundTime)
+        if (currentSearchPhase == SearchPhase.InitialLookAround && stateTimer >= searchLookAroundTime)
         {
             currentState = CreatureState.AlerMove;
             stateTimer = 0f;
-            searchPhaseStep = 2;
+            currentSearchPhase = SearchPhase.MovingToRandomPoint;
             motor.SetSpeed(alertMoveSpeed);
 
-            //벽 너머가 아닌 도달 가능한 무작위 위치 탐색 후 이동
+            //수색 반경 NavMesh 내 유효한 무작위 위치 탐색 후 이동
             Vector3 randomDest = GetValidSearchPoint(searchCenter, searchRadius);
             motor.MoveToDestination(randomDest);
         }
 
-        //랜덤 지역 추가 탐색 후 순착 복귀
-        else if (searchPhaseStep == 3 && stateTimer >= searchLookAroundTime) EndSearchPhase();        
-    }
-
-    //수색 페이즈를 종료하고 순찰로 복귀
-    private void EndSearchPhase()
-    {
-        searchPhaseStep = 0;
-        overallSearchTimer = 0f;
-        currentState = CreatureState.Patrol;
-        stateTimer = 0f;
-
-        motor.StopMoving();
-    }
+        //추가 수색까지 끝났다면 수색을 종료하고 순착 복귀
+        else if (currentSearchPhase == SearchPhase.SecondaryLookAround && stateTimer >= searchLookAroundTime) EndSearchPhase();        
+    }  
 
     private Vector3 GetValidSearchPoint(Vector3 center, float radius)
     {
@@ -379,7 +443,7 @@ public class CreatureAI : NetworkBehaviour
             }
         }
 
-        //유요한 위치를 찾지 못하면 제자리 유지
+        //유효한 위치를 찾지 못하면 제자리 유지
         return center;
     }
 
@@ -398,6 +462,7 @@ public class CreatureAI : NetworkBehaviour
         currentState = CreatureState.Capture;
         isCapturing = true;
         stateTimer = 0f;
+        currentSearchPhase = SearchPhase.None;
 
         //모터 이동 중지
         motor.StopMoving();
@@ -449,7 +514,7 @@ public class CreatureAI : NetworkBehaviour
 
     public void ApplyAct3Multipliers(bool isAct3)
     {
-        //삼막 진입 시 배율 적용
+        //3막 진입 시 배율 적용
         if (isAct3)
         {
             //이동 속도 증가

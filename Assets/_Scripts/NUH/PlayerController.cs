@@ -74,7 +74,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
     private int _lastInteractRequestTick = -1;
     private bool _prevWalkiePressed;
 
-
+    // 플레이어 State 변화 감지
+    private ChangeDetector stateChangeDetector;
 
 
     // 테스트용 임시 포획 Anchor
@@ -122,6 +123,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
             bodySync.Initialize(this);
 
         WalkieTalkieManager.Instance?.RegisterPlayer(this);
+
+        stateChangeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
     }
 
     public override void FixedUpdateNetwork()
@@ -129,6 +132,15 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (HasStateAuthority)
         {
             ServerTickCaptureState();
+
+            // PlayerState 변경 감지 -> 게임 종료 조건 판정
+            foreach (var change in stateChangeDetector.DetectChanges(this))
+            {
+                if (change == nameof(NetPlayerState))
+                {
+                    GameSessionManager.Instance?.EvaluateEndCondition();
+                }
+            }
         }
 
         if (!GetInput(out PlayerNetworkInput input))
@@ -960,4 +972,13 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
         ServerExitCapturedToNormal();
     }
+
+
+    #region 게임 종료 이벤트 확인용 RPC
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void Rpc_DebugSetState(PlayerState state)
+    {
+        NetPlayerState = state;
+    }
+    #endregion
 }
