@@ -3,9 +3,16 @@ using UnityEngine;
 public class CreatureWalkieTracker : MonoBehaviour
 {
     [Header("무전 코스트 설정")]
-    [Tooltip("코스트 임계치")]
+    [Tooltip("1-2막 코스트 임계치")]
     public float costDangerThreshold = 60.0f;
+    [Tooltip("3막 코스트 임계치")]
     public float costDangerThresholdFinal = 10.0f;
+
+    [Header("무전 코스트 속도 설정")]
+    [Tooltip("무전 사용 시 코스트 누적 속도")]
+    public float costRate = 1.0f;
+    [Tooltip("무전 미사용 시 또는 범위 밖 감쇠 속도")]
+    public float costDecayRate = 1.0f;
 
     private float currentWalkieCost = 0f;
     private bool isAct3 = false;
@@ -27,6 +34,7 @@ public class CreatureWalkieTracker : MonoBehaviour
     {
         targetWalkiePos = creaturePos;
         bool isAccumulating = false;
+        bool isDecaying = false;
 
         if (WalkieTalkieManager.Instance != null)
         {
@@ -43,20 +51,39 @@ public class CreatureWalkieTracker : MonoBehaviour
 
                 //수평 반경 60m, 수직 반경 10m 이내인지 확인
                 if (flatDist <= 60f && yDiff <= 10f)
-                {                    
+                {
+                    //Accumulating 상태일 때 크리처 인식 범위 내 -> 코스트 누적
                     isAccumulating = true;
-
-                    //타겟 지점 갱신
                     targetWalkiePos = myZoneWalkie.transform.position;
                 }
+
+                //무전 중이나 인식 범위 밖
+                else
+                {
+                    //크리처가 인식 범위 밖으로 이동 -> 코스트 감쇠
+                    isDecaying = true;
+                }
             }
+
+            //무전 미사용 시
+            else isDecaying = true;
         }
 
-        //막에 따른 최대 임계치 설정
-        float currentMax = isAct3 ? costDangerThresholdFinal : costDangerThreshold;
+        //무전기가 아예 없을 때도 미사용으로 간주하여 감쇠
+        else isDecaying = true;
 
-        //누적 또는 감쇠 처리
-        float amount = isAccumulating ? deltaTime : -deltaTime;
+        //증감량 계산 (Idle 0값 처리)
+        float amount = 0f;
+
+        if (isAccumulating) amount = costRate * deltaTime;
+
+        //코스트가 남아있을 때만 감쇠
+        else if (isDecaying && currentWalkieCost > 0f) amount = -costDecayRate * deltaTime;
+
+        //두 조건에 안 걸리면 amount는 0 유지 (Idle 상태: 코스트 변화 없음)
+
+        //막에 따른 최대 임계치 설정
+        float currentMax = isAct3 ? costDangerThresholdFinal : costDangerThreshold;        
         currentWalkieCost += amount;
         currentWalkieCost = Mathf.Clamp(currentWalkieCost, 0f, currentMax);
 
