@@ -12,8 +12,6 @@ public class CreatureSensor : MonoBehaviour
     [Header("소리 및 코스트 설정")]
     public float alertThresholdDB = 18f;
     public float criticalThresholdDB = 28f;
-    public float maxWalkieCost = 100f;
-    public float dbDropPerMeter = 2f;
 
     [Header("포획 판정 설정")]
     public float captureRange = 2.0f;
@@ -23,43 +21,11 @@ public class CreatureSensor : MonoBehaviour
     public float cabinetDetectRange = 1.5f;
     public float deskDetectRange = 1.2f;
 
-    private float currentWalkieCost = 0f;
-    private float actMultiplier = 1f;
-
-    public void SetActMultiplier(float multiplier)
+    public float CalculatePerceivedDb(float voicedB, float distance, float obstaclePenalty)
     {
-        //삼막 등 이벤트 발생 시 코스트 배율 설정
-        actMultiplier = multiplier;
-    }
-
-    public void AddWalkieCost(float amount)
-    {
-        //무전 코스트 누적
-        currentWalkieCost += amount;
-    }
-
-    public void ResetWalkieCost()
-    {
-        //무전 코스트 초기화
-        currentWalkieCost = 0f;
-    }
-
-    public bool IsCostThresholdReached()
-    {
-        //배율이 적용된 코스트 임계치 계산 및 도달 여부 반환
-        float threshold = maxWalkieCost * actMultiplier;
-        return currentWalkieCost >= threshold;
-    }
-
-    public float CalculatePerceivedDb(Vector3 noisePosition, float rawDb, bool isGlobal)
-    {
-        float perceivedDb = rawDb;
-
-        //글로벌 소리가 아닐 경우 거리에 따른 소리 감쇠 적용
-        if (!isGlobal)
-        {
-            perceivedDb -= (Vector3.Distance(transform.position, noisePosition) * dbDropPerMeter);
-        }
+        //거리가 1m 미만일 때 log 값이 음수가 되는 방지하기 위해 최소 1f 적용
+        float distanceDrop = 20f * Mathf.Log10(Mathf.Max(1f, distance));
+        float perceivedDb = voicedB - distanceDrop - obstaclePenalty;
 
         return perceivedDb;
     }
@@ -177,9 +143,9 @@ public class CreatureSensor : MonoBehaviour
         Handles.color = new Color(1f, 0f, 0f, 0.2f);
         Handles.DrawSolidDisc(transform.position, Vector3.up, captureRange);
 
-        ////은신 발각 범위 기즈모 (반투명 보라색 원 - 캐비닛 기준)
-        //Handles.color = new Color(0.5f, 0f, 0.5f, 0.2f);
-        //Handles.DrawSolidDisc(transform.position, Vector3.up, cabinetDetectRange);
+        //은신 발각 범위 기즈모 (반투명 보라색 원 - 캐비닛 기준)
+        Handles.color = new Color(0.5f, 0f, 0.5f, 0.2f);
+        Handles.DrawSolidDisc(transform.position, Vector3.up, cabinetDetectRange);
     }
 #endif
 }
