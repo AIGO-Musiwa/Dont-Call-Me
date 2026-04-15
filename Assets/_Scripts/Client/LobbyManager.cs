@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class LobbyManager : MonoBehaviour
@@ -106,26 +107,9 @@ public class LobbyManager : MonoBehaviour
     
     private void HandleHostDisconnected()
     {
-        lobbyPanel.SetActive(false);
-        FindFirstObjectByType<TitleManager>()?.Show();
+        SceneManager.LoadScene(SceneNames.TITLE_INDEX);
         errorText.text = "호스트 연결이 끊겼습니다.";
         errorPanel.SetActive(true);
-    }
-
-    private void HandleReturnedToLobby()
-    {
-        Debug.Log($"[LobbyManager] HandleReturnedToLobby 실행");
-        // 슬롯 캐시 초기화
-        for (int i = 0; i < _slots.Length; i++)
-            _slots[i] = null;
-
-        _isReady = false;
-
-        // 대기실 UI 다시 열기
-        ShowLobby(_launcher.Runner);
-
-        // 현재 슬롯 상태 재스캔
-        StartCoroutine(RebuildSlotsNextFrame());
     }
 
     private IEnumerator RebuildSlotsNextFrame()
@@ -163,9 +147,9 @@ public class LobbyManager : MonoBehaviour
     public async void OnExitClicked()
     {
         await _launcher.LeaveRoom();
-        lobbyPanel.SetActive(false);
         _isReady = false;
-        FindFirstObjectByType<TitleManager>()?.Show();
+        SceneManager.LoadScene(SceneNames.TITLE_INDEX);
+
     }
     #endregion
 
