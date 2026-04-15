@@ -46,7 +46,7 @@ public class MicLevelUI : MonoBehaviour
     private void Update()
     {
         if (micGauge == null) return;
-        if (SounddBMeasurer.Instance == null)
+        if (MicrophonedBMeasurer.Instance == null)
         {
             currentFill = Mathf.Lerp(currentFill, 0f, Time.deltaTime * smoothSpeed);
             micGauge.fillAmount = currentFill;
@@ -55,7 +55,7 @@ public class MicLevelUI : MonoBehaviour
             return;
         }
 
-        float rawdBFS = SounddBMeasurer.Instance.CurrentRawdBFS;
+        float rawdBFS = MicrophonedBMeasurer.Instance.CurrentRawdBFS;
         float target = Mathf.InverseLerp(minDBFS, maxDBFS, rawdBFS); // minDBFS~maxDBFS → 0~1
 
         // 부드럽게 보간
