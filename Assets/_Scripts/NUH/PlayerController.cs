@@ -117,6 +117,21 @@ public class PlayerController : NetworkBehaviour, IInteractable
             //NetMovementLocked = false;
             //NetLookLocked = false;
         }
+        // 내 로컬 기체인 경우에만 HUD를 찾아 연결한다.
+        if (HasInputAuthority)
+        {
+            // [수정] UnityEngine.Object를 명시하여 이름 충돌을 방지한다.
+            HUDController hud = UnityEngine.Object.FindAnyObjectByType<HUDController>();
+
+            if (hud != null)
+            {
+                hud.LinkPlayer(this);
+            }
+            else
+            {
+                Debug.LogWarning("[HUD] 씬에서 HUDController를 찾을 수 없습니다. HUD 프리팹이 배치되었는지 확인하세요.");
+            }
+        }
 
         var bodySync = GetComponent<PlayerBodySync>();
         if (bodySync != null)
