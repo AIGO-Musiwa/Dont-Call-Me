@@ -170,14 +170,15 @@ GameObject:
   - component: {fileID: 8149071640720344030}
   - component: {fileID: 4140657071761756899}
   - component: {fileID: 6973404507456584646}
-  - component: {fileID: 7167641971766957155}
   - component: {fileID: 1213794321100376791}
+  - component: {fileID: 7167641971766957155}
   - component: {fileID: 3237925939687788302}
   - component: {fileID: 6065336768852671156}
   - component: {fileID: -7382828285008275476}
   - component: {fileID: 3640863125624847769}
   - component: {fileID: 841392345713996855}
   - component: {fileID: 5655324595871334449}
+  - component: {fileID: 3998803744345994779}
   m_Layer: 20
   m_Name: Creature_1
   m_TagString: Untagged
@@ -258,29 +259,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &7167641971766957155
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 535513259889772823}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &1213794321100376791
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -308,6 +286,29 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!136 &7167641971766957155
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535513259889772823}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!195 &3237925939687788302
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -433,10 +434,26 @@ MonoBehaviour:
     m_Bits: 8
   alertThresholdDB: 18
   criticalThresholdDB: 28
-  maxWalkieCost: 100
-  dbDropPerMeter: 2
   captureRange: 2
   captureAngle: 90
+  cabinetDetectRange: 1.5
+  deskDetectRange: 1.2
+--- !u!114 &3998803744345994779
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535513259889772823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d991c7f52bfc8b0469263e07c6dcc52f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CreatureWalkieTracker
+  costDangerThreshold: 60
+  costDangerThresholdFinal: 10
+  costRate: 1
+  costDecayRate: 1
 --- !u!1 &539186377256783234
 GameObject:
   m_ObjectHideFlags: 0
@@ -1644,6 +1661,7 @@ GameObject:
   - component: {fileID: 7925829034414503186}
   - component: {fileID: 1841481616308751793}
   - component: {fileID: 49097792927760865}
+  - component: {fileID: 7926118933820966475}
   m_Layer: 0
   m_Name: Creature_model
   m_TagString: Untagged
@@ -1707,6 +1725,25 @@ MonoBehaviour:
   agent: {fileID: 3237925939687788302}
   animator: {fileID: 1841481616308751793}
   animationBlendSpeed: 8
+--- !u!114 &7926118933820966475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6564590123828667936}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99412e9479d535040b97d1fc98b9249f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterAudioModule
+  mainSource: {fileID: 0}
+  subSource: {fileID: 0}
+  minDistance: 1
+  maxDistance: 20
+  rolloffMode: 0
+  footstepLibrary: []
+  actionLibrary: []
 --- !u!1 &6728548737643216323
 GameObject:
   m_ObjectHideFlags: 0
