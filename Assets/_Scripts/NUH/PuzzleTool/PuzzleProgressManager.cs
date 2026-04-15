@@ -114,6 +114,9 @@ public class PuzzleProgressManager : MonoBehaviour
             if (puzzle == null)
                 return false;
 
+            if (!puzzle.IsNetworkReady)
+                return false;
+
             if (!puzzle.IsSolved)
                 return false;
         }
