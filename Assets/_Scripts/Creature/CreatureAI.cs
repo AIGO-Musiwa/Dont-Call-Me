@@ -38,6 +38,10 @@ public class CreatureAI : NetworkBehaviour
     public Transform creatureRespawnPoint1F;
     public Transform creatureRespawnPoint3F;
 
+    [Header("구출 보호 설정")]
+    public float rescueProtectTime = 10.0f;
+    public float rescueProtectTimer = 0f;
+
     private CreatureMotor motor;
     private CreatureSensor sensor;
     private CreatureWalkieTracker walkieTracker;
@@ -122,6 +126,9 @@ public class CreatureAI : NetworkBehaviour
             return;
         }
 
+        //구출 보호 타이머 감소
+        if (rescueProtectTime > 0f) rescueProtectTimer -= Runner.DeltaTime;
+
         //주변 감지 및 상태 우선순위 판정
         UpdateSensingAndPriorities();
 
@@ -139,6 +146,9 @@ public class CreatureAI : NetworkBehaviour
     #region 상황 판단 및 감지 (역할별 분리)
     private void UpdateSensingAndPriorities()
     {
+        //10초 보호 기간 중에는 시야 및 주변 감지를 모두 무시
+        if (rescueProtectTimer > 0f) return;
+
         //수색 전체 제한 시간이 지났으면 강제 종료 후 순찰로 복귀
         if (CheckAndHanledSearchTimeout()) return;
 
@@ -157,6 +167,9 @@ public class CreatureAI : NetworkBehaviour
     {
         if (!Object.HasStateAuthority) return;
         if (currentState == CreatureState.Capture) return;
+
+        //10초 보호 기간 중에는 모든 소리 자극을 무시
+        if (rescueProtectTimer > 0f) return;
 
         //크리처와 소리 발생원 간의 거리 계산
         float distance = Vector3.Distance(transform.position, soundEvent.sourcePosition);
@@ -452,7 +465,6 @@ public class CreatureAI : NetworkBehaviour
         //순찰 로직이 제대로 작동하도록 이동 중지
         motor.StopMoving();
     }
-
     #endregion
 
     #region 상태별 행동 제어 (FSM)
@@ -610,6 +622,38 @@ public class CreatureAI : NetworkBehaviour
             //조명 관리자에게 암전 해제 명령 전달
             ZoneLightingManager myZoneLightManager = ZoneLightingManager.GetManager(myZone);
             if (myZoneLightManager != null) myZoneLightManager.SetCaptureDarkout(false);
+        }
+    }
+
+    //구출 구역 성공 시 호출
+    public void ActivateRescueProtection()
+    {
+        if (Object.HasInputAuthority)
+        {
+            rescueProtectTimer = rescueProtectTime;
+
+            //이미 포획 중인 상태가 아니라면 안전 확보를 위해 모든 어그로 초기화 후 순찰로 복귀
+            if (currentState == CreatureState.Capture)
+            {
+                currentState = CreatureState.Patrol;
+                currentSearchPhase = SearchPhase.None;
+                playerTarget = null;
+                currentTrackedDb = 0f;
+                motor.SetSpeed(patrolSpeed);
+                walkieTracker.ResetCost();
+            }
+
+            Debug.Log("[CreatureAI] 구출 구역 개방 성공! 10초간 크리처 상태 전이 보호가 활성화됩니다.");
+        }
+    }
+
+    //구출 구역 이탈 시 보호 즉시 종료
+    public void CancelRescueProtection()
+    {
+        if (Object.HasStateAuthority && rescueProtectTimer > 0f)
+        {
+            rescueProtectTimer = 0f;
+            Debug.Log("[CreatureAI] 플레이어가 구출 구역을 이탈하여 10초 보호가 즉시 해제됩니다!");
         }
     }
 
