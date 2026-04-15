@@ -57,7 +57,8 @@ public class PlayerInteraction : MonoBehaviour
         if (drawDebugRay)
             Debug.DrawRay(ray.origin, ray.direction * interactDistance, Color.green);
 
-        if(Physics.Raycast(ray, out RaycastHit hit, InteractDistance, interactMask, QueryTriggerInteraction.Ignore))
+
+        if (Physics.Raycast(ray, out RaycastHit hit, InteractDistance, interactMask, QueryTriggerInteraction.Collide))
         {
             if(TryFindInteractable(hit.collider.transform, out NetworkObject targetObject, out IInteractable interactable))
             {
