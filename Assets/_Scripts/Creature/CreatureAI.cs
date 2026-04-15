@@ -129,7 +129,7 @@ public class CreatureAI : NetworkBehaviour
         }
 
         //구출 보호 타이머 감소
-        if (rescueProtectTime > 0f) rescueProtectTimer -= Runner.DeltaTime;
+        if (rescueProtectTimer > 0f) rescueProtectTimer -= Runner.DeltaTime;
 
         //주변 감지 및 상태 우선순위 판정
         UpdateSensingAndPriorities();
@@ -202,6 +202,7 @@ public class CreatureAI : NetworkBehaviour
                     targetLocation = soundEvent.sourcePosition;
                     currentTrackedDb = perceivedDb;
                     currentTrackedChannel = soundEvent.channel;
+                    motor.MoveToDestination(targetLocation);
                 }
             }
 
@@ -216,6 +217,7 @@ public class CreatureAI : NetworkBehaviour
                 targetLocation = soundEvent.sourcePosition;
                 currentTrackedDb = perceivedDb;
                 currentTrackedChannel = soundEvent.channel;
+                motor.MoveToDestination(targetLocation);
                 walkieTracker.ResetCost();
                 Debug.Log("소리로 즉시 반응");
             }
@@ -235,6 +237,7 @@ public class CreatureAI : NetworkBehaviour
                 targetLocation = soundEvent.sourcePosition;
                 currentTrackedDb = perceivedDb;
                 currentTrackedChannel = soundEvent.channel;
+                motor.MoveToDestination(targetLocation);
                 walkieTracker.ResetCost();
                 Debug.Log("소리로 chaser로 변경");
             }
@@ -247,6 +250,7 @@ public class CreatureAI : NetworkBehaviour
                     targetLocation = soundEvent.sourcePosition;
                     currentTrackedDb = perceivedDb;
                     currentTrackedChannel = soundEvent.channel;
+                    motor.MoveToDestination(targetLocation);
                     Debug.Log("소리로 AlertMove 유지");
                 }
             }
@@ -262,6 +266,7 @@ public class CreatureAI : NetworkBehaviour
                 targetLocation = soundEvent.sourcePosition;
                 currentTrackedDb = perceivedDb;
                 currentTrackedChannel = soundEvent.channel;
+                motor.MoveToDestination(targetLocation);
                 walkieTracker.ResetCost();
                 Debug.Log("소리로 AlertMove로 변경");
             }
@@ -355,18 +360,7 @@ public class CreatureAI : NetworkBehaviour
 
             //플레이어가 어딘가에 숨어있는 상태인지 확인
             if (p.NetHideState != HideState.None)
-            {
-                //시야에 있는 상태에서 대놓고 숨었을 경우 즉시 포획
-                if (currentState == CreatureState.Chaser && playerTarget == p.transform)
-                {
-                    //추적 중인 타겟이고, 아직 시야에 있거나 시야에서 사라진지 0.5초 이내라면 눈 앞에서 숨은 것으로 간주
-                    if (sensor.CheckCaptureCondition(p.transform) || losLostTimer < 0.5f)
-                    {
-                        ExecuteCapture(p);
-                        return true;
-                    }
-                }
-
+            {                                
                 //몰래 숨었지만 크리처가 수색 중 너무 가까이 와서 은신 발각 범위에 들어온 경우 포획
                 if (sensor.CheckHiddenPlayerDetect(p.transform, p.NetHideState))
                 {
@@ -634,12 +628,12 @@ public class CreatureAI : NetworkBehaviour
     //구출 구역 성공 시 호출
     public void ActivateRescueProtection()
     {
-        if (Object.HasInputAuthority)
+        if (Object.HasStateAuthority)
         {
             rescueProtectTimer = rescueProtectTime;
 
             //이미 포획 중인 상태가 아니라면 안전 확보를 위해 모든 어그로 초기화 후 순찰로 복귀
-            if (currentState == CreatureState.Capture)
+            if (currentState != CreatureState.Capture)
             {
                 currentState = CreatureState.Patrol;
                 currentSearchPhase = SearchPhase.None;
