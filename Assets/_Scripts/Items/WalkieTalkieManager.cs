@@ -152,20 +152,24 @@ public class WalkieTalkieManager : NetworkBehaviour
                 PendingSender = PlayerRef.None;
 
                 // 새 송신자 구역의 무전기를 TX로 전환
-                if (Runner.TryGetPlayerObject(ActiveSender, out var newSenderObj) &&
-                    newSenderObj.TryGetComponent(out PlayerController newSenderPc))
+                if (Runner.TryGetPlayerObject(ActiveSender, out var newSenderObj))
                 {
-                    ActiveSenderZone = newSenderPc.NetZone;
-                    WalkieTalkieItem newWalkie = GetWalkieTalkieByZone(ActiveSenderZone);
-                    if (newWalkie != null)
-                    {
-                        newWalkie.ServerSetState(WalkieState.TX);
-                    }
+                    PlayerController newSenderPc = newSenderObj.GetComponent<PlayerData>()?.GetPlayerController();
 
-                    Zone newRecvZone = ActiveSenderZone == Zone.ZoneA ? Zone.ZoneB : Zone.ZoneA;
-                    WalkieTalkieItem newRecvWalkie = GetWalkieTalkieByZone(newRecvZone);
-                    if (newRecvWalkie != null)
-                        newRecvWalkie.ServerSetState(WalkieState.RX);
+                    if (newSenderPc != null)
+                    {
+                        ActiveSenderZone = newSenderPc.NetZone;
+                        WalkieTalkieItem newWalkie = GetWalkieTalkieByZone(ActiveSenderZone);
+                        if (newWalkie != null)
+                        {
+                            newWalkie.ServerSetState(WalkieState.TX);
+                        }
+
+                        Zone newRecvZone = ActiveSenderZone == Zone.ZoneA ? Zone.ZoneB : Zone.ZoneA;
+                        WalkieTalkieItem newRecvWalkie = GetWalkieTalkieByZone(newRecvZone);
+                        if (newRecvWalkie != null)
+                            newRecvWalkie.ServerSetState(WalkieState.RX);
+                    }
                 }
             }
             else
@@ -212,7 +216,7 @@ public class WalkieTalkieManager : NetworkBehaviour
     private void HandlePTTStarted()
     {
         if (!Runner.TryGetPlayerObject(Runner.LocalPlayer, out var localObj)) return;
-        if (!localObj.TryGetComponent(out PlayerController localPc)) return;
+        PlayerController localPc = localObj.GetComponent<PlayerData>()?.GetPlayerController();
 
         if (ActiveSender == Runner.LocalPlayer)
         {
@@ -231,9 +235,9 @@ public class WalkieTalkieManager : NetworkBehaviour
     private void HandlePTTEnded()
     {
         if (!Runner.TryGetPlayerObject(Runner.LocalPlayer, out var localObj)) return;
-        if (!localObj.TryGetComponent(out PlayerController localPc)) return;
+        PlayerController localPc = localObj.GetComponent<PlayerData>()?.GetPlayerController();
 
-        
+
         if (ActiveSenderZone == localPc.NetZone)
         {
             if (localPc.GetHeldWalkieTalkie() != null)
