@@ -88,6 +88,7 @@ public class CreatureAI : NetworkBehaviour
 
             //호스트(서버) 권한일 때 글로벌 소리 이벤트 구독
             SoundEventBus.OnSoundEmitted += OnSoundEventReceived;
+            SoundEmitter.RegisterCreature(myZone, sensor);
         }
 
         //클라이언트(프록시) 측 길찾기 에이전트 끄기
@@ -100,6 +101,7 @@ public class CreatureAI : NetworkBehaviour
         if (hasState)
         {
             SoundEventBus.OnSoundEmitted -= OnSoundEventReceived;
+            SoundEmitter.UnregisterCreature(myZone);
         }
     }
 
@@ -215,6 +217,7 @@ public class CreatureAI : NetworkBehaviour
                 currentTrackedDb = perceivedDb;
                 currentTrackedChannel = soundEvent.channel;
                 walkieTracker.ResetCost();
+                Debug.Log("소리로 즉시 반응");
             }
         }
 
@@ -233,6 +236,7 @@ public class CreatureAI : NetworkBehaviour
                 currentTrackedDb = perceivedDb;
                 currentTrackedChannel = soundEvent.channel;
                 walkieTracker.ResetCost();
+                Debug.Log("소리로 chaser로 변경");
             }
 
             //AlertMove 중 타깃 갱신
@@ -243,6 +247,7 @@ public class CreatureAI : NetworkBehaviour
                     targetLocation = soundEvent.sourcePosition;
                     currentTrackedDb = perceivedDb;
                     currentTrackedChannel = soundEvent.channel;
+                    Debug.Log("소리로 AlertMove 유지");
                 }
             }
 
@@ -258,6 +263,7 @@ public class CreatureAI : NetworkBehaviour
                 currentTrackedDb = perceivedDb;
                 currentTrackedChannel = soundEvent.channel;
                 walkieTracker.ResetCost();
+                Debug.Log("소리로 AlertMove로 변경");
             }
         }
     }

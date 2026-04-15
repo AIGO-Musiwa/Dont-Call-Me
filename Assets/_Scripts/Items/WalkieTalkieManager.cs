@@ -221,6 +221,7 @@ public class WalkieTalkieManager : NetworkBehaviour
         if (ActiveSender == Runner.LocalPlayer)
         {
             VoiceManager.Instance?.SetPTT(true);
+            MicrophonedBMeasurer.Instance?.SetPTTActive(true);
         }
         else
         {
@@ -241,7 +242,10 @@ public class WalkieTalkieManager : NetworkBehaviour
         if (ActiveSenderZone == localPc.NetZone)
         {
             if (localPc.GetHeldWalkieTalkie() != null)
+            {
                 VoiceManager.Instance?.SetPTT(false);
+                MicrophonedBMeasurer.Instance.SetPTTActive(false);
+            }
         }
         else
         {

@@ -1,3 +1,4 @@
+using Fusion;
 using System;
 using UnityEngine;
 
@@ -39,6 +40,9 @@ public class CharacterAudioModule : MonoBehaviour
     public FootstepEntry[] footstepLibrary; // 발소리 전용 (Walk, Run, Crouch)
     public SoundEntry[] actionLibrary;     // 액션 전용 (포효, 공격 등)
 
+    private NetworkObject netObj;
+    private PlayerController controller;
+
     private void Awake()
     {
         // 1. 소스 자동 연결 및 초기화
@@ -47,6 +51,14 @@ public class CharacterAudioModule : MonoBehaviour
 
         SetupSource(mainSource);
         SetupSource(subSource);
+
+        // 캐싱
+        controller = GetComponentInParent<PlayerController>();
+    }
+
+    private void Start()
+    {
+        netObj = GetComponentInParent<NetworkObject>();
     }
 
     /// <summary>
@@ -105,6 +117,12 @@ public class CharacterAudioModule : MonoBehaviour
         // 해당 타입이 비어있다면 0번(기본) 소리로 대체 출력하는 안전 회로
         var cartridge = (entry.cartridge != null) ? entry.cartridge : (footstepLibrary.Length > 0 ? footstepLibrary[0].cartridge : null);
         cartridge?.Play(subSource);
+
+        // 로컬 플레이어일 때만 dB 이벤트 발생
+        if (netObj == null || !netObj.HasInputAuthority) return;
+        if (controller == null) return;
+
+        SoundEmitter.EmitFootstep(type, transform.position, controller.NetZone);
     }
 
     // ─────────────────────────────────────────────────────────
