@@ -608,6 +608,8 @@ GameObject:
   m_Component:
   - component: {fileID: 7467827193428946159}
   - component: {fileID: 3888652673964424233}
+  - component: {fileID: 2807692584826492917}
+  - component: {fileID: 7736539575084023704}
   m_Layer: 0
   m_Name: SymbolLeverHint
   m_TagString: Untagged
@@ -661,6 +663,38 @@ MonoBehaviour:
   upArrowEuler: {x: 0, y: 0, z: 0}
   downArrowEuler: {x: 0, y: 0, z: 180}
   enableDebugLog: 1
+--- !u!114 &2807692584826492917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397620043995475640}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb6077f2bef3bcc41a108234fd80a4c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PuzzleSeedSync
+  enableDebugLog: 1
+--- !u!114 &7736539575084023704
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397620043995475640}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 1703170044
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 2807692584826492917}
+  ForceRemoteRenderTimeframe: 0
 --- !u!1 &3507085003894231982
 GameObject:
   m_ObjectHideFlags: 0

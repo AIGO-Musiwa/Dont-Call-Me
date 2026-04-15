@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 3024544625608342352}
   - component: {fileID: 1459436099220210027}
   - component: {fileID: 4163408839225582356}
-  - component: {fileID: 5132721693721443066}
   m_Layer: 0
   m_Name: Lever_3
   m_TagString: Untagged
@@ -91,29 +90,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &5132721693721443066
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 570971336417038106}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!1 &595001671143336634
 GameObject:
   m_ObjectHideFlags: 0
@@ -127,7 +103,7 @@ GameObject:
   - component: {fileID: 106097318589820410}
   - component: {fileID: 835762410688768523}
   - component: {fileID: 4860258317690960793}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ConfirmButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -370,7 +346,6 @@ GameObject:
   - component: {fileID: 9220782269302498327}
   - component: {fileID: 2061847402766416064}
   - component: {fileID: 3436117581172706562}
-  - component: {fileID: 7896153939687620966}
   m_Layer: 0
   m_Name: Lever_4
   m_TagString: Untagged
@@ -450,29 +425,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &7896153939687620966
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 746133697923331845}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!1 &1026637778014542336
 GameObject:
   m_ObjectHideFlags: 0
@@ -484,8 +436,8 @@ GameObject:
   - component: {fileID: 990761750310696201}
   - component: {fileID: 8995779953387742772}
   - component: {fileID: 5019348819211047657}
-  - component: {fileID: 844622327658501325}
-  m_Layer: 0
+  - component: {fileID: 7667778954274483811}
+  m_Layer: 6
   m_Name: LeverRoot_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -544,25 +496,27 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 3612032705541222451}
   leverIndex: 0
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
---- !u!114 &844622327658501325
-MonoBehaviour:
+--- !u!65 &7667778954274483811
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1026637778014542336}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 10162556
-  ObjectInterest: 1
-  Flags: 262145
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 5019348819211047657}
-  ForceRemoteRenderTimeframe: 0
+  serializedVersion: 3
+  m_Size: {x: 0.2, y: 0.2, z: 2}
+  m_Center: {x: 0, y: 0, z: 1}
 --- !u!1 &2828970051272759610
 GameObject:
   m_ObjectHideFlags: 0
@@ -574,8 +528,8 @@ GameObject:
   - component: {fileID: 8487360263071678361}
   - component: {fileID: 5367417011413280809}
   - component: {fileID: 4220243824259791449}
-  - component: {fileID: 6336984758860425447}
-  m_Layer: 0
+  - component: {fileID: 6284157397689493260}
+  m_Layer: 6
   m_Name: LeverRoot_4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -634,25 +588,27 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 3612032705541222451}
   leverIndex: 0
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
---- !u!114 &6336984758860425447
-MonoBehaviour:
+--- !u!65 &6284157397689493260
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2828970051272759610}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 4286999415
-  ObjectInterest: 1
-  Flags: 262145
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 4220243824259791449}
-  ForceRemoteRenderTimeframe: 0
+  serializedVersion: 3
+  m_Size: {x: 0.2, y: 0.2, z: 2}
+  m_Center: {x: 0, y: 0, z: 1}
 --- !u!1 &3043253647159784544
 GameObject:
   m_ObjectHideFlags: 0
@@ -664,8 +620,8 @@ GameObject:
   - component: {fileID: 252572126727933159}
   - component: {fileID: 2449837286151262115}
   - component: {fileID: 2814118858794978691}
-  - component: {fileID: 7710574463006481611}
-  m_Layer: 0
+  - component: {fileID: 2922050252693189924}
+  m_Layer: 6
   m_Name: LeverRoot_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -724,25 +680,27 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 3612032705541222451}
   leverIndex: 0
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
---- !u!114 &7710574463006481611
-MonoBehaviour:
+--- !u!65 &2922050252693189924
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3043253647159784544}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 3164338976
-  ObjectInterest: 1
-  Flags: 262145
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 2814118858794978691}
-  ForceRemoteRenderTimeframe: 0
+  serializedVersion: 3
+  m_Size: {x: 0.2, y: 0.2, z: 2}
+  m_Center: {x: 0, y: 0, z: 1}
 --- !u!1 &3352327129246893306
 GameObject:
   m_ObjectHideFlags: 0
@@ -754,7 +712,6 @@ GameObject:
   - component: {fileID: 4615241984953573130}
   - component: {fileID: 8753828061803122367}
   - component: {fileID: 3830235785597352582}
-  - component: {fileID: 7609219972951924794}
   m_Layer: 0
   m_Name: Lever_5
   m_TagString: Untagged
@@ -834,29 +791,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &7609219972951924794
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3352327129246893306}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!1 &3781567687375230006
 GameObject:
   m_ObjectHideFlags: 0
@@ -868,8 +802,8 @@ GameObject:
   - component: {fileID: 7149267031897696508}
   - component: {fileID: 5920678580349304475}
   - component: {fileID: 7202963432441540126}
-  - component: {fileID: 3579119061621123674}
-  m_Layer: 0
+  - component: {fileID: 4518510407732692165}
+  m_Layer: 6
   m_Name: LeverRoot_3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -928,25 +862,27 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 3612032705541222451}
   leverIndex: 0
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
---- !u!114 &3579119061621123674
-MonoBehaviour:
+--- !u!65 &4518510407732692165
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3781567687375230006}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 3756911172
-  ObjectInterest: 1
-  Flags: 262145
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 7202963432441540126}
-  ForceRemoteRenderTimeframe: 0
+  serializedVersion: 3
+  m_Size: {x: 0.2, y: 0.2, z: 2}
+  m_Center: {x: 0, y: 0, z: 1}
 --- !u!1 &3901257214050487923
 GameObject:
   m_ObjectHideFlags: 0
@@ -958,7 +894,6 @@ GameObject:
   - component: {fileID: 8827652948133771444}
   - component: {fileID: 5414749392266381731}
   - component: {fileID: 6041587387069030831}
-  - component: {fileID: 7391452517660224071}
   m_Layer: 0
   m_Name: Lever_1
   m_TagString: Untagged
@@ -1038,29 +973,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &7391452517660224071
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3901257214050487923}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!1 &6636644762715216390
 GameObject:
   m_ObjectHideFlags: 0
@@ -1072,6 +984,7 @@ GameObject:
   - component: {fileID: 6191916865493643658}
   - component: {fileID: 3612032705541222451}
   - component: {fileID: 2303351830954321884}
+  - component: {fileID: 1210915798437249508}
   - component: {fileID: 7671165647722324182}
   m_Layer: 0
   m_Name: SymbolLeverPuzzle
@@ -1144,8 +1057,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7783c90f87553342a296b6441d0c7bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PuzzleSpawnEntry
-  progressTarget: {fileID: 0}
+  progressTarget: {fileID: 3612032705541222451}
   stage2ScreenRoot: {fileID: 0}
+--- !u!114 &1210915798437249508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6636644762715216390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb6077f2bef3bcc41a108234fd80a4c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PuzzleSeedSync
+  enableDebugLog: 1
 --- !u!114 &7671165647722324182
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1161,15 +1087,16 @@ MonoBehaviour:
   SortKey: 3769652498
   ObjectInterest: 1
   Flags: 262145
-  NestedObjects:
-  - {fileID: 3500605986899874322}
-  - {fileID: 844622327658501325}
-  - {fileID: 7710574463006481611}
-  - {fileID: 3579119061621123674}
-  - {fileID: 6336984758860425447}
-  - {fileID: 2561380594748989530}
+  NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 3612032705541222451}
+  - {fileID: 1210915798437249508}
+  - {fileID: 2899677607973344656}
+  - {fileID: 5019348819211047657}
+  - {fileID: 2814118858794978691}
+  - {fileID: 7202963432441540126}
+  - {fileID: 4220243824259791449}
+  - {fileID: 4513331786835299871}
   - {fileID: 4860258317690960793}
   ForceRemoteRenderTimeframe: 0
 --- !u!1 &6806846555318473707
@@ -1183,7 +1110,6 @@ GameObject:
   - component: {fileID: 3417258323971184874}
   - component: {fileID: 8261040485579345721}
   - component: {fileID: 5289146941279815952}
-  - component: {fileID: 7874801317682514564}
   m_Layer: 0
   m_Name: Lever_0
   m_TagString: Untagged
@@ -1263,29 +1189,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &7874801317682514564
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6806846555318473707}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!1 &6946326913427298780
 GameObject:
   m_ObjectHideFlags: 0
@@ -1297,7 +1200,6 @@ GameObject:
   - component: {fileID: 2901703405521141592}
   - component: {fileID: 5433744225847076381}
   - component: {fileID: 208571235932605268}
-  - component: {fileID: 1372345972399030294}
   m_Layer: 0
   m_Name: Lever_2
   m_TagString: Untagged
@@ -1377,29 +1279,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &1372345972399030294
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6946326913427298780}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!1 &8307031642125676854
 GameObject:
   m_ObjectHideFlags: 0
@@ -1411,8 +1290,8 @@ GameObject:
   - component: {fileID: 6288166387305494957}
   - component: {fileID: 7822982577760665745}
   - component: {fileID: 2899677607973344656}
-  - component: {fileID: 3500605986899874322}
-  m_Layer: 0
+  - component: {fileID: 783171927579122109}
+  m_Layer: 6
   m_Name: LeverRoot_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1471,25 +1350,27 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 3612032705541222451}
   leverIndex: 0
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
---- !u!114 &3500605986899874322
-MonoBehaviour:
+--- !u!65 &783171927579122109
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8307031642125676854}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 1237058775
-  ObjectInterest: 1
-  Flags: 262145
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 2899677607973344656}
-  ForceRemoteRenderTimeframe: 0
+  serializedVersion: 3
+  m_Size: {x: 0.2, y: 0.2, z: 2}
+  m_Center: {x: 0, y: 0, z: 1}
 --- !u!1 &8739328450865555674
 GameObject:
   m_ObjectHideFlags: 0
@@ -1501,8 +1382,8 @@ GameObject:
   - component: {fileID: 1882611819763100074}
   - component: {fileID: 376795692679562602}
   - component: {fileID: 4513331786835299871}
-  - component: {fileID: 2561380594748989530}
-  m_Layer: 0
+  - component: {fileID: 2309018116248279382}
+  m_Layer: 6
   m_Name: LeverRoot_5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1561,22 +1442,24 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 3612032705541222451}
   leverIndex: 0
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
---- !u!114 &2561380594748989530
-MonoBehaviour:
+--- !u!65 &2309018116248279382
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8739328450865555674}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 2363876073
-  ObjectInterest: 1
-  Flags: 262145
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 4513331786835299871}
-  ForceRemoteRenderTimeframe: 0
+  serializedVersion: 3
+  m_Size: {x: 0.2, y: 0.2, z: 2}
+  m_Center: {x: 0, y: 0, z: 1}

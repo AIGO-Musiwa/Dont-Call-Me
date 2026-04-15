@@ -22,9 +22,29 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
 
     [Networked] public NetworkBool NetIsSolved { get; private set; }    // 퍼즐이 최종 클리어 되었는지
     public bool CountForStageProgress => countForStage1Progress;        // 진행도 집계 포함 여부
-    public bool IsSolved => NetIsSolved;                                // 현재 클리어 여부 읽기용
+    public bool IsSolved
+    {
+        get
+        {
+            // Spawned 전에는 Networked 프로퍼티 접근 금지
+            if (!IsNetworkReady)
+                return false;
+
+            return NetIsSolved;
+        }
+    }
+
+    public bool IsNetworkReady {  get; private set; }                   // 네트워크가 준비 됐는지 확인용
 
     public event Action<PuzzleInteractableBase> Solved;                 // 퍼즐 클리어 시 외부에 알리는 이벤트
+
+
+
+    public override void Spawned()
+    {
+        IsNetworkReady = true;
+    }
+
 
     /// <summary>
     /// 현재 플레이어가 이 퍼즐 조작물을 상호작용 가능한지 검사
@@ -81,7 +101,7 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
             return false;
 
         // 이미 클리어된 퍼즐은 다시 상호작용하지 않도록 공통 차단
-        if (NetIsSolved)
+        if (IsSolved)
             return false;
 
         return true;
@@ -110,6 +130,9 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     protected virtual void MarkSolved()
     {
         if (!HasStateAuthority)
+            return;
+
+        if (!IsNetworkReady)
             return;
 
         if (NetIsSolved)

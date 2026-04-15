@@ -78,7 +78,7 @@ public class SymbolLeverHint : MonoBehaviour, IPuzzleSeedReceiver
         if (!enableDebugLog)
             return;
 
-        Debug.Log($"[SymbolLeverHint {m}", this);
+        Debug.Log($"[SymbolLeverHint] {m}", this);
     }
 
 
