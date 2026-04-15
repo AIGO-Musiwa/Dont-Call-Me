@@ -4,32 +4,34 @@ using UnityEngine.UI;
 
 /// <summary>
 /// UGUI(Canvas) 기반 인게임 HUD 관리 모듈.
-/// 내부 부품 자동 검색 및 플레이어 자동 연결 기능을 포함한다.
+/// 부품의 유무에 상관없이 시스템이 가동되도록 예외 처리가 강화되었다.
 /// </summary>
 public class HUDController : MonoBehaviour
 {
-    [Header("연결된 시스템 (자동 할당 예정)")]
+    [Header("연결된 시스템 (자동 할당)")]
     [SerializeField] private PlayerController playerController;
 
-    [Header("UI 요소 (이름으로 자동 검색)")]
-    [SerializeField] private TextMeshProUGUI itemNameText;  // 아이템 이름 표시용
-    [SerializeField] private Image crosshairImage;          // 중앙 조준점
-    [SerializeField] private GameObject capturedOverlay;    // 포획 시 붉은 화면
+    [Header("UI 요소 (있으면 자동 연결, 없어도 무관)")]
+    [SerializeField] private TextMeshProUGUI itemNameText;
+    [SerializeField] private Image crosshairImage;
+    [SerializeField] private GameObject capturedOverlay;
 
     private ItemObject _lastItem;
 
     private void Awake()
     {
-        // [공정 1] 내부 UI 부품 자동 스캔
-        // 텍스트는 타입으로, 나머지는 정해진 이름으로 검색한다.
+        // [공정 1] 내부 UI 부품 스캔 및 예외 처리
+        // 텍스트 검색
         if (itemNameText == null) itemNameText = GetComponentInChildren<TextMeshProUGUI>(true);
 
+        // 조준점 검색 (Find 결과가 null일 경우를 대비해 안전하게 배선)
         if (crosshairImage == null)
         {
             Transform t = transform.Find("Crosshair");
             if (t != null) crosshairImage = t.GetComponent<Image>();
         }
 
+        // 포획 오버레이 검색
         if (capturedOverlay == null)
         {
             Transform t = transform.Find("CapturedOverlay");
@@ -39,25 +41,24 @@ public class HUDController : MonoBehaviour
 
     private void Start()
     {
-        // 초기 상태 설정
+        // 부품이 있을 때만 초기화 신호 송신
         if (itemNameText != null) itemNameText.text = "대기 중...";
         if (capturedOverlay != null) capturedOverlay.SetActive(false);
         if (crosshairImage != null) crosshairImage.enabled = true;
     }
 
-    /// <summary>
-    /// [신규] 플레이어 기체가 스폰될 때 이 HUD와 주파수를 맞추기 위한 함수
-    /// </summary>
     public void LinkPlayer(PlayerController pc)
     {
         playerController = pc;
         if (itemNameText != null) itemNameText.text = "맨손";
-        Debug.Log($"[HUD] {pc.Object.InputAuthority}번 기체와 배선 연결 성공.");
+
+        if (pc != null)
+            Debug.Log($"[HUD] {pc.Object.InputAuthority}번 기체와 배선 연결 성공.");
     }
 
     private void LateUpdate()
     {
-        // 내 기체 정보만 출력 (주파수 혼선 방지)
+        // 제어권 확인
         if (playerController == null || !playerController.HasInputAuthority) return;
 
         UpdateItemName();
@@ -66,6 +67,7 @@ public class HUDController : MonoBehaviour
 
     private void UpdateItemName()
     {
+        // 부품이 없으면 공정 건너뜀
         if (itemNameText == null) return;
 
         ItemObject currentItem = null;
@@ -74,7 +76,6 @@ public class HUDController : MonoBehaviour
             currentItem = playerController.NetRightHandItem.GetComponent<ItemObject>();
         }
 
-        // 아이템이 변경되었을 때만 출력 갱신
         if (_lastItem != currentItem)
         {
             itemNameText.text = (currentItem != null) ? currentItem.ItemName : "맨손";
@@ -84,21 +85,23 @@ public class HUDController : MonoBehaviour
 
     private void UpdatePlayerStatusUI()
     {
+        // 상태 감지 (플레이어 데이터는 필수)
         if (playerController == null) return;
 
-        // 플레이어 상태 감지
         bool isCaptured = (playerController.NetPlayerState == PlayerState.Captured);
 
-        // 포획 상태라면 오버레이를 켜고 조준점을 숨김
-        if (capturedOverlay != null && capturedOverlay.activeSelf != isCaptured)
+        // 오버레이 부품이 있을 때만 작동
+        if (capturedOverlay != null)
         {
-            capturedOverlay.SetActive(isCaptured);
+            if (capturedOverlay.activeSelf != isCaptured)
+                capturedOverlay.SetActive(isCaptured);
         }
 
-        // 조준점 가시성 제어 (포획 시 비활성화)
+        // 조준점 부품이 있을 때만 작동
         if (crosshairImage != null)
         {
-            crosshairImage.enabled = !isCaptured;
+            if (crosshairImage.enabled == isCaptured) // 논리 연산 최적화
+                crosshairImage.enabled = !isCaptured;
         }
     }
 }
