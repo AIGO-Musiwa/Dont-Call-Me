@@ -45,6 +45,13 @@ public enum  Zone
     ZoneB
 }
 
+public enum PuzzleStage
+{
+    Stage1,
+    Stage2,
+    Stage3,
+}
+
 // ── 크리처 ────────────────────────────────────────────────
 
 public enum CreatureState

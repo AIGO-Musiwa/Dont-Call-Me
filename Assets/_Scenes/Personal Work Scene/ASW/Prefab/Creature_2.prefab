@@ -170,14 +170,15 @@ GameObject:
   - component: {fileID: 8149071640720344030}
   - component: {fileID: 4140657071761756899}
   - component: {fileID: 6973404507456584646}
-  - component: {fileID: 7167641971766957155}
   - component: {fileID: 1213794321100376791}
+  - component: {fileID: 7167641971766957155}
   - component: {fileID: 3237925939687788302}
   - component: {fileID: 6065336768852671156}
   - component: {fileID: -7382828285008275476}
   - component: {fileID: 3640863125624847769}
   - component: {fileID: 841392345713996855}
   - component: {fileID: 5655324595871334449}
+  - component: {fileID: 3998803744345994779}
   m_Layer: 20
   m_Name: Creature_2
   m_TagString: Untagged
@@ -258,29 +259,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &7167641971766957155
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 535513259889772823}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &1213794321100376791
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -308,6 +286,29 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!136 &7167641971766957155
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535513259889772823}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!195 &3237925939687788302
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -382,12 +383,19 @@ MonoBehaviour:
   _currentState: 0
   myZone: 1
   playerTarget: {fileID: 0}
+  moveSpeedBase: 4
+  alertMoveMultiplier: 1.5
+  searchMultiplier: 1
+  chaseMultiplier: 1.75
   patrolSpeed: 10
   alertMoveSpeed: 6
   searchSpeed: 4
   chaseSpeed: 16
   searchDuration: 2
   lockOnBreakTime: 3
+  chaseMinDuration: 3
+  searchRadius: 5
+  searchLookAroundTime: 6
   playerRespawnPoint: {fileID: 0}
   creatureRespawnPoint1F: {fileID: 0}
   creatureRespawnPoint3F: {fileID: 0}
@@ -426,10 +434,26 @@ MonoBehaviour:
     m_Bits: 0
   alertThresholdDB: 18
   criticalThresholdDB: 28
-  maxWalkieCost: 100
-  dbDropPerMeter: 2
   captureRange: 2
   captureAngle: 90
+  cabinetDetectRange: 1.5
+  deskDetectRange: 1.2
+--- !u!114 &3998803744345994779
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535513259889772823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d991c7f52bfc8b0469263e07c6dcc52f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CreatureWalkieTracker
+  costDangerThreshold: 60
+  costDangerThresholdFinal: 10
+  costRate: 1
+  costDecayRate: 1
 --- !u!1 &539186377256783234
 GameObject:
   m_ObjectHideFlags: 0
