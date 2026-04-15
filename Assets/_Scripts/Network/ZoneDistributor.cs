@@ -14,8 +14,12 @@ public class ZoneDistributor : NetworkBehaviour
     [Header("Zone B 스폰 포인트")]
     [SerializeField] private Transform zoneBSpawnPoint;
 
+    [Header("시드 참조")]
+    [SerializeField] private RoundSeedManager roundSeedManager;
+
     [Tooltip("배치를 시작할 최소 플레이어 수. 실제 게임: 4 / 테스트: 인원에 맞게 조정")]
     [SerializeField] private int requiredPlayers = 4;
+
 
     // ── 외부에서 배치 결과 조회용 ─────────────────────────
     private readonly Dictionary<PlayerRef, Zone> _playerZoneMap = new();
@@ -58,38 +62,72 @@ public class ZoneDistributor : NetworkBehaviour
     // ─────────────────────────────────────────────────────
     private void DistributePlayers()
     {
-        var players = new List<PlayerRef>(Runner.ActivePlayers);
+        List<PlayerData> orderedPlayerData = new();
 
-        if (players.Count == 0)
+        foreach(PlayerRef player in Runner.ActivePlayers)
         {
-            Debug.LogWarning("[ZoneDistributor] 배치할 플레이어가 없습니다.");
+            PlayerData data = Runner.GetPlayerObject(player)?.GetComponent<PlayerData>();
+            if (data == null)
+                continue;
+
+            if (data.SlotIndex < 0)
+                continue;
+
+            orderedPlayerData.Add(data);
+        }
+
+        orderedPlayerData = orderedPlayerData
+            .OrderBy(d => d.SlotIndex)
+            .ToList();
+
+        if(orderedPlayerData.Count == 0)
+        {
+            Debug.LogWarning("[ZoneDistributor] 배치할 PlayerData가 없습니다.");
             return;
         }
 
-        // Fisher-Yates 셔플로 순서 무작위화
-        for(int i = players.Count - 1; i > 0; i--)
+        roundSeedManager?.EnsureRoundSeed();
+
+        int roundSeed = roundSeedManager != null ? roundSeedManager.CurrentSeed : 0;
+        if(roundSeed == 0)
         {
-            int j = Random.Range(0, i + 1);
-            (players[i], players[j]) = (players[j], players[i]);
+            Debug.LogWarning("[ZoneDistributor] 유효한 라운드 시드가 없어 플레이어 배치를 진행할 수 없습니다.");
+            return;
         }
 
-        // 역할은 슬롯 순서로 고정 (플레이어 순서가 셔플됐으므로 결과는 랜덤
-        // 슬롯 0 -> 무전기, 슬롯 1 -> 손전등
-        for (int i = 0; i < players.Count; i++)
+        List<int> slotIndices = orderedPlayerData
+            .Select(d => d.SlotIndex)
+            .ToList();
+
+        RoundGenerationResult assignResult = RoundGenerator.GeneratePlayerAssignments(roundSeed, slotIndices);
+        Dictionary<int, RoundGenerationResult.PlayerAssignmentPlan> assignmentMap = assignResult.PlayerAssignments
+            .ToDictionary(p => p.SlotIndex, p => p);
+
+        for (int i = 0; i < orderedPlayerData.Count; i++)
         {
-            // 앞 2명 -> Zone A, 뒤 2명 -> Zone B
-            Zone zone = i < 2 ? Zone.ZoneA : Zone.ZoneB;
-            int slotInZone = i < 2 ? i : i - 2;
-            PlayerRole role = slotInZone == 0 ? PlayerRole.WalkieTalkie : PlayerRole.Flashlight;
+            PlayerData data = orderedPlayerData[i];
+            if (data == null)
+                continue;
+
+            PlayerRef playerRef = data.Object.InputAuthority;
+
+            //계산된 결과 적용
+            if(!assignmentMap.TryGetValue(data.SlotIndex, out RoundGenerationResult.PlayerAssignmentPlan plan))
+            {
+                Debug.LogWarning($"[ZoneDistributor] SlotIndex = {data.SlotIndex}에 대한 배정 결과가 없습니다");
+                continue;
+            }
+
+            Zone zone = plan.Zone;
+            PlayerRole role = plan.Role;
             Transform spawnPoint = zone == Zone.ZoneA ? zoneASpawnPoint : zoneBSpawnPoint;
 
             Vector3 spawnPos = spawnPoint != null ? spawnPoint.position : Vector3.zero;
             Quaternion spawnRot = spawnPoint != null ? spawnPoint.rotation : Quaternion.identity;
 
-            var obj = Runner.Spawn(playerPrefab, spawnPos, spawnRot, players[i]);
+            NetworkObject obj = Runner.Spawn(playerPrefab, spawnPos, spawnRot, playerRef);
 
-            // PlayerController에 구역 / 역할 설정
-            var pc = obj.GetComponent<PlayerController>();
+            PlayerController pc = obj.GetComponent<PlayerController>();
             if (pc != null)
             {
                 pc.NetZone = zone;
@@ -97,24 +135,18 @@ public class ZoneDistributor : NetworkBehaviour
 
                 if (!pc.ServerGrantRoleItemForCurrentRole())
                 {
-                    Debug.Log($"[ZoneDistributor] 역할 아이템 지급 스킵 또는 실패: Player={players[i]}, Role={role}");
+                    Debug.Log($"[ZoneDistributor] 역할 아이템 지급 스킵 또는 실패 : Player = {playerRef}, Role = {role}");
                 }
-
             }
             else
             {
-                Debug.LogWarning($"[ZoneDistributor] PlayerController를 찾을 수 없습니다: {players[i]}");
+                Debug.LogWarning($"[ZoneDistributor] PlayerController를 찾을 수 없습니다 : {playerRef}");
             }
 
-            // PlayerData에 PlayerController NetworkId 연결
-            var data = Runner.GetPlayerObject(players[i])?.GetComponent<PlayerData>();
-            if (data != null)
-                data.PlayerControllerNetId = obj.Id;
-            else
-                Debug.LogWarning($"[ZoneDistributor] PlayerData를 찾을 수 없습니다: {players[i]}");
+            data.PlayerControllerNetId = obj.Id;
 
-            _playerZoneMap[players[i]] = zone;
-            _playerRoleMap[players[i]] = role;
+            _playerZoneMap[playerRef] = zone;
+            _playerRoleMap[playerRef] = role;
         }
     }
 }

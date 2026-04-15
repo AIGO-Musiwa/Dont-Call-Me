@@ -13,8 +13,22 @@ public class PuzzleDefinition : ScriptableObject
     [SerializeField] private GameObject puzzlePrefab;       // 퍼즐 본체 프리팹
     [SerializeField] private GameObject hintPrefab;         // 반대편 건물에 배치될 힌트 프리팹
 
+    [Header("퍼즐 배치 보정")]
+    [SerializeField] private Vector3 puzzlePositionOffset;        // 슬롯 기준 퍼즐 본체 로컬 위치 오프셋
+    [SerializeField] private Vector3 puzzleRotationOffset;        // 슬롯 기준 퍼즐 본체 로컬 회전 오프셋
+
+    [Header("힌트 배치 보정")]
+    [SerializeField] private Vector3 hintPositionOffset;        // 슬롯 기준 퍼즐 본체 로컬 위치 오프셋
+    [SerializeField] private Vector3 hintRotationOffset;        // 슬롯 기준 퍼즐 본체 로컬 회전 오프셋
+
+
     public string PuzzleId => puzzleId;
     public PuzzleStage Stage => puzzleStage;
     public GameObject PuzzlePrefab => puzzlePrefab;
     public GameObject HintPrefab => hintPrefab;
+
+    public Vector3 PuzzlePositionOffset => puzzlePositionOffset;
+    public Vector3 PuzzleRotationOffset => puzzleRotationOffset;
+    public Vector3 HintPositionOffset => hintPositionOffset;
+    public Vector3 HintRotationOffset => hintRotationOffset;
 }

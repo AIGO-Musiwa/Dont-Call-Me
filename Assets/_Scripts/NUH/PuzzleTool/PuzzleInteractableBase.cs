@@ -120,6 +120,15 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     }
 
     /// <summary>
+    /// 퍼즐 실패 시 자식 클래스에서 호출하는 공통 훅
+    /// 기본 구현 비워두고 자식 클래스에서 연출 추가
+    /// </summary>
+    protected virtual void MarkFailed()
+    {
+        // 기본 공통 처리 없음
+    }
+
+    /// <summary>
     /// 퍼즐 리셋 시 성공 상태 되돌릴때 사용하는 호출용 메서드
     /// 테스트용
     /// </summary>
