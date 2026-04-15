@@ -17,6 +17,11 @@ public class CreatureWalkieTracker : MonoBehaviour
     private float currentWalkieCost = 0f;
     private bool isAct3 = false;
 
+    // 로그 중복 방지용
+    private float _lastLoggedCost = -1f;
+    private const float LogInterval = 1f;
+    private float _logTimer = 0f;
+
     public void SetAct3(bool act3Active)
     {
         //3막 이벤트 발생 시 플래그 발동
@@ -27,6 +32,10 @@ public class CreatureWalkieTracker : MonoBehaviour
     {
         //코스트 초기화
         currentWalkieCost = 0f;
+
+        currentWalkieCost = 0f;
+        _lastLoggedCost = -1f;
+        _logTimer = 0f;
     }
 
     //매 프레임 호출되어 코스트를 누적/감쇠, 임계치 도달 시 true를 반환
@@ -97,6 +106,31 @@ public class CreatureWalkieTracker : MonoBehaviour
         float currentMax = isAct3 ? costDangerThresholdFinal : costDangerThreshold;        
         currentWalkieCost += costChange;
         currentWalkieCost = Mathf.Clamp(currentWalkieCost, 0f, currentMax);
+
+        // ── 로그 ──────────────────────────────────────────
+        _logTimer += deltaTime;
+        if (_logTimer >= LogInterval)
+        {
+            _logTimer = 0f;
+
+            if (currentWalkieCost > 0f)
+            {
+                string status = isAccumulating ? "누적 중" : (isDecaying ? "감쇠 중" : "유지");
+                Debug.Log(
+                    $"[WalkieTracker] ({myZone}) {status} { (currentWalkieCost / currentMax * 100f):F0}%"
+                );
+            }
+        }
+
+        // 임계치 도달 시 로그 + 트리거
+        bool triggered = currentWalkieCost >= currentMax;
+        if (triggered)
+        {
+            Debug.Log(
+                $"[WalkieTracker] ({myZone}) ★ 임계치 도달! " +
+                $"코스트 {currentWalkieCost:F1} / {currentMax:F1} → 크리처 AlertMove 트리거"
+            );
+        }
 
         //임계치 도달 여부 반환
         return currentWalkieCost >= currentMax;

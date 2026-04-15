@@ -1,25 +1,28 @@
+using Fusion;
 using Photon.Voice.Unity;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
-public class SounddBMeasurer : MonoBehaviour
+public class MicrophonedBMeasurer : MonoBehaviour
 {
-    public static SounddBMeasurer Instance { get; private set; }
+    public static MicrophonedBMeasurer Instance { get; private set; }
 
     [Header("측정 주기 (초)")]
     [SerializeField] private float measureInterval = 0.05f;
+
     private float _measureTimer;
-
-    private const float silenceThreshold = 0.001f;      // 이 값 미만이면 무음 판정
-
     private bool isPTTActive;
     private Recorder recorder;
+    private PlayerController localPc;
+
+    private const float silenceThreshold = 0.001f;      // 이 값 미만이면 무음 판정
 
     public float CurrentNaturaldB { get; private set; } = 0f;
     public float CurrentWalkiedB { get; private set; } = 0f;
 
     // 마이크 진폭을 dBFS로 변환한 연속값
     public float CurrentRawdBFS { get; private set; } = -96f;
+    public bool IsPTTActive => isPTTActive;
 
     #region Unity LifeCycle
 
@@ -31,6 +34,18 @@ public class SounddBMeasurer : MonoBehaviour
             return;
         }
         Instance = this;
+    }
+
+    private void Start()
+    {
+        localPc = GetComponent<PlayerController>();
+
+        if (localPc == null) Debug.LogError("[MicrophonedBMeasurer] PlayerController를 찾을 수 없습니다.");
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
     }
 
     private void Update()
@@ -45,7 +60,7 @@ public class SounddBMeasurer : MonoBehaviour
         if (_measureTimer < measureInterval) return;
         _measureTimer = 0f;
 
-        MeasureAndEmit();
+        Measure();
     }
 
     #endregion
@@ -59,23 +74,11 @@ public class SounddBMeasurer : MonoBehaviour
         if (!isOn) CurrentWalkiedB = 0f;
     }
 
-    // 코스트 비연동, dB 즉시 비교 방식
-    public void EmitEventSound(float voicedB, Vector3 sourcePosition)
-    {
-        SoundEventBus.Emit(new SoundEvent
-        {
-            channel = SoundChannel.Walkie,
-            voicedB = voicedB,
-            sourcePosition = sourcePosition,
-            obstaclePenaltydB = 0f
-        });
-    }
-
     #endregion
 
     #region 측정 및 발행
 
-    private void MeasureAndEmit()
+    private void Measure()
     {
         float rms = recorder.LevelMeter?.CurrentAvgAmp ?? 0f;
         
@@ -84,45 +87,43 @@ public class SounddBMeasurer : MonoBehaviour
             CurrentNaturaldB = 0f;
             CurrentWalkiedB = 0f;
             CurrentRawdBFS = -96f;
+
+            if (isPTTActive)
+                SoundEmitter.EmitWalkie(30f, GetReceiverWalkiePosition());
+
             return;
         }
-        
+
         float dBfs = AmpTodBFS(rms);
         CurrentRawdBFS = dBfs;
 
-        // 자연음 채널
+        // 자연음 (플레이어 음성)
         float naturaldB = dBFSToNaturaldB(dBfs);
         CurrentNaturaldB = naturaldB;
 
-        // 말소리
         if (naturaldB > 0f)
-        {
-            SoundEventBus.Emit(new SoundEvent
-            {
-                channel = SoundChannel.Natural,
-                voicedB = naturaldB,
-                sourcePosition = transform.position,
-                obstaclePenaltydB = 0f
-            });
-        }
+            SoundEmitter.EmitNatural(naturaldB, transform.position, localPc.NetZone);
 
-        // 무전음 채널
+        // 무전음
         if (!isPTTActive) return;
 
         float walkiedB = dBFSToWalkiedB(dBfs);
         CurrentWalkiedB = walkiedB;
 
-        if ( walkiedB > 0f)
-        {
-            SoundEventBus.Emit(new SoundEvent
-            {
-                channel = SoundChannel.Walkie,
-                voicedB = walkiedB,
-                sourcePosition = transform.position,
-                obstaclePenaltydB = 0f
-            });
-        }
+        if (walkiedB > 0f)
+            SoundEmitter.EmitWalkie(walkiedB, GetReceiverWalkiePosition());
     }
+
+    private Vector3 GetReceiverWalkiePosition()
+    {
+        if (WalkieTalkieManager.Instance == null) return transform.position;
+
+        Zone receiverZone = (localPc.NetZone == Zone.ZoneA) ? Zone.ZoneB : Zone.ZoneA;
+        WalkieTalkieItem receiverWalkie = WalkieTalkieManager.Instance.GetWalkieTalkieByZone(receiverZone);
+
+        return receiverWalkie != null ? receiverWalkie.transform.position : transform.position;
+    }
+   
 
     #endregion
 

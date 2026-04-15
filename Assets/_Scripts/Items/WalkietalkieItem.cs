@@ -72,7 +72,7 @@ public class WalkieTalkieItem : ItemObject
     private bool CheckHearWhiteNoisePlayer()
     {
         if (!Runner.TryGetPlayerObject(Runner.LocalPlayer, out var localObj)) return false;
-        if (!localObj.TryGetComponent(out PlayerController localPc)) return false;
+        PlayerController localPc = localObj.GetComponent<PlayerData>()?.GetPlayerController();
         if (localPc.NetZone != NetZone) return false;
 
         // 무전기 소지자는 항상 들림
@@ -98,13 +98,6 @@ public class WalkieTalkieItem : ItemObject
         {
             whiteNoiseSource.Stop();
         }
-    }
-
-    private bool IsLocalPlayerInSameZone()
-    {
-        if (!Runner.TryGetPlayerObject(Runner.LocalPlayer, out var localObj)) return false;
-        if (!localObj.TryGetComponent(out PlayerController localPc)) return false;
-        return localPc.NetZone == NetZone;
     }
 
     // ─── 오버라이드 ──────────────────────────────────
