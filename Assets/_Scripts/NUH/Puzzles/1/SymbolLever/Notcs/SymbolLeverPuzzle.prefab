@@ -215,13 +215,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4514da3c829a6c14c8b9092c92c9771b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SymbolLeverConfirmInteractable
-  defaultPromptText: "\uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  promptWhenHoldingItem: "\uC624\uB978\uC190 \uC544\uC774\uD15C \uB0B4\uB824\uB193\uACE0
-    \uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  countForStage1Progress: 1
-  _NetIsSolved:
-    _value: 0
   ownerPuzzle: {fileID: 3612032705541222451}
+  interactableId: 100
   confirmPromptText: "\uC815\uB2F5 \uD655\uC778"
 --- !u!1 &715260548460353244
 GameObject:
@@ -487,14 +482,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c43dc30b71363145be2d8f1561c06f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SymbolLeverInteractable
-  defaultPromptText: "\uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  promptWhenHoldingItem: "\uC624\uB978\uC190 \uC544\uC774\uD15C \uB0B4\uB824\uB193\uACE0
-    \uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  countForStage1Progress: 1
-  _NetIsSolved:
-    _value: 0
   ownerPuzzle: {fileID: 3612032705541222451}
-  leverIndex: 0
+  interactableId: 1
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
 --- !u!65 &7667778954274483811
 BoxCollider:
@@ -579,14 +568,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c43dc30b71363145be2d8f1561c06f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SymbolLeverInteractable
-  defaultPromptText: "\uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  promptWhenHoldingItem: "\uC624\uB978\uC190 \uC544\uC774\uD15C \uB0B4\uB824\uB193\uACE0
-    \uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  countForStage1Progress: 1
-  _NetIsSolved:
-    _value: 0
   ownerPuzzle: {fileID: 3612032705541222451}
-  leverIndex: 0
+  interactableId: 4
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
 --- !u!65 &6284157397689493260
 BoxCollider:
@@ -671,14 +654,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c43dc30b71363145be2d8f1561c06f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SymbolLeverInteractable
-  defaultPromptText: "\uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  promptWhenHoldingItem: "\uC624\uB978\uC190 \uC544\uC774\uD15C \uB0B4\uB824\uB193\uACE0
-    \uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  countForStage1Progress: 1
-  _NetIsSolved:
-    _value: 0
   ownerPuzzle: {fileID: 3612032705541222451}
-  leverIndex: 0
+  interactableId: 2
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
 --- !u!65 &2922050252693189924
 BoxCollider:
@@ -853,14 +830,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c43dc30b71363145be2d8f1561c06f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SymbolLeverInteractable
-  defaultPromptText: "\uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  promptWhenHoldingItem: "\uC624\uB978\uC190 \uC544\uC774\uD15C \uB0B4\uB824\uB193\uACE0
-    \uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  countForStage1Progress: 1
-  _NetIsSolved:
-    _value: 0
   ownerPuzzle: {fileID: 3612032705541222451}
-  leverIndex: 0
+  interactableId: 3
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
 --- !u!65 &4518510407732692165
 BoxCollider:
@@ -1091,13 +1062,6 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 3612032705541222451}
   - {fileID: 1210915798437249508}
-  - {fileID: 2899677607973344656}
-  - {fileID: 5019348819211047657}
-  - {fileID: 2814118858794978691}
-  - {fileID: 7202963432441540126}
-  - {fileID: 4220243824259791449}
-  - {fileID: 4513331786835299871}
-  - {fileID: 4860258317690960793}
   ForceRemoteRenderTimeframe: 0
 --- !u!1 &6806846555318473707
 GameObject:
@@ -1341,14 +1305,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c43dc30b71363145be2d8f1561c06f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SymbolLeverInteractable
-  defaultPromptText: "\uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  promptWhenHoldingItem: "\uC624\uB978\uC190 \uC544\uC774\uD15C \uB0B4\uB824\uB193\uACE0
-    \uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  countForStage1Progress: 1
-  _NetIsSolved:
-    _value: 0
   ownerPuzzle: {fileID: 3612032705541222451}
-  leverIndex: 0
+  interactableId: 0
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
 --- !u!65 &783171927579122109
 BoxCollider:
@@ -1433,14 +1391,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c43dc30b71363145be2d8f1561c06f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SymbolLeverInteractable
-  defaultPromptText: "\uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  promptWhenHoldingItem: "\uC624\uB978\uC190 \uC544\uC774\uD15C \uB0B4\uB824\uB193\uACE0
-    \uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
-  countForStage1Progress: 1
-  _NetIsSolved:
-    _value: 0
   ownerPuzzle: {fileID: 3612032705541222451}
-  leverIndex: 0
+  interactableId: 5
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
 --- !u!65 &2309018116248279382
 BoxCollider:

@@ -180,9 +180,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
                 return;
             }
 
-            if (Interaction != null && Interaction.TryGetCurrentTargetId(out NetworkId targetId))
+            if (Interaction != null && Interaction.TryGetCurrentTargetInfo(out NetworkId targetId, out int interactableId))
             {
-                RPC_RequestInteract(targetId);
+                RPC_RequestInteract(targetId, interactableId);
             }
         }
 
@@ -244,7 +244,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void RPC_RequestInteract(NetworkId targetId)
+    private void RPC_RequestInteract(NetworkId targetId, int interactableId)
     {
         if (!HasStateAuthority)
             return;
@@ -263,7 +263,24 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!IsTargetWithinInteractDistance(targetObject, maxDistance))
             return;
 
-        if (!PlayerInteraction.TryFindInteractable(targetObject.transform, out _, out IInteractable interactable))
+        IInteractable interactable = null;
+
+        // 1. 자식 상호작용 ID가 있으면 해당 자식 우선 탐색
+        if (interactableId >= 0)
+        {
+            interactable = FindChildInteractable(targetObject.transform, interactableId);
+        }
+
+        // 2. 못 찾았으면 루트 자체 interactable fallback
+        if (interactable == null)
+        {
+            if (!PlayerInteraction.TryFindInteractable(targetObject.transform, out _, out IInteractable rootInteractable, out _))
+                return;
+
+            interactable = rootInteractable;
+        }
+
+        if (interactable == null)
             return;
 
         if (!interactable.CanInteract(this))
@@ -288,6 +305,34 @@ public class PlayerController : NetworkBehaviour, IInteractable
         }
 
         hideSpot.RequestExit(this);
+    }
+
+    /// <summary>
+    /// 루트 NetworkObject 아래에서 interactableId가 일치하는 자식 IInteractable을 찾는다.
+    /// </summary>
+    private IInteractable FindChildInteractable(Transform root, int interactableId)
+    {
+        if (root == null)
+            return null;
+
+        if (interactableId < 0)
+            return null;
+
+        SymbolLeverInteractable[] levers = root.GetComponentsInChildren<SymbolLeverInteractable>(true);
+        for (int i = 0; i < levers.Length; i++)
+        {
+            if (levers[i] != null && levers[i].InteractableId == interactableId)
+                return levers[i];
+        }
+
+        SymbolLeverConfirmInteractable[] confirms = root.GetComponentsInChildren<SymbolLeverConfirmInteractable>(true);
+        for (int i = 0; i < confirms.Length; i++)
+        {
+            if (confirms[i] != null && confirms[i].InteractableId == interactableId)
+                return confirms[i];
+        }
+
+        return null;
     }
 
     public ItemObject GetLeftHandItemObject()
