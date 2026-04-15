@@ -341,4 +341,13 @@ public class PlayerSpectatorController : MonoBehaviour
 
         return target.transform;
     }
+
+    public string GetCurrentTargetName()
+    {
+        if (!_isSpectating || _targets.Count == 0 || _targetIndex < 0 || _targetIndex >= _targets.Count)
+            return "대상 없음";
+
+        // 대상 PlayerController가 붙은 객체의 이름을 반환 (보통 플레이어 이름으로 설정됨)
+        return _targets[_targetIndex].gameObject.name;
+    }
 }
