@@ -173,11 +173,12 @@ GameObject:
   - component: {fileID: 7167641971766957155}
   - component: {fileID: 1213794321100376791}
   - component: {fileID: 3237925939687788302}
-  - component: {fileID: 3640863125624847769}
   - component: {fileID: 6065336768852671156}
   - component: {fileID: -7382828285008275476}
+  - component: {fileID: 3640863125624847769}
   - component: {fileID: 841392345713996855}
   - component: {fileID: 5655324595871334449}
+  - component: {fileID: 3998803744345994779}
   m_Layer: 20
   m_Name: Creature_1
   m_TagString: Untagged
@@ -330,6 +331,43 @@ NavMeshAgent:
   m_BaseOffset: 0.9
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &6065336768852671156
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535513259889772823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 3945888973
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: -7382828285008275476}
+  - {fileID: 3640863125624847769}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &-7382828285008275476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535513259889772823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!114 &3640863125624847769
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -361,43 +399,6 @@ MonoBehaviour:
   playerRespawnPoint: {fileID: 0}
   creatureRespawnPoint1F: {fileID: 0}
   creatureRespawnPoint3F: {fileID: 0}
---- !u!114 &6065336768852671156
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 535513259889772823}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 3945888973
-  ObjectInterest: 1
-  Flags: 262145
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 3640863125624847769}
-  - {fileID: -7382828285008275476}
-  ForceRemoteRenderTimeframe: 0
---- !u!114 &-7382828285008275476
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 535513259889772823}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
-  _stateAuthorityChangeErrorCorrectionDelta: 0
-  SyncScale: 0
-  SyncParent: 0
-  _autoAOIOverride: 1
-  DisableSharedModeInterpolation: 0
 --- !u!114 &841392345713996855
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -433,10 +434,26 @@ MonoBehaviour:
     m_Bits: 0
   alertThresholdDB: 18
   criticalThresholdDB: 28
-  maxWalkieCost: 100
-  dbDropPerMeter: 2
   captureRange: 2
   captureAngle: 90
+  cabinetDetectRange: 1.5
+  deskDetectRange: 1.2
+--- !u!114 &3998803744345994779
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535513259889772823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d991c7f52bfc8b0469263e07c6dcc52f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CreatureWalkieTracker
+  costDangerThreshold: 60
+  costDangerThresholdFinal: 10
+  costRate: 1
+  costDecayRate: 1
 --- !u!1 &539186377256783234
 GameObject:
   m_ObjectHideFlags: 0
