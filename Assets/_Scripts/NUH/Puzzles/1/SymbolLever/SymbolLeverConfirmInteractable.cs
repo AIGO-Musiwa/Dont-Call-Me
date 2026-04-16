@@ -41,7 +41,7 @@ public class SymbolLeverConfirmInteractable : MonoBehaviour, IInteractable
         if (actor.NetRightHandItem != null)
             actor.ServerDropRightHandItem();
 
-        ownerPuzzle.ConfirmCurrentState(actor);
+        ownerPuzzle.OnLeverPulled(interactableId);
     }
 
     public string GetPromptText(PlayerController actor)
