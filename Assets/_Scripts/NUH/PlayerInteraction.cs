@@ -16,7 +16,8 @@ public class PlayerInteraction : MonoBehaviour
     private Camera _viewCamera;                                 // 현재 상호작용 기준 카메라
 
     private IInteractable _currentInteractable;                 // 현재 바라보는 상호작용 대상 인터페이스
-    private NetworkObject _currentTargetObject;                 // 현재 바라보는 상호작용 대상 NetworkObject
+    private NetworkObject _currentTargetObject;                 // 현재 바라보는 상호작용 대상 루트 NetworkObject
+    private int _currentInteractableId = -1;                    // 현재 자식 상호작용 ID
 
     public float InteractDistance => interactDistance;
     public bool HasValidTarget => _currentInteractable != null && _currentTargetObject != null;
@@ -34,7 +35,7 @@ public class PlayerInteraction : MonoBehaviour
     }
 
     /// <summary>
-    ///  매 프레임 현재 바라보는 상호작용 대상을 찾는다.
+    /// 매 프레임 현재 바라보는 상호작용 대상을 찾는다.
     /// </summary>
     private void Update()
     {
@@ -46,7 +47,7 @@ public class PlayerInteraction : MonoBehaviour
 
         TryRefreshCameraReference();
 
-        if(_viewCamera == null)
+        if (_viewCamera == null)
         {
             ClearTarget();
             return;
@@ -57,15 +58,15 @@ public class PlayerInteraction : MonoBehaviour
         if (drawDebugRay)
             Debug.DrawRay(ray.origin, ray.direction * interactDistance, Color.green);
 
-
         if (Physics.Raycast(ray, out RaycastHit hit, InteractDistance, interactMask, QueryTriggerInteraction.Collide))
         {
-            if(TryFindInteractable(hit.collider.transform, out NetworkObject targetObject, out IInteractable interactable))
+            if (TryFindInteractable(hit.collider.transform, out NetworkObject targetObject, out IInteractable interactable, out int interactableId))
             {
                 if (interactable.CanInteract(_controller))
                 {
                     _currentTargetObject = targetObject;
                     _currentInteractable = interactable;
+                    _currentInteractableId = interactableId;
                     return;
                 }
             }
@@ -75,26 +76,27 @@ public class PlayerInteraction : MonoBehaviour
     }
 
     /// <summary>
-    /// 현재 캐싱된 상호작용 대상의 NetworkId 반환
-    /// RPC 요청이나 서버 검증용으로 사용 가능
+    /// 현재 캐싱된 상호작용 대상의 루트 NetworkId와 자식 상호작용 ID 반환
     /// </summary>
-    public bool TryGetCurrentTargetId(out NetworkId targetId)
+    public bool TryGetCurrentTargetInfo(out NetworkId targetId, out int interactableId)
     {
-        if(_currentTargetObject != null)
+        if (_currentTargetObject != null)
         {
             targetId = _currentTargetObject.Id;
+            interactableId = _currentInteractableId;
             return true;
         }
 
         targetId = default;
+        interactableId = -1;
         return false;
     }
-
 
     private void ClearTarget()
     {
         _currentTargetObject = null;
         _currentInteractable = null;
+        _currentInteractableId = -1;
     }
 
     private bool CanSearchInteractable()
@@ -105,7 +107,6 @@ public class PlayerInteraction : MonoBehaviour
         if (!_controller.HasInputAuthority)
             return false;
 
-        // 플레이어 상태가 Normal이 아니면 상호작용 대상 탐색 안함
         if (_controller.NetPlayerState != PlayerState.Normal)
             return false;
 
@@ -113,7 +114,7 @@ public class PlayerInteraction : MonoBehaviour
     }
 
     /// <summary>
-    /// 카메라 참조가 비어있으면 LookView에서 다시 받아옴
+    /// 카메라 참조가 비어있으면 LookView에서 다시 받아온다.
     /// </summary>
     private void TryRefreshCameraReference()
     {
@@ -123,12 +124,17 @@ public class PlayerInteraction : MonoBehaviour
 
     /// <summary>
     /// Hit된 Transform부터 부모 방향으로 올라가며
-    /// NetworkObject와 IInteractable을 함께 찾는다.
+    /// 루트 NetworkObject, IInteractable, 자식 상호작용 ID를 함께 찾는다.
     /// </summary>
-    public static bool TryFindInteractable(Transform start, out NetworkObject targetObject, out IInteractable interactable)
+    public static bool TryFindInteractable(
+        Transform start,
+        out NetworkObject targetObject,
+        out IInteractable interactable,
+        out int interactableId)
     {
         targetObject = start.GetComponentInParent<NetworkObject>();
         interactable = null;
+        interactableId = -1;
 
         MonoBehaviour[] behaviours = start.GetComponentsInParent<MonoBehaviour>(true);
         foreach (var behaviour in behaviours)
@@ -136,6 +142,12 @@ public class PlayerInteraction : MonoBehaviour
             if (behaviour is IInteractable found)
             {
                 interactable = found;
+
+                if (behaviour is SymbolLeverInteractable lever)
+                    interactableId = lever.InteractableId;
+                else if (behaviour is SymbolLeverConfirmInteractable confirm)
+                    interactableId = confirm.InteractableId;
+
                 break;
             }
         }
