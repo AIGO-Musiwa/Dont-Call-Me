@@ -77,6 +77,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
     // 플레이어 State 변화 감지
     private ChangeDetector stateChangeDetector;
 
+    // [추가 필드] 현재 조준 중인 아이템의 외곽선 제어 장치 저장
+    private ItemOutlineController _lastHighlightedOutline;
 
     // 테스트용 임시 포획 Anchor
     [SerializeField] private Transform debugCaptureAnchor;
@@ -202,6 +204,65 @@ public class PlayerController : NetworkBehaviour, IInteractable
         {
             _prevWalkiePressed = false;
             GetHeldWalkieTalkie()?.RPC_RequestPTT(false);
+        }
+    }
+
+    /// <summary>
+    /// 로컬 시각 효과 및 프레임 기반 센싱 처리
+    /// </summary>
+    private void Update()
+    {
+        // 내 기체가 아니거나, 정상 생존 상태가 아니면 센서 가동 중지
+        if (!HasInputAuthority || NetPlayerState != PlayerState.Normal)
+        {
+            ClearLastHighlight();
+            return;
+        }
+
+        // 아이템 조준 감지 및 외곽선 갱신
+        UpdateItemHighlight();
+    }
+
+    /// <summary>
+    /// 조준선(Raycast)에 닿은 아이템의 외곽선을 실시간으로 제어한다.
+    /// </summary>
+    private void UpdateItemHighlight()
+    {
+        // PlayerInteraction 컴포넌트의 레이캐스트 정보를 활용
+        if (Interaction != null && Interaction.TryGetCurrentTargetInfo(out NetworkId targetId, out _))
+        {
+            if (Runner.TryFindObject(targetId, out NetworkObject obj))
+            {
+                // 조준 중인 오브젝트에서 외곽선 제어 모듈 검색
+                ItemOutlineController outline = obj.GetComponent<ItemOutlineController>();
+
+                if (outline != null)
+                {
+                    // 이전에 보던 것과 다른 새로운 아이템인 경우
+                    if (_lastHighlightedOutline != outline)
+                    {
+                        _lastHighlightedOutline?.SetOutline(false); // 이전 외곽선 해제
+                        _lastHighlightedOutline = outline;
+                        _lastHighlightedOutline.SetOutline(true);   // 새 외곽선 가동
+                    }
+                    return; // 현재 아이템 유지 중이므로 종료
+                }
+            }
+        }
+
+        // 아무것도 조준하지 않거나 아이템이 아니면 하이라이트 해제
+        ClearLastHighlight();
+    }
+
+    /// <summary>
+    /// 마지막으로 활성화된 외곽선 센서를 초기화한다.
+    /// </summary>
+    private void ClearLastHighlight()
+    {
+        if (_lastHighlightedOutline != null)
+        {
+            _lastHighlightedOutline.SetOutline(false);
+            _lastHighlightedOutline = null;
         }
     }
 
