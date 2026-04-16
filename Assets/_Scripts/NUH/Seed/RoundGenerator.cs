@@ -6,7 +6,7 @@ using UnityEngine;
 /// 기준 시드를 받아 한 판의 퍼즐/정답/플레이어 배치 결과를 계산
 /// 실제 스폰/적용은 하지 않고 결과만 생성
 /// </summary>
-public class RoundGenerator
+public static class RoundGenerator
 {
     private const int PuzzleSeedSalt = 1001;        // 퍼즐 생성용 파생 시드 salt
     private const int PlayerSeedSalt = 2001;        // 플레이어 배정용 파생 시드 salt
