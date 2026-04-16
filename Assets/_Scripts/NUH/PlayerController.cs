@@ -1094,6 +1094,20 @@ public class PlayerController : NetworkBehaviour, IInteractable
         ServerExitCapturedToNormal();
     }
 
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_ProcessMinigameSuccess()
+    {
+        // 포획 상태가 아니라면 무전 무시
+        if (NetPlayerState != PlayerState.Captured) return;
+
+        // 기획서 1-4: 후유증 3% 즉시 감소
+        float nextValue = NetAftereffectPercent - 3.0f;
+        NetAftereffectPercent = Mathf.Max(0f, nextValue);
+
+        // 로그 기록 (검수용)
+        Debug.Log($"[미니게임] 성공! 후유증 3% 제거. 현재: {NetAftereffectPercent}%");
+    }
+
 
     #region 게임 종료 이벤트 확인용 RPC
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
