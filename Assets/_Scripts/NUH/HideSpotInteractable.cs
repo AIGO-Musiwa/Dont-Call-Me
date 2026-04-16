@@ -126,7 +126,7 @@ public class HideSpotInteractable : NetworkBehaviour, IInteractable
     /// 플레이어를 은신 포인트 밖으로 퇴장시킨다.
     /// 퇴장 성공 시 은신처 점유 상태를 해제한다.
     /// </summary>
-    private bool ServerTryExit(PlayerController actor)
+    public bool ServerTryExit(PlayerController actor)
     {
         if (actor == null)
             return false;

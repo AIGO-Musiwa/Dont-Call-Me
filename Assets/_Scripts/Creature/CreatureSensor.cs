@@ -69,7 +69,7 @@ public class CreatureSensor : MonoBehaviour
                     Vector3 dirtoTarget = (targetPlayer - eyePosition).normalized;
 
                     //레이캐스트가 장애물에 부딪히지 않으면 시야에 보인다고 판정
-                    if (!Physics.Raycast(eyePosition, dirtoTarget, distanceToTarget, obstaclMask)) return true;
+                    if (!Physics.Raycast(eyePosition, dirtoTarget, distanceToTarget, obstaclMask, QueryTriggerInteraction.Collide)) return true;
                 }
             }
         }
@@ -97,7 +97,17 @@ public class CreatureSensor : MonoBehaviour
             float angle = Vector3.Angle(transform.forward, directionToTarget);
 
             //타겟이 포획 각도 내에 들어오면 포획 조건 성립
-            if (angle <= captureAngle / 2f) return true;
+            if (angle <= captureAngle / 2f)
+            {
+                //크리쳐와 플레이어 가슴 높이를 기준으로 선을 그어 장애물이 있는지 확인
+                Vector3 rayOrigin = transform.position + Vector3.up * 1.0f;
+                Vector3 rayTarget = target.position + Vector3.up * 1.0f;
+                Vector3 rayDir = (rayTarget - rayOrigin).normalized;
+                float rayDist = Vector3.Distance(rayOrigin, rayTarget);
+
+                //obstaclMask에 닿는 것이 없을 때만 포획
+                if (!Physics.Raycast(rayOrigin, rayDir, rayDist, obstaclMask, QueryTriggerInteraction.Collide)) return true;
+            }
         }
         return false;
     }
