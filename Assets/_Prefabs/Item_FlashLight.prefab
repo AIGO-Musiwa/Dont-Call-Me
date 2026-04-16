@@ -15,7 +15,9 @@ GameObject:
   - component: {fileID: 2241914840050886609}
   - component: {fileID: 8306845425981146657}
   - component: {fileID: 4307383283113416832}
+  - component: {fileID: 5467202585616297981}
   - component: {fileID: 602153202409571905}
+  - component: {fileID: 8036534816850016380}
   m_Layer: 6
   m_Name: Item_FlashLight
   m_TagString: Untagged
@@ -178,6 +180,27 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!65 &5467202585616297981
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3803839711681771849}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23805225, y: 0.241714, z: 1}
+  m_Center: {x: 0.0009793639, y: -0.00054222345, z: 0}
 --- !u!114 &602153202409571905
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -195,12 +218,25 @@ MonoBehaviour:
   itemName: "\uC54C \uC218 \uC5C6\uB294 \uC544\uC774\uD15C"
   localViewPrefab: {fileID: 3803839711681771849}
   viewRotationOffset: {x: 0, y: 0, z: 0}
-  outlineComponent: {fileID: 0}
+  outlineComponent: {fileID: 2241914840050886609}
   _NetItemType: 2
   _NetIsRoleItem:
     _value: 1
   _NetIsEquipped:
     _value: 0
+--- !u!114 &8036534816850016380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3803839711681771849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
 --- !u!1 &4396835873817712534
 GameObject:
   m_ObjectHideFlags: 0
@@ -362,7 +398,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4153173015106888, guid: e3109ccf9db0f54408d5c02b496761c1, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4153173015106888, guid: e3109ccf9db0f54408d5c02b496761c1, type: 3}
       propertyPath: m_LocalRotation.w
@@ -396,40 +432,19 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 23951379687045248, guid: e3109ccf9db0f54408d5c02b496761c1, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 23951379687045248, guid: e3109ccf9db0f54408d5c02b496761c1, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f35f1ac5854f2374bb8ad61825ef189a, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1275266641364890, guid: e3109ccf9db0f54408d5c02b496761c1, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 77255513423625475}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e3109ccf9db0f54408d5c02b496761c1, type: 3}
---- !u!1 &5915294768250213154 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1275266641364890, guid: e3109ccf9db0f54408d5c02b496761c1, type: 3}
-  m_PrefabInstance: {fileID: 5914315486197241016}
-  m_PrefabAsset: {fileID: 0}
---- !u!65 &77255513423625475
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5915294768250213154}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.23761034, y: 1.0101799, z: 0.23400052}
-  m_Center: {x: -0.0011013336, y: 0.49125093, z: 0}
 --- !u!4 &5916920466301338096 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4153173015106888, guid: e3109ccf9db0f54408d5c02b496761c1, type: 3}
