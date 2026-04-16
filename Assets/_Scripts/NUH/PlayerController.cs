@@ -533,6 +533,22 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
     #endregion
 
+    #region 소리 이벤트 RPC
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_EmitNatural(float voicedB, Vector3 sourcePosition, Zone sourceZone)
+    {
+        float penalty = SoundEmitter.CalculateObstaclePenalty(sourcePosition, sourceZone);
+        SoundEmitter.EmitToEventBus(SoundChannel.Natural, voicedB, sourcePosition, penalty, sourceZone);
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_EmitWalkie(float voicedB, Vector3 sourcePosition, Zone receiverZone)
+    {
+        SoundEmitter.EmitToEventBus(SoundChannel.Walkie, voicedB, sourcePosition, 0f, receiverZone);
+    }
+
+    #endregion
     public bool ServerTryPickupRightHand(ItemObject item)
     {
         if (!HasStateAuthority || item == null)

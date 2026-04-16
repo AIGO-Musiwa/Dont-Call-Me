@@ -26,21 +26,18 @@ public class MicrophonedBMeasurer : MonoBehaviour
 
     #region Unity LifeCycle
 
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(this);
-            return;
-        }
-        Instance = this;
-    }
-
     private void Start()
     {
         localPc = GetComponent<PlayerController>();
 
-        if (localPc == null) Debug.LogError("[MicrophonedBMeasurer] PlayerController를 찾을 수 없습니다.");
+        if (localPc == null)
+        {
+            Debug.LogError("[MicrophonedBMeasurer] PlayerController를 찾을 수 없습니다.");
+            return;
+        }
+
+        // 로컬 플레이어만 Instance 등록
+        Instance = this;
     }
 
     private void OnDestroy()
@@ -81,7 +78,7 @@ public class MicrophonedBMeasurer : MonoBehaviour
     private void Measure()
     {
         float rms = recorder.LevelMeter?.CurrentAvgAmp ?? 0f;
-        
+
         if (rms < silenceThreshold)
         {
             CurrentNaturaldB = 0f;
@@ -89,7 +86,10 @@ public class MicrophonedBMeasurer : MonoBehaviour
             CurrentRawdBFS = -96f;
 
             if (isPTTActive)
-                SoundEmitter.EmitWalkie(30f, GetReceiverWalkiePosition());
+            {
+                Zone receiverZone = (localPc.NetZone == Zone.ZoneA) ? Zone.ZoneB : Zone.ZoneA;
+                SoundEmitter.EmitWalkie(30f, GetReceiverWalkiePosition(), receiverZone, localPc);
+            }
 
             return;
         }
@@ -102,7 +102,7 @@ public class MicrophonedBMeasurer : MonoBehaviour
         CurrentNaturaldB = naturaldB;
 
         if (naturaldB > 0f)
-            SoundEmitter.EmitNatural(naturaldB, transform.position, localPc.NetZone);
+            SoundEmitter.EmitNatural(naturaldB, transform.position, localPc.NetZone, localPc);
 
         // 무전음
         if (!isPTTActive) return;
@@ -111,7 +111,10 @@ public class MicrophonedBMeasurer : MonoBehaviour
         CurrentWalkiedB = walkiedB;
 
         if (walkiedB > 0f)
-            SoundEmitter.EmitWalkie(walkiedB, GetReceiverWalkiePosition());
+        {
+            Zone receiverZone = (localPc.NetZone == Zone.ZoneA) ? Zone.ZoneB : Zone.ZoneA;
+            SoundEmitter.EmitWalkie(walkiedB, GetReceiverWalkiePosition(), receiverZone, localPc);
+        }
     }
 
     private Vector3 GetReceiverWalkiePosition()
@@ -137,18 +140,18 @@ public class MicrophonedBMeasurer : MonoBehaviour
 
     private static float dBFSToNaturaldB(float dBfs)
     {
-        if (dBfs <= -45f) return 30f;       // 속삭임
-        if (dBfs <= -30f) return 38f;       // 일반 대화
-        if (dBfs <= -20f) return 41f;       // 큰 목소리
-        return 43f;                         // 고함
+        if (dBfs <= -45f) return 80f;       // 속삭임
+        if (dBfs <= -30f) return 80f;       // 일반 대화
+        if (dBfs <= -20f) return 80f;       // 큰 목소리
+        return 80f;                         // 고함
     }
 
     private static float dBFSToWalkiedB(float dBfs)
     {
-        if (dBfs <= -45f) return 36f;
-        if (dBfs <= -30f) return 44f;
-        if (dBfs <= -20f) return 47f;
-        return 49f;
+        if (dBfs <= -45f) return 80f;
+        if (dBfs <= -30f) return 80f;
+        if (dBfs <= -20f) return 80f;
+        return 80f;
     }
 
     #endregion
