@@ -6,10 +6,6 @@ public class WalkieTalkieManager : NetworkBehaviour
 {
     public static WalkieTalkieManager Instance { get; private set; }
 
-    [Header("무전 설정")]
-    [Tooltip("팀원 목소리가 무전기에 들어갈는 거리(m)")]
-    [SerializeField] private float walkiePickupRange = 3f;
-
     // ──── 네트워크 변수 ───────────────────────────
     [Networked, OnChangedRender(nameof(OnActiveSenderChanged))]
     private PlayerRef ActiveSender { get; set; }        // 송신권을 가진 플레이어
@@ -20,23 +16,7 @@ public class WalkieTalkieManager : NetworkBehaviour
     private readonly List<WalkieTalkieItem> allWalkies = new();
     private readonly List<PlayerController> cachedPlayers = new();
 
-    public void RegisterWalkieTalkie(WalkieTalkieItem walkie)
-    {
-        if (!allWalkies.Contains(walkie))
-        {
-            allWalkies.Add(walkie);
-        }
-    }
-
-    // 플레이어 등록
-    public void RegisterPlayer(PlayerController pc)
-    {
-        if (!cachedPlayers.Contains(pc))
-        {
-            cachedPlayers.Add(pc);
-        }
-    }
-
+    private PlayerRef _lastActiveSender;
 
     // ──── 초기화 ──────────────────────────────────
     private void Awake()
@@ -57,6 +37,26 @@ public class WalkieTalkieManager : NetworkBehaviour
         PendingSender = PlayerRef.None;
         ActiveSenderZone = Zone.ZoneA;
     }
+
+    public void RegisterWalkieTalkie(WalkieTalkieItem walkie)
+    {
+        if (!allWalkies.Contains(walkie))
+        {
+            allWalkies.Add(walkie);
+        }
+    }
+
+    // 플레이어 등록
+    public void RegisterPlayer(PlayerController pc)
+    {
+        if (!cachedPlayers.Contains(pc))
+        {
+            cachedPlayers.Add(pc);
+        }
+    }
+
+    // ActiveSender 외부 접근자
+    public PlayerRef GetActiveSender() => ActiveSender;
 
     public override void FixedUpdateNetwork()
     {
@@ -79,27 +79,22 @@ public class WalkieTalkieManager : NetworkBehaviour
                 // 수신자 구역 팀원 - 수신 무전기와의 거리 체크
                 if (receiverWalkie == null) continue;
                 float sqrDist = (pc.transform.position - receiverWalkie.transform.position).sqrMagnitude;
-                bool isNear = sqrDist <= walkiePickupRange * walkiePickupRange;
+                bool isNear = sqrDist <= Constants.WALKIE_RANGE * Constants.WALKIE_RANGE;
 
                 if (pc.NetIsNearReceiver != isNear)
-                {
                     pc.NetIsNearReceiver = isNear;
-                }
             }
             else
             {
                 // 송신자 구역 팀원 - 송신 무전기와의 거리 체크
                 if (senderWalkie == null) continue;
                 float sqrDist = (pc.transform.position - senderWalkie.transform.position).sqrMagnitude;
-                bool isNear = sqrDist <= walkiePickupRange * walkiePickupRange;
+                bool isNear = sqrDist <= Constants.WALKIE_RANGE * Constants.WALKIE_RANGE;
 
                 if (pc.NetIsNearSender != isNear)
-                {
                     pc.NetIsNearSender = isNear;
-                }
             }
         }
-        
     }
 
     // ──── PTT 처리 ───────────────────────────────
@@ -160,12 +155,14 @@ public class WalkieTalkieManager : NetworkBehaviour
                     {
                         ActiveSenderZone = newSenderPc.NetZone;
                         WalkieTalkieItem newWalkie = GetWalkieTalkieByZone(ActiveSenderZone);
+
                         if (newWalkie != null)
                         {
                             newWalkie.ServerSetState(WalkieState.TX);
                         }
 
                         Zone newRecvZone = ActiveSenderZone == Zone.ZoneA ? Zone.ZoneB : Zone.ZoneA;
+
                         WalkieTalkieItem newRecvWalkie = GetWalkieTalkieByZone(newRecvZone);
                         if (newRecvWalkie != null)
                             newRecvWalkie.ServerSetState(WalkieState.RX);
@@ -205,11 +202,13 @@ public class WalkieTalkieManager : NetworkBehaviour
 
         if (ActiveSender != PlayerRef.None)
         {
+            _lastActiveSender = ActiveSender;
             HandlePTTStarted();
         }
         else
         {
             HandlePTTEnded();
+            _lastActiveSender = ActiveSender;
         }
     }
 
@@ -218,14 +217,21 @@ public class WalkieTalkieManager : NetworkBehaviour
         if (!Runner.TryGetPlayerObject(Runner.LocalPlayer, out var localObj)) return;
         PlayerController localPc = localObj.GetComponent<PlayerData>()?.GetPlayerController();
 
+        if (localPc == null) return;
+
         if (ActiveSender == Runner.LocalPlayer)
         {
             VoiceManager.Instance?.SetPTT(true);
             MicrophonedBMeasurer.Instance?.SetPTTActive(true);
         }
+        else if (localPc.NetZone == ActiveSenderZone)
+        {
+            // 송신자 구역 팀원 - Recorder 전환 여부 결정
+            VoiceManager.Instance?.SetTeammateSenderGroup(localPc.NetIsNearSender);
+        }
         else
         {
-            // 수신자 구역 무전기 소지자
+            // 수신자 구역 무전기 소지자만 GROUP_WALKIE 구독 추가
             if (localPc.GetHeldWalkieTalkie() != null)
             {
                 VoiceManager.Instance.SetRemotePTT(true, ActiveSenderZone);
@@ -238,18 +244,22 @@ public class WalkieTalkieManager : NetworkBehaviour
         if (!Runner.TryGetPlayerObject(Runner.LocalPlayer, out var localObj)) return;
         PlayerController localPc = localObj.GetComponent<PlayerData>()?.GetPlayerController();
 
+        if (localPc == null) return;
 
-        if (ActiveSenderZone == localPc.NetZone)
+
+        if (_lastActiveSender == Runner.LocalPlayer)
         {
-            if (localPc.GetHeldWalkieTalkie() != null)
-            {
-                VoiceManager.Instance?.SetPTT(false);
-                MicrophonedBMeasurer.Instance.SetPTTActive(false);
-            }
+            VoiceManager.Instance?.SetPTT(false);
+            MicrophonedBMeasurer.Instance.SetPTTActive(false);
+        }
+        else if (localPc.NetZone == ActiveSenderZone)
+        {
+            // 송신자 구역 팀원 - GROUP_WALKIE 구독 해제 + Recorder 복귀
+            VoiceManager.Instance?.ResetSenderZoneTeammate();
         }
         else
         {
-            // 수신자 구역 무전기 소지자
+            // 수신자 구역 무전기 소지자 구독 해제
             if (localPc.GetHeldWalkieTalkie() != null)
             {
                 VoiceManager.Instance.SetRemotePTT(false, ActiveSenderZone);
