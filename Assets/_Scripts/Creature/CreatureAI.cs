@@ -23,7 +23,8 @@ public class CreatureAI : NetworkBehaviour
     [HideInInspector] public float alertMoveSpeed;
     [HideInInspector] public float searchSpeed;
     [HideInInspector] public float chaseSpeed;
-
+    
+    
     [Header("상태 전환 타이머 설정")]
     public float searchDuration = 10.0f;
     public float lockOnBreakTime = 3.0f;
@@ -45,6 +46,7 @@ public class CreatureAI : NetworkBehaviour
     private CreatureMotor motor;
     private CreatureSensor sensor;
     private CreatureWalkieTracker walkieTracker;
+    private NavMeshAgent agent;
 
     private Vector3 targetLocation;
     private float stateTimer = 0f;
@@ -67,6 +69,7 @@ public class CreatureAI : NetworkBehaviour
         motor = GetComponent<CreatureMotor>();
         sensor = GetComponent<CreatureSensor>();
         walkieTracker = GetComponent<CreatureWalkieTracker>();
+        agent = GetComponent<NavMeshAgent>();
 
         //모터 웨이포인트 초기화
         motor.Initialize();
@@ -154,7 +157,7 @@ public class CreatureAI : NetworkBehaviour
         //수색 전체 제한 시간이 지났으면 강제 종료 후 순찰로 복귀
         if (CheckAndHanledSearchTimeout()) return;
 
-        //플레이어를 발견했ㅇ거나 포획 조건을 만족했다면 리턴
+        //플레이어를 발견했거나 포획 조건을 만족했다면 리턴
         if (DetectAndHandlePlayer()) return;
 
         //추격 중 시야 상실 여부 관리
@@ -199,10 +202,14 @@ public class CreatureAI : NetworkBehaviour
             {
                 if (ShouldUpdateTarget(perceivedDb, soundEvent.channel, distance))
                 {
+                    //같은 자리에서 들리는 마이크/발소리 스팸으로 인한 타이머 초기화 방지
+                    if (Vector3.Distance(targetLocation, soundEvent.sourcePosition) > 2.0f) stateTimer = 0f;
+
                     targetLocation = soundEvent.sourcePosition;
                     currentTrackedDb = perceivedDb;
                     currentTrackedChannel = soundEvent.channel;
                     motor.MoveToDestination(targetLocation);
+                    stateTimer = 0f;
                 }
             }
 
@@ -239,6 +246,7 @@ public class CreatureAI : NetworkBehaviour
                 currentTrackedChannel = soundEvent.channel;
                 motor.MoveToDestination(targetLocation);
                 walkieTracker.ResetCost();
+                stateTimer = 0f;
                 Debug.Log("소리로 chaser로 변경");
             }
 
@@ -247,6 +255,9 @@ public class CreatureAI : NetworkBehaviour
             {                
                 if (ShouldUpdateTarget(perceivedDb, soundEvent.channel, distance))
                 {
+                    //같은 자리에서 들리는 마이크/발소리 스팸으로 인한 타이머 초기화 방지
+                    if (Vector3.Distance(targetLocation, soundEvent.sourcePosition) > 2.0f) stateTimer = 0f;
+
                     targetLocation = soundEvent.sourcePosition;
                     currentTrackedDb = perceivedDb;
                     currentTrackedChannel = soundEvent.channel;
@@ -316,6 +327,7 @@ public class CreatureAI : NetworkBehaviour
             //이동 속도를 경계 속도로 올리고, 타겟 위치를 무전기 위치로 설정하여 출발
             motor.SetSpeed(alertMoveSpeed);
             targetLocation = walkieLocation;
+            motor.MoveToDestination(targetLocation);
 
             //무전 코스트 누적으로 인한 이동이므로, 이후 소리 비교를 위해 최소 Alert 수준 dB 세팅
             currentTrackedDb = sensor.alertThresholdDB;
@@ -366,6 +378,22 @@ public class CreatureAI : NetworkBehaviour
                 {
                     ExecuteCapture(p);
                     return true;
+                }
+
+                //내가 지금 촞고 있는 타겟이라면, 강제 포획
+                if (currentState == CreatureState.Chaser && playerTarget == p.transform)
+                {
+                    Vector3 flatCreaturePos = new Vector3(transform.position.x, 0, transform.position.z);
+                    Vector3 flatTargetPos = new Vector3(p.transform.position.x, 0, p.transform.position.z);
+                    float dist = Vector3.Distance(flatCreaturePos, flatTargetPos);
+                    float yDiff = Mathf.Abs(transform.position.y - p.transform.position.y);
+
+                    //포획 가능 거리를 늘려 캐비닛 앞에서 비비는 즉시 포획 모션 발동
+                    if (dist <= 2.5f && yDiff <= 2.0f)
+                    {
+                        ExecuteCapture(p);
+                        return true;
+                    }
                 }
 
                 //시야 밖에서 안전하게 숨은 경우 시야 검사 무시
@@ -481,9 +509,14 @@ public class CreatureAI : NetworkBehaviour
     {
         //NavMesh의 경로 계산 딜레이로 인한 즉시 도착 판정 버그 방지
         stateTimer += Runner.DeltaTime;
-        
-        //대기 시간 이후 목적지 도달 여부 확인
-        if (stateTimer > 0.2f && motor.HasReachedDestination())
+
+        //눈에 보이지 않는 소리를 쫓아가다가 막혔을 때나 NavMesh가 끊겨 있을 때
+        bool reachedNormally = motor.HasReachedDestination(1.0f);
+        bool isPathBroken = (agent.pathStatus == NavMeshPathStatus.PathPartial || agent.pathStatus == NavMeshPathStatus.PathInvalid);
+        bool isStuck = agent.velocity.sqrMagnitude < 0.1f;
+
+        //0.2초 이상 지났을 때: 정상 도착했거나 길이 끊긴 곳에서 멈춰 섰거나 1초 이상 지났을 때
+        if (stateTimer > 0.2f && (reachedNormally || (isStuck && (isPathBroken || stateTimer > 1.0f))))
         {
             //최초 소리 근원지에 도착했다면 제자리에서 주변 수색 시작
             if (currentSearchPhase == SearchPhase.None)
@@ -563,10 +596,52 @@ public class CreatureAI : NetworkBehaviour
     {
         //모터를 통해 타겟 위치로 이동
         motor.MoveToDestination(targetLocation);
+
+        //소리를 쫓아온 경우 목적지에 도착하면 수색 상태로 전환
+        if (playerTarget == null)
+        {
+            stateTimer += Runner.DeltaTime;
+
+            //눈에 보이지 않는 소리를 쫓아가다가 막혔을 때나 NavMesh가 끊겨 있을 때
+            bool reachedNormally = motor.HasReachedDestination(1.0f);
+            bool isPathBroken = (agent.pathStatus == NavMeshPathStatus.PathPartial || agent.pathStatus == NavMeshPathStatus.PathInvalid);
+            bool isStuck = agent.velocity.sqrMagnitude < 0.1f;
+
+            //0.2초 이상 지났을 때: 정상 도착했거나 길이 끊긴 곳에서 멈춰 섰거나 1초 이상 지났을 때
+            if (stateTimer > 0.2f && (reachedNormally || (isStuck && (isPathBroken || stateTimer > 1.0f))))
+            {
+                currentState = CreatureState.Search;
+
+                //주변 수색 상태로 변경
+                currentSearchPhase = SearchPhase.InitialLookAround;
+                overallSearchTimer = 0f;
+                searchCenter = transform.position;
+                stateTimer = 0f;
+                currentTrackedDb = 0f;
+
+                motor.StopMoving();
+                Debug.Log("[CreatureAI] 문(NavMesh Obstacle)에 막혀 더 이상 접근 불가 -> 즉시 수색(Search)으로 전환");
+            }
+        }
     }
 
     private void ExecuteCapture(PlayerController target)
-    {
+    {       
+        if (target.NetHideState != HideState.None)
+        {
+            //플레이어가 숨어있는 곳의 네트워크ID를 이용해 Photon 내부 딕셔너리에서 찾음
+            if (Runner.TryFindObject(target.NetCurrentHideSpotId, out NetworkObject hideSpotObj))
+            {
+                //네트워크 오브젝트로 되어 있는 HideSpot 상호작용 스크립트를 찾음
+                HideSpotInteractable spot = hideSpotObj.GetComponentInChildren<HideSpotInteractable>();
+
+                if (spot != null)
+                {
+                    spot.ServerTryExit(target);
+                }
+            }
+        }
+
         //플레이어 컨트롤러의 포획 함수 호출
         target.ServerEnterCaptured(playerRespawnPoint.position, playerRespawnPoint.rotation);
 
@@ -618,7 +693,7 @@ public class CreatureAI : NetworkBehaviour
             //상태 복구 및 타겟 초기화
             currentState = CreatureState.Patrol;
             playerTarget = null;
-
+            
             //조명 관리자에게 암전 해제 명령 전달
             ZoneLightingManager myZoneLightManager = ZoneLightingManager.GetManager(myZone);
             if (myZoneLightManager != null) myZoneLightManager.SetCaptureDarkout(false);

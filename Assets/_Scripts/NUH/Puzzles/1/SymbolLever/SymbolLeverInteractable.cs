@@ -27,6 +27,9 @@ public class SymbolLeverInteractable : MonoBehaviour, IInteractable
         if (actor.NetPlayerState != PlayerState.Normal)
             return false;
 
+        if (ownerPuzzle.IsLeverAlreadyPulled(InteractableId))
+            return false;
+
         if (ownerPuzzle.IsSolved)
             return false;
 
@@ -42,7 +45,7 @@ public class SymbolLeverInteractable : MonoBehaviour, IInteractable
         if (actor.NetRightHandItem != null)
             actor.ServerDropRightHandItem();
 
-        ownerPuzzle.ToggleLever(interactableId);
+        ownerPuzzle.OnLeverPulled(interactableId);
     }
 
     public string GetPromptText(PlayerController actor)
