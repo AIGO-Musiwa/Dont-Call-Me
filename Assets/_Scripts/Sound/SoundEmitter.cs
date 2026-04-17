@@ -35,17 +35,6 @@ public static class SoundEmitter
             pc.RPC_EmitNatural(voicedB, sourcePosition, sourceZone);  
     }
 
-    // 무전음 채널 발행
-    public static void EmitWalkie(float voicedB, Vector3 sourcePosition, Zone receiverZone, PlayerController pc)
-    {
-        if (pc == null) return;
-
-        if (pc.HasStateAuthority)
-            EmitToEventBus(SoundChannel.Walkie, voicedB, sourcePosition, 0f, receiverZone);
-        else
-            pc.RPC_EmitWalkie(voicedB, sourcePosition, receiverZone);
-    }
-
     // ── 편의성을 위한 소리 이벤트 발행 ─────────────────────────
 
     // 발소리 dB 이벤트 발행

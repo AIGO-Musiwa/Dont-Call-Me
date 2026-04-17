@@ -128,4 +128,16 @@ public class WalkieTalkieItem : ItemObject
     {
         WalkieTalkieManager.Instance?.HandlePTTRequest(Object.InputAuthority, isPressed, this);
     }
+
+    // 무전음 dB 발행 요청
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_EmitWalkieSound(float voicedB)
+    {
+        // 수신 구역 무전기 위치로 발행
+        Zone receiverZone = (NetZone == Zone.ZoneA) ? Zone.ZoneB : Zone.ZoneA;
+        WalkieTalkieItem receiverWalkie = WalkieTalkieManager.Instance?.GetWalkieTalkieByZone(receiverZone);
+        if (receiverWalkie == null) return;
+
+        SoundEmitter.EmitToEventBus(SoundChannel.Walkie, voicedB, receiverWalkie.transform.position, 0f, receiverZone);
+    }
 }

@@ -36,6 +36,8 @@ public class MicrophonedBMeasurer : MonoBehaviour
             return;
         }
 
+        if (!localPc.HasInputAuthority) return;
+
         // 로컬 플레이어만 Instance 등록
         Instance = this;
     }
@@ -86,10 +88,7 @@ public class MicrophonedBMeasurer : MonoBehaviour
             CurrentRawdBFS = -96f;
 
             if (isPTTActive)
-            {
-                Zone receiverZone = (localPc.NetZone == Zone.ZoneA) ? Zone.ZoneB : Zone.ZoneA;
-                SoundEmitter.EmitWalkie(30f, GetReceiverWalkiePosition(), receiverZone, localPc);
-            }
+                EmitWalkieSoundFromZoneWalkie(30f);
 
             return;
         }
@@ -111,20 +110,18 @@ public class MicrophonedBMeasurer : MonoBehaviour
         CurrentWalkiedB = walkiedB;
 
         if (walkiedB > 0f)
-        {
-            Zone receiverZone = (localPc.NetZone == Zone.ZoneA) ? Zone.ZoneB : Zone.ZoneA;
-            SoundEmitter.EmitWalkie(walkiedB, GetReceiverWalkiePosition(), receiverZone, localPc);
-        }
+            EmitWalkieSoundFromZoneWalkie(walkiedB);
     }
 
-    private Vector3 GetReceiverWalkiePosition()
+    // 송신 구역 무전기에서 수신 구역 무전기 위치로 소리 이벤트 발행
+    private void EmitWalkieSoundFromZoneWalkie(float voicedB)
     {
-        if (WalkieTalkieManager.Instance == null) return transform.position;
+        if (WalkieTalkieManager.Instance == null) return;
 
-        Zone receiverZone = (localPc.NetZone == Zone.ZoneA) ? Zone.ZoneB : Zone.ZoneA;
-        WalkieTalkieItem receiverWalkie = WalkieTalkieManager.Instance.GetWalkieTalkieByZone(receiverZone);
+        WalkieTalkieItem senderWalkie = WalkieTalkieManager.Instance.GetWalkieTalkieByZone(localPc.NetZone);
+        if (senderWalkie == null) return;
 
-        return receiverWalkie != null ? receiverWalkie.transform.position : transform.position;
+        senderWalkie.RPC_EmitWalkieSound(voicedB);
     }
    
 
@@ -140,18 +137,18 @@ public class MicrophonedBMeasurer : MonoBehaviour
 
     private static float dBFSToNaturaldB(float dBfs)
     {
-        if (dBfs <= -45f) return 80f;       // 속삭임
-        if (dBfs <= -30f) return 80f;       // 일반 대화
-        if (dBfs <= -20f) return 80f;       // 큰 목소리
-        return 80f;                         // 고함
+        if (dBfs <= -45f) return 30f;       // 속삭임
+        if (dBfs <= -30f) return 38f;       // 일반 대화
+        if (dBfs <= -20f) return 41f;       // 큰 목소리
+        return 43f;                         // 고함
     }
 
     private static float dBFSToWalkiedB(float dBfs)
     {
-        if (dBfs <= -45f) return 80f;
-        if (dBfs <= -30f) return 80f;
-        if (dBfs <= -20f) return 80f;
-        return 80f;
+        if (dBfs <= -45f) return 36f;
+        if (dBfs <= -30f) return 44f;
+        if (dBfs <= -20f) return 47f;
+        return 49f;
     }
 
     #endregion
