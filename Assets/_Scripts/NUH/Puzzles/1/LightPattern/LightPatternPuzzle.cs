@@ -6,8 +6,8 @@ using UnityEngine;
 /// 1단계 점등 패턴 복사 퍼즐 본체
 /// - 시드 기반으로 길이 9 패턴 생성
 /// - 버튼 입력 시 즉시 현재 단계 판정
-/// - 오답이면 즉시 실패 후 전체 패널 3회 깜빡임
-/// - 9개를 모두 맞추면 즉시 성공
+/// - 오답이면 즉시 실패 후 전체 패널 3회 빨간 깜빡임
+/// - 9개를 모두 맞추면 전체 패널이 초록색으로 계속 켜진다
 /// </summary>
 public class LightPatternPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 {
@@ -19,8 +19,8 @@ public class LightPatternPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     [SerializeField] private List<LightPatternPanelView> panelViews = new(); // 패널 뷰 9개
 
     [Header("실패 깜빡임")]
-    [SerializeField] private float failFlashOnTime = 0.15f; // 실패 시 각 깜빡임 켜짐 시간
-    [SerializeField] private int failFlashCount = 3;        // 전체 깜빡임 횟수
+    [SerializeField] private float failFlashOnTime = 0.2f; // 실패 시 각 깜빡임 켜짐 시간
+    [SerializeField] private int failFlashCount = 3;       // 전체 깜빡임 횟수
 
     [Header("입력 잠금")]
     [SerializeField] private bool lockInputDuringFailEffect = true; // 실패 연출 중 입력 잠금 여부
@@ -84,11 +84,11 @@ public class LightPatternPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
         int expectedPanelIndex = _answerSequence[_currentStep];
 
-        // 입력됐다는 피드백은 먼저 재생
+        // 입력됐다는 피드백은 항상 먼저 노란색으로 표시
         if (interactableId < panelViews.Count && panelViews[interactableId] != null)
             panelViews[interactableId].PlayInputFlash();
 
-        // 틀리면 즉시 실패 처리
+        // 틀리면 즉시 실패
         if (interactableId != expectedPanelIndex)
         {
             Log($"오답 입력 | step = {_currentStep} | input = {interactableId} | expected = {expectedPanelIndex}");
@@ -98,19 +98,19 @@ public class LightPatternPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         }
 
         _currentStep++;
-
         Log($"정답 입력 | currentStep = {_currentStep}/{patternLength}");
 
+        // 끝까지 맞추면 초록색으로 전부 켜두고 성공
         if (_currentStep >= patternLength)
         {
             MarkSolved();
-            TurnOffAllPanelsImmediate();
+            SetSolvedAllPanels();
             Log("점등 패턴 퍼즐 성공");
         }
     }
 
     /// <summary>
-    /// 실패 시 전체 패널을 여러 번 깜빡이고 초기화
+    /// 실패 시 전체 패널을 빨간색으로 여러 번 깜빡이고 초기화
     /// </summary>
     private IEnumerator CoHandleFail()
     {
@@ -138,7 +138,7 @@ public class LightPatternPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     }
 
     /// <summary>
-    /// 모든 패널 라이트를 즉시 끈다.
+    /// 모든 패널을 즉시 끈다.
     /// </summary>
     private void TurnOffAllPanelsImmediate()
     {
@@ -148,6 +148,20 @@ public class LightPatternPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
                 continue;
 
             panelViews[i].TurnOffImmediate();
+        }
+    }
+
+    /// <summary>
+    /// 모든 패널을 성공 상태(초록색 점등 유지)로 전환한다.
+    /// </summary>
+    private void SetSolvedAllPanels()
+    {
+        for (int i = 0; i < panelViews.Count; i++)
+        {
+            if (panelViews[i] == null)
+                continue;
+
+            panelViews[i].SetSolvedOn();
         }
     }
 

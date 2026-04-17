@@ -10,17 +10,20 @@ public class LightPatternPanelView : MonoBehaviour
     [Header("참조")]
     [SerializeField] private Light panelLight; // 패널에 달린 라이트
 
-    [Header("입력 깜빡임 시간")]
-    [SerializeField] private float inputFlashOnTime = 0.2f; // 정답/입력 피드백 켜짐 시간
+    [Header("색상")]
+    [SerializeField] private Color inputColor = Color.yellow;       // 입력 시 
+    [SerializeField] private Color failColor = Color.red;           // 틀렸을 시
+    [SerializeField] private Color solvedColor = Color.green;       // 성공 시
 
-    [Header("실패 깜빡임 시간")]
+    [Header("시간")]
+    [SerializeField] private float inputFlashOnTime = 0.2f; // 정답/입력 피드백 켜짐 시간
     [SerializeField] private float failFlashOnTime = 0.2f;  // 실패 연출 시 켜짐 시간
 
     private Coroutine _flashRoutine; // 현재 실행 중인 점등 연출 코루틴
 
     private void Awake()
     {
-        SetLight(false); // 시작 시 꺼진 상태로 초기화
+        TurnOffImmediate();
     }
 
     /// <summary>
@@ -28,10 +31,7 @@ public class LightPatternPanelView : MonoBehaviour
     /// </summary>
     public void PlayInputFlash()
     {
-        if (_flashRoutine != null)
-            StopCoroutine(_flashRoutine);
-
-        _flashRoutine = StartCoroutine(CoFlash(inputFlashOnTime));
+        PlayFlash(inputColor, inputFlashOnTime);
     }
 
     /// <summary>
@@ -39,10 +39,21 @@ public class LightPatternPanelView : MonoBehaviour
     /// </summary>
     public void PlayFailFlash()
     {
-        if (_flashRoutine != null)
-            StopCoroutine(_flashRoutine);
+        PlayFlash(failColor, failFlashOnTime);
+    }
 
-        _flashRoutine = StartCoroutine(CoFlash(failFlashOnTime));
+    /// <summary>
+    /// 성공 시 초록색으로 계속 켜두기
+    /// </summary>
+    public void SetSolvedOn()
+    {
+        if(_flashRoutine != null)
+        {
+            StopCoroutine(_flashRoutine);
+            _flashRoutine = null;
+        }
+
+        SetLight(true, solvedColor);
     }
 
     /// <summary>
@@ -51,34 +62,47 @@ public class LightPatternPanelView : MonoBehaviour
     /// </summary>
     public void TurnOffImmediate()
     {
-        if (_flashRoutine != null)
+        if(_flashRoutine != null)
         {
             StopCoroutine(_flashRoutine);
             _flashRoutine = null;
         }
 
-        SetLight(false);
+        if (panelLight == null)
+            return;
+
+        panelLight.enabled = false;
     }
 
-    /// <summary>
-    /// 일정 시간 동안만 라이트를 켰다가 끄는 공용 코루틴
-    /// </summary>
-    private IEnumerator CoFlash(float onTime)
+
+    private void PlayFlash(Color color, float onTime)
     {
-        SetLight(true);
+        if (_flashRoutine != null)
+            StopCoroutine(_flashRoutine);
+
+        _flashRoutine = StartCoroutine(CoFlash(color, onTime));
+    }
+
+    private IEnumerator CoFlash(Color color, float onTime)
+    {
+        SetLight(true, color);
         yield return new WaitForSeconds(onTime);
-        SetLight(false);
+
+        if (panelLight != null)
+            panelLight.enabled = false;
+
         _flashRoutine = null;
     }
 
     /// <summary>
     /// 실제 라이트 켜짐/꺼짐 반영
     /// </summary>
-    private void SetLight(bool isOn)
+    private void SetLight(bool isOn, Color color)
     {
         if (panelLight == null)
             return;
 
+        panelLight.color = color;
         panelLight.enabled = isOn;
     }
 }

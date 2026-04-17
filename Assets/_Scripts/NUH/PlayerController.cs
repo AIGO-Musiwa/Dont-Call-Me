@@ -379,24 +379,14 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (interactableId < 0)
             return null;
 
-        MonoBehaviour[] behaviours = root.GetComponentsInChildren<MonoBehaviour>(true);
+        IChildPuzzleInteractable[] children = root.GetComponentsInChildren<IChildPuzzleInteractable>(true);
 
-        for(int i = 0; i < behaviours.Length; i++)
+        for (int i = 0; i < children.Length; i++)
         {
-            MonoBehaviour behaviour = behaviours[i];
-            if (behaviour == null)
+            if (children[i].InteractableId != interactableId)
                 continue;
 
-            if (behaviour is not IInteractable interactable)
-                continue;
-
-            if (behaviour is not IChildPuzzleInteractable childPuzzleInteractable)
-                continue;
-
-            if (childPuzzleInteractable.InteractableId != interactableId)
-                continue;
-
-            return interactable;
+            return children[i] as IInteractable;
         }
 
         return null;
