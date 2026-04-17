@@ -595,6 +595,7 @@ GameObject:
   - component: {fileID: 6282552373139793205}
   - component: {fileID: 437383167622082273}
   - component: {fileID: 2872852626719626429}
+  - component: {fileID: 3178201737714402981}
   m_Layer: 0
   m_Name: DialPuzzle
   m_TagString: Untagged
@@ -640,6 +641,7 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 593251355340301754}
   - {fileID: 437383167622082273}
+  - {fileID: 3178201737714402981}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &593251355340301754
 MonoBehaviour:
@@ -704,3 +706,20 @@ MonoBehaviour:
   dialVisual: {fileID: 3051795103186229832}
   stepAngle: 45
   startAngleZ: 0
+--- !u!114 &3178201737714402981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6531638146189321578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
