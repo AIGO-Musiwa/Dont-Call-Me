@@ -139,14 +139,12 @@ public class PlayerInteraction : MonoBehaviour
         MonoBehaviour[] behaviours = start.GetComponentsInParent<MonoBehaviour>(true);
         foreach (var behaviour in behaviours)
         {
-            if (behaviour is IInteractable found)
+            if(behaviour is IInteractable foundInteractable)
             {
-                interactable = found;
+                interactable = foundInteractable;
 
-                if (behaviour is SymbolLeverInteractable lever)
-                    interactableId = lever.InteractableId;
-                else if (behaviour is SymbolLeverConfirmInteractable confirm)
-                    interactableId = confirm.InteractableId;
+                if (behaviour is IChildPuzzleInteractable childPuzzleInteractable)
+                    interactableId = childPuzzleInteractable.InteractableId;
 
                 break;
             }
