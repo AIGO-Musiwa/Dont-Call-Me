@@ -8,6 +8,9 @@ using UnityEngine;
 /// - 이후 단계에서는 방향 반전, 0을 지나가야 하는 최소값 규칙 적용
 /// - 입력 방향/ 횟수를 즉시 판정
 /// - 6단계를 모두 맞추면 즉시 성공
+/// 
+/// 나중에 금고안에 버튼 넣고, 버튼을 눌러야 성공처리로 바꾸기.
+/// 버튼 여러개 하고 버튼마다 나오는 소리 다르게 해도 재밌을 듯
 /// </summary>
 public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 {
@@ -50,7 +53,6 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// <summary>
     /// 좌/우 버튼 입력 시 즉시 판정
     /// </summary>
-    /// <param name="inputDirection"></param>
     public void OnRotateInput(RotationDirection inputDirection)
     {
         if (!HasStateAuthority)
