@@ -155,6 +155,9 @@ public class PuzzleSpawnManager : NetworkBehaviour
                 ApplyAnswerSeedToSpawnedObject(spawnedHint, plan.AnswerSeed);
                 Log($"{GetHintZone(plan.Zone)} 힌트 교차 배치 : {plan.Definition.PuzzleId} -> {hintSlot.SlotId} | AnswerSeed={plan.AnswerSeed}");
             }
+
+            // 라이트는 문제 해결되면 전구가 꺼져있어야 하기때문에 연결시켜줄 필요가 있음
+            TryLinkLightPatternPair(spawnedPuzzle, spawnedHint);
         }
 
         puzzleProgressManager.InitializeRound(_spawnedStage1Puzzles, _spawnedStage2Screens);
@@ -226,6 +229,22 @@ public class PuzzleSpawnManager : NetworkBehaviour
 
         if (!collectStage1Progress && entry.Stage2ScreenRoot != null)
             _spawnedStage2Screens.Add(entry.Stage2ScreenRoot);
+    }
+
+    private void TryLinkLightPatternPair(NetworkObject spawnedPuzzle, NetworkObject spawnedHint)
+    {
+        if (spawnedPuzzle == null || spawnedHint == null)
+            return;
+
+        LightPatternPuzzle puzzle = spawnedPuzzle.GetComponent<LightPatternPuzzle>();
+        LightPatternHint hint = spawnedHint.GetComponent<LightPatternHint>();
+
+        if (puzzle == null || hint == null)
+            return;
+
+        hint.SetObservedPuzzle(puzzle);
+
+        Log($"LightPattern 퍼즐-힌트 연결 완료 | Puzzle = {spawnedPuzzle.name} | Hint = {spawnedHint.name}");
     }
 
     private ZonePuzzleSlotSet GetZoneSlotSet(Zone zone)

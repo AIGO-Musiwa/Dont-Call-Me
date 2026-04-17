@@ -379,18 +379,14 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (interactableId < 0)
             return null;
 
-        SymbolLeverInteractable[] levers = root.GetComponentsInChildren<SymbolLeverInteractable>(true);
-        for (int i = 0; i < levers.Length; i++)
-        {
-            if (levers[i] != null && levers[i].InteractableId == interactableId)
-                return levers[i];
-        }
+        IChildPuzzleInteractable[] children = root.GetComponentsInChildren<IChildPuzzleInteractable>(true);
 
-        SymbolLeverConfirmInteractable[] confirms = root.GetComponentsInChildren<SymbolLeverConfirmInteractable>(true);
-        for (int i = 0; i < confirms.Length; i++)
+        for (int i = 0; i < children.Length; i++)
         {
-            if (confirms[i] != null && confirms[i].InteractableId == interactableId)
-                return confirms[i];
+            if (children[i].InteractableId != interactableId)
+                continue;
+
+            return children[i] as IInteractable;
         }
 
         return null;
