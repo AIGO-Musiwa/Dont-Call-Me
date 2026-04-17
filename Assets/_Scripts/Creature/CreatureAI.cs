@@ -229,7 +229,7 @@ public class CreatureAI : NetworkBehaviour
                 currentTrackedChannel = soundEvent.channel;
                 motor.MoveToDestination(targetLocation);
                 walkieTracker.ResetCost();
-                Debug.Log("소리로 즉시 반응");
+                Debug.Log("소리로 즉시 반응: " + myZone );
             }
         }
 
