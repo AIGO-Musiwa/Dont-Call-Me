@@ -53520,7 +53520,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 542bb53300e49f1428e54749f5fa2893, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureTestSpawner
-  creaturePrefab_Bldg1: {fileID: 6065336768852671156, guid: 2d51866ad6b89aa4ead9236d05e881b4, type: 3}
+  creaturePrefab_Bldg1: {fileID: 6065336768852671156, guid: d324b400b3876d745b30725927f59854, type: 3}
   spawnPointBldg1: {fileID: 1143160339}
   bldg1_Waypoint1F: {fileID: 2010073847}
   bldg1_Waypoint2F: {fileID: 396050921}
@@ -53528,7 +53528,7 @@ MonoBehaviour:
   bldg1_CreatureRespawn1F: {fileID: 1093976368}
   bldg1_CreatureRespawn3F: {fileID: 1143160339}
   playerRespawn_Bldg1: {fileID: 875406339}
-  creaturePrefab_Bldg2: {fileID: 6065336768852671156, guid: 9b1173cdb887460428f5dc53322cb9af, type: 3}
+  creaturePrefab_Bldg2: {fileID: 6065336768852671156, guid: 8eb420b281279344bbf9178b696aa80c, type: 3}
   spawnPointBldg2: {fileID: 118777030}
   bldg2_Waypoint1F: {fileID: 358320450}
   bldg2_Waypoint2F: {fileID: 943246741}
@@ -68565,7 +68565,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.4
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: a0e94ab674b7c534ea9f0fc8f546909b, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: bdde0f0ac42dcad4fbba603eab753257, type: 2}
   m_BuildHeightMesh: 0
 --- !u!114 &552456496
 MonoBehaviour:
@@ -126718,7 +126718,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.4
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: deecb9a94d1c47c429b6393dfd995871, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: f47c4727a206a3747916b00efe4b6b9f, type: 2}
   m_BuildHeightMesh: 0
 --- !u!114 &1070809009
 MonoBehaviour:
@@ -141921,51 +141921,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3180198994713569532, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
   m_PrefabInstance: {fileID: 133000000}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1178088544
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1178088546}
-  - component: {fileID: 1178088545}
-  m_Layer: 0
-  m_Name: VoiceLogger (1)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1178088545
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1178088544}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a86f533fd9917dd4da8601e9eb542c96, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: PhotonVoice::Photon.Voice.Unity.VoiceLogger
-  LogLevel: 2
---- !u!4 &1178088546
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1178088544}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1178225533
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -244856,12 +244811,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 104d1804d2ade22429360fd285f526a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZoneDistributor
-  playerPrefab: {fileID: 3346838686624773243, guid: 862cd4bb9867c1544926378576b4f352, type: 3}
+  playerPrefab: {fileID: 3346838686624773243, guid: d902df6ed19726a408cdb3da23fc8ce6, type: 3}
   zoneASpawnPoint: {fileID: 875406339}
   zoneBSpawnPoint: {fileID: 641139814}
   roundSeedManager: {fileID: 934471919}
-  requiredPlayers: 1
-  distributeDelaySeconds: 1
+  requiredPlayers: 4
+  distributeDelaySeconds: 8
   enableDebugLog: 1
 --- !u!4 &2049478433
 Transform:
@@ -259834,7 +259789,6 @@ SceneRoots:
   - {fileID: 1699471962}
   - {fileID: 1343545832}
   - {fileID: 1715454923}
-  - {fileID: 1178088546}
   - {fileID: 904921950}
   - {fileID: 1495640180}
   - {fileID: 744852195}

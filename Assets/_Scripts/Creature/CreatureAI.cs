@@ -176,6 +176,9 @@ public class CreatureAI : NetworkBehaviour
         //10초 보호 기간 중에는 모든 소리 자극을 무시
         if (rescueProtectTimer > 0f) return;
 
+        // 소리 발생 구역이 다르면 무시
+        if (soundEvent.sourceZone != myZone) return;
+
         //크리처와 소리 발생원 간의 거리 계산
         float distance = Vector3.Distance(transform.position, soundEvent.sourcePosition);
 
@@ -226,7 +229,7 @@ public class CreatureAI : NetworkBehaviour
                 currentTrackedChannel = soundEvent.channel;
                 motor.MoveToDestination(targetLocation);
                 walkieTracker.ResetCost();
-                Debug.Log("소리로 즉시 반응");
+                Debug.Log("소리로 즉시 반응: " + myZone );
             }
         }
 
