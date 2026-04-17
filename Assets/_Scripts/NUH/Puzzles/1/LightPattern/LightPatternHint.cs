@@ -18,8 +18,8 @@ public class LightPatternHint : MonoBehaviour, IPuzzleSeedReceiver
     [SerializeField] private List<Light> hintLights = new(); // 힌트 라이트 9개
 
     [Header("개별 재생 시간")]
-    [SerializeField] private float hintOnTime = 0.35f;  // 개별 라이트 켜짐 시간
-    [SerializeField] private float hintOffTime = 0.15f; // 다음 패턴 전 짧은 간격
+    [SerializeField] private float hintOnTime = 0.8f;  // 개별 라이트 켜짐 시간
+    [SerializeField] private float hintOffTime = 0.2f; // 다음 패턴 전 짧은 간격
 
     [Header("루프 종료 후 전체 깜빡임")]
     [SerializeField] private float fullBlinkOnTime = 0.35f; // 전체 깜빡임 켜짐 시간
