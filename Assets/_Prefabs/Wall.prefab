@@ -46,7 +46,7 @@ GameObject:
   - component: {fileID: 760264287379519215}
   - component: {fileID: 4405066447744660049}
   - component: {fileID: 4549425103057804162}
-  - component: {fileID: 3609298833590845251}
+  - component: {fileID: 2343132991914798907}
   m_Layer: 3
   m_Name: Wall_DOWN
   m_TagString: Untagged
@@ -367,14 +367,14 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3146615367483677955}
   m_Mesh: {fileID: 0}
---- !u!64 &3609298833590845251
-MeshCollider:
+--- !u!65 &2343132991914798907
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3146615367483677955}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 642c88aa89f73a94a9bc91dfb81c7924, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -385,10 +385,9 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 0}
+  serializedVersion: 3
+  m_Size: {x: 2, y: 2.28, z: 2}
+  m_Center: {x: 1, y: 0, z: 18.5}
 --- !u!1 &7652575923321588629
 GameObject:
   m_ObjectHideFlags: 0
@@ -402,7 +401,7 @@ GameObject:
   - component: {fileID: 2454261090805683718}
   - component: {fileID: 1418876906443726447}
   - component: {fileID: 4326260949608562632}
-  - component: {fileID: 1603934900865073354}
+  - component: {fileID: 7680083953286464045}
   m_Layer: 3
   m_Name: Wall_UP
   m_TagString: Untagged
@@ -723,14 +722,14 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7652575923321588629}
   m_Mesh: {fileID: 0}
---- !u!64 &1603934900865073354
-MeshCollider:
+--- !u!65 &7680083953286464045
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7652575923321588629}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 642c88aa89f73a94a9bc91dfb81c7924, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -741,7 +740,6 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 0}
+  serializedVersion: 3
+  m_Size: {x: 2, y: 3.72, z: 2}
+  m_Center: {x: 1, y: 0, z: 18.5}

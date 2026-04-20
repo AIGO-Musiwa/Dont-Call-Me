@@ -53,6 +53,9 @@ public class CreatureAI : NetworkBehaviour
     private float losLostTimer = 0f;
     private bool isCapturing = false;
 
+    //포획 중인 플레이어와 그 위치를 기억하기 위한 변수
+    private PlayerController currentCapturedPlayer;    
+
     //수색 상태 전용 변수
     private SearchPhase currentSearchPhase = SearchPhase.None;
     private Vector3 searchCenter;    
@@ -648,6 +651,9 @@ public class CreatureAI : NetworkBehaviour
         //플레이어 컨트롤러의 포획 함수 호출
         target.ServerEnterCaptured(playerRespawnPoint.position, playerRespawnPoint.rotation);
 
+        //시선 고정을 위해 잡아둔 플레이어를 기억함
+        currentCapturedPlayer = target;
+
         //포획 상태로 전환 및 포획 중 플래그 활성화
         currentState = CreatureState.Capture;
         isCapturing = true;
@@ -665,6 +671,9 @@ public class CreatureAI : NetworkBehaviour
 
     private void UpdateCaptureState()
     {
+        //크리쳐가 플레이어를 바라봄
+        Transform lookTarget = currentCapturedPlayer != null ? currentCapturedPlayer.transform : playerTarget;
+
         //포획 대상 바라보기
         if (playerTarget != null)
         {
@@ -673,6 +682,9 @@ public class CreatureAI : NetworkBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), Runner.DeltaTime * 5f);
         }
 
+        //플레이어가 크리처를 바라보게 강제 회전
+        ForcePlayerLookAtCreature(currentCapturedPlayer);
+
         //포획 타이머 증가
         stateTimer += Runner.DeltaTime;
 
@@ -680,6 +692,7 @@ public class CreatureAI : NetworkBehaviour
         if (stateTimer >= 2.0f && isCapturing)
         {
             isCapturing = false;
+            currentCapturedPlayer = null;
 
             //모터를 통해 현재 층수 확인
             int currentFloor = motor.GetCurrentFloor();
@@ -701,6 +714,31 @@ public class CreatureAI : NetworkBehaviour
             ZoneLightingManager myZoneLightManager = ZoneLightingManager.GetManager(myZone);
             if (myZoneLightManager != null) myZoneLightManager.SetCaptureDarkout(false);
         }
+    }
+
+    //잡힌 플레이어가 크리처를 강제로 바라봄
+    private void ForcePlayerLookAtCreature(PlayerController targetPlayer)
+    {
+        if (currentCapturedPlayer == null) return;
+
+        //마우스 화면 돌리기 잠금
+        targetPlayer.SetInputLock(true, true);
+
+        //크리처를 바라보는 수평 방향 계산
+        Vector3 directionToCreature = (transform.position - targetPlayer.transform.position).normalized;        
+        
+        //수평만 바라보고 상하 회전 방지
+        directionToCreature.y = 0f;
+
+        Quaternion targetRotation = Quaternion.LookRotation(directionToCreature);
+
+        //강제 회전
+        if (targetPlayer.KCCMotor != null) targetPlayer.KCCMotor.WarpToPose(targetPlayer.transform.position, targetRotation);
+        
+        //KCC가 없을 경우
+        else targetPlayer.transform.rotation = targetRotation;        
+
+        Debug.Log("강제 돌리기");
     }
 
     //구출 구역 성공 시 호출

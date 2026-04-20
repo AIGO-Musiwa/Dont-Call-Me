@@ -131,12 +131,12 @@ MonoBehaviour:
     AntiJitterDistance: {x: 0.025, y: 0.01}
     CompressNetworkPosition: 0
     ForcePredictedLookRotation: 0
-    StepHeight: 0.5
+    StepHeight: 0
     StepDepth: 0.2
     StepSpeed: 1
     StepMinPushBack: 0.5
     StepGroundCheckRadiusScale: 0.5
-    StepRequireGroundTarget: 0
+    StepRequireGroundTarget: 1
     SnapDistance: 0.25
     SnapSpeed: 4
 --- !u!114 &240582007588533922
@@ -160,7 +160,7 @@ MonoBehaviour:
   leftHandDropSideOffset: -0.25
   leftHandDropUpOffset: 0.45
   leftHandDropImpulse: 2
-  captureTransitionSeconds: 1
+  captureTransitionSeconds: 2
   traumaPenaltyCapture1: 10
   traumaPenaltyCapture2: 20
   traumaPenaltyCapture3Plus: 30
