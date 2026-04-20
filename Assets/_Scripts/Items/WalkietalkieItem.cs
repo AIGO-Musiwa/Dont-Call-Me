@@ -56,6 +56,7 @@ public class WalkieTalkieItem : ItemObject
 
     private void Update()
     {
+        if (Object == null || !Object.IsValid) return;
         UpdateWalkieVoiceVolume();
     }
 
