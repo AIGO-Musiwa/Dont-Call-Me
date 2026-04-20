@@ -221,8 +221,14 @@ public class ItemObject : NetworkBehaviour, IInteractable
 
         if (_rigidbody != null)
         {
-            if (_rigidbody.isKinematic != equipped)
-                _rigidbody.isKinematic = equipped;
+            // 물리 엔진 가동 권한 통제
+            // 1. 장착 중(equipped)일 때는 내 손을 따라가야 하니 모두가 물리 연산 정지(true).
+            // 2. 떨어졌을 때(!equipped), 물리 연산(false)은 오직 '호스트(StateAuthority)'만 가동한다.
+            // 3. 클라이언트(프록시)들은 물리를 켜지 않고 호스트가 보내는 좌표만 수신한다.
+            bool shouldBeKinematic = equipped || !HasStateAuthority;
+
+            if (_rigidbody.isKinematic != shouldBeKinematic)
+                _rigidbody.isKinematic = shouldBeKinematic;
         }
 
         if (_colliders != null)
@@ -237,6 +243,7 @@ public class ItemObject : NetworkBehaviour, IInteractable
                     _colliders[i].enabled = shouldEnable;
             }
         }
+
         // 레이어 동기화
         if (!equipped)
         {
