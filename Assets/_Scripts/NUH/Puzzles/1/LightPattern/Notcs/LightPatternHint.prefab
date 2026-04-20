@@ -232,8 +232,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightPatternPanelView
   panelLight: {fileID: 2411914076169502746}
-  inputFlashOnTime: 0.2
-  failFlashOnTime: 0.2
+  inputColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  failColor: {r: 1, g: 0, b: 0, a: 1}
+  solvedColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &1104964148999386519
 GameObject:
   m_ObjectHideFlags: 0
@@ -339,8 +340,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightPatternPanelView
   panelLight: {fileID: 1102002842515314880}
-  inputFlashOnTime: 0.2
-  failFlashOnTime: 0.2
+  inputColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  failColor: {r: 1, g: 0, b: 0, a: 1}
+  solvedColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &1301028092797180495
 GameObject:
   m_ObjectHideFlags: 0
@@ -446,8 +448,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightPatternPanelView
   panelLight: {fileID: 1192115849684069070}
-  inputFlashOnTime: 0.2
-  failFlashOnTime: 0.2
+  inputColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  failColor: {r: 1, g: 0, b: 0, a: 1}
+  solvedColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &1330685225131073343
 GameObject:
   m_ObjectHideFlags: 0
@@ -553,8 +556,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightPatternPanelView
   panelLight: {fileID: 8363241086386969135}
-  inputFlashOnTime: 0.2
-  failFlashOnTime: 0.2
+  inputColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  failColor: {r: 1, g: 0, b: 0, a: 1}
+  solvedColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &1400912488186405032
 GameObject:
   m_ObjectHideFlags: 0
@@ -772,8 +776,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightPatternPanelView
   panelLight: {fileID: 1158273525982231015}
-  inputFlashOnTime: 0.2
-  failFlashOnTime: 0.2
+  inputColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  failColor: {r: 1, g: 0, b: 0, a: 1}
+  solvedColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &1946601942131553659
 GameObject:
   m_ObjectHideFlags: 0
@@ -1040,6 +1045,7 @@ GameObject:
   - component: {fileID: 2679153264012255949}
   - component: {fileID: 7051603759342457633}
   - component: {fileID: 4831924577922458219}
+  - component: {fileID: 743149643336314104}
   m_Layer: 0
   m_Name: LightPatternHint
   m_TagString: Untagged
@@ -1103,6 +1109,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 2679153264012255949}
+  - {fileID: 743149643336314104}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &4831924577922458219
 MonoBehaviour:
@@ -1135,6 +1142,23 @@ MonoBehaviour:
   observedPuzzle: {fileID: 0}
   stopOnSolved: 1
   enableDebugLog: 1
+--- !u!114 &743149643336314104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4326868413615855963}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &4393648466472171822
 GameObject:
   m_ObjectHideFlags: 0
@@ -1367,8 +1391,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightPatternPanelView
   panelLight: {fileID: 212305172853468269}
-  inputFlashOnTime: 0.2
-  failFlashOnTime: 0.2
+  inputColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  failColor: {r: 1, g: 0, b: 0, a: 1}
+  solvedColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &4906955427001832256
 GameObject:
   m_ObjectHideFlags: 0
@@ -1728,8 +1753,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightPatternPanelView
   panelLight: {fileID: 3416353633786208614}
-  inputFlashOnTime: 0.2
-  failFlashOnTime: 0.2
+  inputColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  failColor: {r: 1, g: 0, b: 0, a: 1}
+  solvedColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &6113131036738396236
 GameObject:
   m_ObjectHideFlags: 0
@@ -2216,8 +2242,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightPatternPanelView
   panelLight: {fileID: 8793774984725472413}
-  inputFlashOnTime: 0.2
-  failFlashOnTime: 0.2
+  inputColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  failColor: {r: 1, g: 0, b: 0, a: 1}
+  solvedColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &7941458417954588876
 GameObject:
   m_ObjectHideFlags: 0
@@ -2323,5 +2350,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightPatternPanelView
   panelLight: {fileID: 8420896387910978338}
-  inputFlashOnTime: 0.2
-  failFlashOnTime: 0.2
+  inputColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  failColor: {r: 1, g: 0, b: 0, a: 1}
+  solvedColor: {r: 0, g: 1, b: 0, a: 1}

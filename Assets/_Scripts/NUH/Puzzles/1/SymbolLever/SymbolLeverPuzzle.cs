@@ -8,8 +8,9 @@ using UnityEngine;
 /// - 선택된 6개를 레버 6개에 랜덤 배치
 /// - 같은 6개로 정답 순서 6개 생성
 /// - 레버 입력 시 즉시 현재 단계 판정
-/// - 맞은 레버는 계속 내려간 상태 유지
+/// - 맞은 레버는 Networked 마스크로 유지
 /// - 틀리면 전부 다시 위로 초기화
+/// - 다른 플레이어도 현재 레버 상태를 보고 이어서 풀 수 있다
 /// </summary>
 public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 {
@@ -18,80 +19,88 @@ public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     [SerializeField] private int totalSymbolCount = 30;         // 전체 문양 종류 수
 
     [Header("레버 참조")]
-    [SerializeField] private List<SymbolLeverView> leverViews = new();                  // 각 레버 뷰
-    [SerializeField] private List<SymbolSpriteDisplay> leverSymbolDisplays = new();     // 각 레버 옆 문양 표시
+    [SerializeField] private List<SymbolLeverView> leverViews = new();              // 각 레버 뷰
+    [SerializeField] private List<SymbolSpriteDisplay> leverSymbolDisplays = new(); // 각 레버 옆 문양 표시
 
     [Header("문양 스프라이트 풀")]
-    [SerializeField] private List<Sprite> symbolSprites = new();                        // 문양 Id와 대응되는 스프라이트 목록
+    [SerializeField] private List<Sprite> symbolSprites = new(); // 문양 ID와 대응되는 스프라이트 목록
 
     [Header("디버그")]
     [SerializeField] private bool enableDebugLog = true;
 
-    private readonly List<int> _selectedSymbolIds = new();      // 이번 판에 선택된 6개 문양
-    private readonly List<int> _leverSymbolIds = new();         // 레버 0~5에 배치된 문양 ID
-    private readonly List<int> _answerSequence = new();         // 정답 순서
-    private readonly List<bool> _leverPulledStates = new();     // 각 레버가 내려간 상태인지
+    private readonly List<int> _selectedSymbolIds = new(); // 이번 판에 선택된 6개 문양
+    private readonly List<int> _leverSymbolIds = new();    // 레버 0~5에 배치된 문양 ID
+    private readonly List<int> _answerSequence = new();    // 정답 순서
+    private bool _hasAnswerSeed;                           // 시드 적용 완료 여부
 
-    private int _currentStep;       //  현재 입력 단계
-    private bool _hasAnswerSeed;    // 시드 적용 완료 여부
+    [Networked] private int NetCurrentStep { get; set; } // 현재 몇 단계까지 맞췄는지
+    [Networked, OnChangedRender(nameof(OnPulledMaskChanged))]
+    private int NetPulledMask { get; set; } // 내려간 레버 비트마스크
 
     private void Awake()
     {
-        EnsureLeverStateSize();
-        ResetPuzzleVisualOnly();
+        // Awake에서는 Networked 값 접근 금지
+        ResetAllLeverViewsToUpImmediate();
     }
 
+    public override void Spawned()
+    {
+        ApplyPulledMaskToViews();
+    }
+
+    /// <summary>
+    /// 시드 기반으로 레버 배치와 정답 순서를 생성한다.
+    /// </summary>
     public void ApplyAnswerSeed(int seed)
     {
         _selectedSymbolIds.Clear();
         _leverSymbolIds.Clear();
         _answerSequence.Clear();
 
-        EnsureLeverStateSize();
-        ResetLeverStates();
-
-        _currentStep = 0;
-
         SeedRandom rng = new SeedRandom(seed);
 
-        // 1. 전체 문양 풀 생성
         List<int> allSymbolIds = BuildAllSymbolIds();
 
-        // 2. 이번 판에 사용할 6개 문양 선택
+        // 1. 사용할 문양 6개 선택
         List<int> selected = rng.PickUnique(allSymbolIds, leverCount);
         _selectedSymbolIds.AddRange(selected);
 
-        // 3. 같은 6개를 셔플해서 레버에 배치
+        // 2. 레버 배치 문양 생성
         List<int> leverPlacement = new List<int>(_selectedSymbolIds);
         rng.Shuffle(leverPlacement);
         _leverSymbolIds.AddRange(leverPlacement);
 
-        // 4. 같은 6개를 다시 셔플해서 정답 순서 생성
+        // 3. 정답 순서 생성
         List<int> answerPlacement = new List<int>(_selectedSymbolIds);
         rng.Shuffle(answerPlacement);
         _answerSequence.AddRange(answerPlacement);
 
         _hasAnswerSeed = true;
 
+        if (HasStateAuthority)
+        {
+            NetCurrentStep = 0;
+            NetPulledMask = 0;
+        }
+
         ApplyLeverSymbolVisuals();
-        ResetPuzzleVisualOnly();
+        ApplyPulledMaskToViews();
 
         Log($"정답 시드 적용 완료 | seed = {seed}");
         LogSequenceDebug();
     }
 
     /// <summary>
-    /// 특정 레버가 이미 내려간 상태인지 반환
+    /// 특정 레버가 이미 내려간 상태인지 확인
     /// </summary>
     public bool IsLeverAlreadyPulled(int interactableId)
     {
-        if (interactableId < 0 || interactableId >= _leverPulledStates.Count)
-            return false;
-
-        return _leverPulledStates[interactableId];
+        return IsMaskBitOn(NetPulledMask, interactableId);
     }
 
-
+    /// <summary>
+    /// 레버 입력 처리
+    /// </summary>
     public void OnLeverPulled(int interactableId)
     {
         if (!HasStateAuthority)
@@ -106,35 +115,36 @@ public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             return;
         }
 
-        if (interactableId < 0 || interactableId >= _leverSymbolIds.Count)
+        if (!IsValidLeverIndex(interactableId))
             return;
 
-        if (_leverPulledStates[interactableId])
+        if (IsLeverAlreadyPulled(interactableId))
         {
             Log($"이미 내려간 레버 입력 무시 | lever = {interactableId}");
             return;
         }
 
         int inputSymbolId = _leverSymbolIds[interactableId];
-        int expectedSymbolId = _answerSequence[_currentStep];
+        int expectedSymbolId = _answerSequence[NetCurrentStep];
 
-        // 현재 단계 즉시 판정
+        // 오답이면 즉시 실패 + 초기화
         if (inputSymbolId != expectedSymbolId)
         {
-            Log($"오답 입력 | step={_currentStep} | inputSymbol={inputSymbolId} | expectedSymbol={expectedSymbolId}");
+            Log($"오답 입력 | step={NetCurrentStep} | inputSymbol={inputSymbolId} | expectedSymbol={expectedSymbolId}");
             MarkFailed();
             ResetPuzzle();
             return;
         }
 
-        // 정답이면 해당 레버를 내려간 상태로 유지
-        _leverPulledStates[interactableId] = true;
-        RefreshSingleLeverView(interactableId);
+        NetPulledMask = SetMaskBit(NetPulledMask, interactableId, true);
+        NetCurrentStep++;
 
-        _currentStep++;
-        Log($"정답 입력 | currentStep = {_currentStep} / {leverCount}");
+        // 호스트 즉시 반영
+        ApplyPulledMaskToViews();
 
-        if (_currentStep >= leverCount)
+        Log($"정답 입력 | currentStep = {NetCurrentStep} / {leverCount}");
+
+        if (NetCurrentStep >= leverCount)
         {
             MarkSolved();
             Log("문양 레버 퍼즐 성공");
@@ -142,71 +152,69 @@ public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     }
 
     /// <summary>
-    /// 실패 또는 초기화 시 퍼즐 상태를 처음으로 되돌린다
+    /// 실패/초기화 처리
     /// </summary>
     private void ResetPuzzle()
     {
-        _currentStep = 0;
-        ResetLeverStates();
-        ResetPuzzleVisualOnly();
-        Log("문양 레버 퍼즐 초기화");    
+        NetCurrentStep = 0;
+        NetPulledMask = 0;
+        ApplyPulledMaskToViews();
+        Log("문양 레버 퍼즐 초기화");
     }
 
     /// <summary>
-    /// 내부 레버 상태 전부 초기화
+    /// Networked 마스크 변경 시 모든 클라이언트에서 뷰 갱신
     /// </summary>
-    private void ResetLeverStates()
+    private void OnPulledMaskChanged()
     {
-        for (int i = 0; i < _leverPulledStates.Count; i++)
-            _leverPulledStates[i] = false;
+        ApplyPulledMaskToViews();
     }
 
     /// <summary>
-    /// 레버 뷰를 현재 상태에 맞춰 반영
+    /// 현재 마스크 상태를 레버 뷰들에 반영
     /// </summary>
-    private void ResetPuzzleVisualOnly()
+    private void ApplyPulledMaskToViews()
     {
-        RefreshAllLeverViews();
-    }
+        int count = Mathf.Min(leverViews.Count, leverCount);
 
-    private void RefreshAllLeverViews()
-    {
-        int count = Mathf.Min(leverViews.Count, _leverPulledStates.Count);
-
-        for(int i = 0; i < count; i++)
+        for (int i = 0; i < count; i++)
         {
             if (leverViews[i] == null)
                 continue;
 
-            leverViews[i].SetState(_leverPulledStates[i]);
+            leverViews[i].SetState(IsMaskBitOn(NetPulledMask, i));
         }
     }
 
-
-    private void RefreshSingleLeverView(int interactableId)
+    /// <summary>
+    /// 스폰 전 기본 상태에서는 모든 레버를 위로 맞춘다.
+    /// </summary>
+    private void ResetAllLeverViewsToUpImmediate()
     {
-        if (interactableId < 0 || interactableId >= leverViews.Count)
-            return;
+        int count = Mathf.Min(leverViews.Count, leverCount);
 
-        if (leverViews[interactableId] == null)
-            return;
+        for (int i = 0; i < count; i++)
+        {
+            if (leverViews[i] == null)
+                continue;
 
-        leverViews[interactableId].SetState(_leverPulledStates[interactableId]);
+            leverViews[i].ResetToDefaultImmediate();
+        }
     }
 
     /// <summary>
-    /// 레버 옆 문양 표시에 현재 레버 배치 문양을 적용
+    /// 레버 옆 문양 스프라이트 적용
     /// </summary>
     private void ApplyLeverSymbolVisuals()
     {
         int count = Mathf.Min(leverSymbolDisplays.Count, _leverSymbolIds.Count);
 
-        for(int i = 0; i < leverSymbolDisplays.Count; i++)
+        for (int i = 0; i < leverSymbolDisplays.Count; i++)
         {
             if (leverSymbolDisplays[i] == null)
                 continue;
 
-            if (i > count)
+            if (i >= count)
             {
                 leverSymbolDisplays[i].Clear();
                 continue;
@@ -218,13 +226,25 @@ public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         }
     }
 
-    private void EnsureLeverStateSize()
+    private bool IsValidLeverIndex(int index)
     {
-        while (_leverPulledStates.Count < leverCount)
-            _leverPulledStates.Add(false);
+        return index >= 0 && index < _leverSymbolIds.Count;
+    }
 
-        while (_leverPulledStates.Count > leverCount)
-            _leverPulledStates.RemoveAt(_leverPulledStates.Count - 1);
+    private static bool IsMaskBitOn(int mask, int bitIndex)
+    {
+        if (bitIndex < 0)
+            return false;
+
+        return (mask & (1 << bitIndex)) != 0;
+    }
+
+    private static int SetMaskBit(int mask, int bitIndex, bool enabled)
+    {
+        if (bitIndex < 0)
+            return mask;
+
+        return enabled ? (mask | (1 << bitIndex)) : (mask & ~(1 << bitIndex));
     }
 
     private List<int> BuildAllSymbolIds()
@@ -252,21 +272,21 @@ public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
     private void LogSequenceDebug()
     {
-        if (!enableDebugLog) 
+        if (!enableDebugLog)
             return;
 
         string leverSymbols = string.Join(", ", _leverSymbolIds);
         string answerSymbols = string.Join(", ", _answerSequence);
 
-        Debug.Log($"레버 배치 문양 IDs = {leverSymbols}", this);
-        Debug.Log($"정답 순서 문양 IDs = {answerSymbols}", this);
+        Debug.Log($"[SymbolLeverPuzzle] 레버 배치 문양 IDs = [{leverSymbols}]", this);
+        Debug.Log($"[SymbolLeverPuzzle] 정답 순서 문양 IDs = [{answerSymbols}]", this);
     }
 
-    private void Log(string m)
+    private void Log(string message)
     {
         if (!enableDebugLog)
             return;
 
-        Debug.Log($"[SymbolLeverPuzzle] {m}", this);
+        Debug.Log($"[SymbolLeverPuzzle] {message}", this);
     }
 }

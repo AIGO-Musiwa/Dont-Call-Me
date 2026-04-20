@@ -374,6 +374,7 @@ GameObject:
   - component: {fileID: 1943546199460172332}
   - component: {fileID: 3894954196587528707}
   - component: {fileID: 4956021070285085537}
+  - component: {fileID: -4229517331126637803}
   m_Layer: 0
   m_Name: DialHint
   m_TagString: Untagged
@@ -421,6 +422,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 3894954196587528707}
+  - {fileID: -4229517331126637803}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &3894954196587528707
 MonoBehaviour:
@@ -456,6 +458,23 @@ MonoBehaviour:
   - {fileID: 8227709080047539317}
   - {fileID: 5162920145528794758}
   enableDebugLog: 1
+--- !u!114 &-4229517331126637803
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3052731713295159825}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &3205994547032033511
 GameObject:
   m_ObjectHideFlags: 0

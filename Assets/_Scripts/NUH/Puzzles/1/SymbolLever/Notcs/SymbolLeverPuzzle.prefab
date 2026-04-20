@@ -1039,6 +1039,7 @@ GameObject:
   - component: {fileID: 2303351830954321884}
   - component: {fileID: 1210915798437249508}
   - component: {fileID: 7671165647722324182}
+  - component: {fileID: -3962532413629303113}
   m_Layer: 0
   m_Name: SymbolLeverPuzzle
   m_TagString: Untagged
@@ -1186,7 +1187,25 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 3612032705541222451}
   - {fileID: 1210915798437249508}
+  - {fileID: -3962532413629303113}
   ForceRemoteRenderTimeframe: 0
+--- !u!114 &-3962532413629303113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6636644762715216390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &6806846555318473707
 GameObject:
   m_ObjectHideFlags: 0
