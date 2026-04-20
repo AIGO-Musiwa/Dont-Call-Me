@@ -41,6 +41,8 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
     public override void Spawned()
     {
+        base.Spawned();
+
         ApplySignedPositionToView();
     }
 
