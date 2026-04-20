@@ -26,21 +26,20 @@ public class MicrophonedBMeasurer : MonoBehaviour
 
     #region Unity LifeCycle
 
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(this);
-            return;
-        }
-        Instance = this;
-    }
-
     private void Start()
     {
         localPc = GetComponent<PlayerController>();
 
-        if (localPc == null) Debug.LogError("[MicrophonedBMeasurer] PlayerController를 찾을 수 없습니다.");
+        if (localPc == null)
+        {
+            Debug.LogError("[MicrophonedBMeasurer] PlayerController를 찾을 수 없습니다.");
+            return;
+        }
+
+        if (!localPc.HasInputAuthority) return;
+
+        // 로컬 플레이어만 Instance 등록
+        Instance = this;
     }
 
     private void OnDestroy()
@@ -81,7 +80,7 @@ public class MicrophonedBMeasurer : MonoBehaviour
     private void Measure()
     {
         float rms = recorder.LevelMeter?.CurrentAvgAmp ?? 0f;
-        
+
         if (rms < silenceThreshold)
         {
             CurrentNaturaldB = 0f;
@@ -89,7 +88,7 @@ public class MicrophonedBMeasurer : MonoBehaviour
             CurrentRawdBFS = -96f;
 
             if (isPTTActive)
-                SoundEmitter.EmitWalkie(30f, GetReceiverWalkiePosition());
+                EmitWalkieSoundFromZoneWalkie(30f);
 
             return;
         }
@@ -102,7 +101,7 @@ public class MicrophonedBMeasurer : MonoBehaviour
         CurrentNaturaldB = naturaldB;
 
         if (naturaldB > 0f)
-            SoundEmitter.EmitNatural(naturaldB, transform.position, localPc.NetZone);
+            SoundEmitter.EmitNatural(naturaldB, transform.position, localPc.NetZone, localPc);
 
         // 무전음
         if (!isPTTActive) return;
@@ -111,17 +110,18 @@ public class MicrophonedBMeasurer : MonoBehaviour
         CurrentWalkiedB = walkiedB;
 
         if (walkiedB > 0f)
-            SoundEmitter.EmitWalkie(walkiedB, GetReceiverWalkiePosition());
+            EmitWalkieSoundFromZoneWalkie(walkiedB);
     }
 
-    private Vector3 GetReceiverWalkiePosition()
+    // 송신 구역 무전기에서 수신 구역 무전기 위치로 소리 이벤트 발행
+    private void EmitWalkieSoundFromZoneWalkie(float voicedB)
     {
-        if (WalkieTalkieManager.Instance == null) return transform.position;
+        if (WalkieTalkieManager.Instance == null) return;
 
-        Zone receiverZone = (localPc.NetZone == Zone.ZoneA) ? Zone.ZoneB : Zone.ZoneA;
-        WalkieTalkieItem receiverWalkie = WalkieTalkieManager.Instance.GetWalkieTalkieByZone(receiverZone);
+        WalkieTalkieItem senderWalkie = WalkieTalkieManager.Instance.GetWalkieTalkieByZone(localPc.NetZone);
+        if (senderWalkie == null) return;
 
-        return receiverWalkie != null ? receiverWalkie.transform.position : transform.position;
+        senderWalkie.RPC_EmitWalkieSound(voicedB);
     }
    
 

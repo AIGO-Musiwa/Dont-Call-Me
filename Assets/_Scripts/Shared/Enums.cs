@@ -104,6 +104,22 @@ public enum  WalkieState
     RX
 }
 
+// ── 퍼즐 ──────────────────────────────────────────────────
+
+public enum LightPatternPanelVisualState : byte
+{
+    Off = 0,
+    InputYellow = 1,
+    FailRed = 2,
+    SolvedGreen = 3
+}
+
+public enum RotationDirection
+{
+    Left,
+    Right
+}
+
 // ── 탈출 ──────────────────────────────────────────────────
 
 // 탈출 위치

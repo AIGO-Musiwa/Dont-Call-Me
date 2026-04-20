@@ -5,7 +5,7 @@ using UnityEngine;
 /// 자식 레버 조작물은 입력만 받고,
 /// 실제 상태 변경은 루트 퍼즐(ownerPuzzle)에 위임한다.
 /// </summary>
-public class SymbolLeverInteractable : MonoBehaviour, IInteractable
+public class SymbolLeverInteractable : MonoBehaviour, IInteractable, IChildPuzzleInteractable
 {
     [Header("레버 설정")]
     [SerializeField] private SymbolLeverPuzzle ownerPuzzle;         // 소속 퍼즐 본체

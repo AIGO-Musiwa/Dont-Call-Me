@@ -379,18 +379,14 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (interactableId < 0)
             return null;
 
-        SymbolLeverInteractable[] levers = root.GetComponentsInChildren<SymbolLeverInteractable>(true);
-        for (int i = 0; i < levers.Length; i++)
-        {
-            if (levers[i] != null && levers[i].InteractableId == interactableId)
-                return levers[i];
-        }
+        IChildPuzzleInteractable[] children = root.GetComponentsInChildren<IChildPuzzleInteractable>(true);
 
-        SymbolLeverConfirmInteractable[] confirms = root.GetComponentsInChildren<SymbolLeverConfirmInteractable>(true);
-        for (int i = 0; i < confirms.Length; i++)
+        for (int i = 0; i < children.Length; i++)
         {
-            if (confirms[i] != null && confirms[i].InteractableId == interactableId)
-                return confirms[i];
+            if (children[i].InteractableId != interactableId)
+                continue;
+
+            return children[i] as IInteractable;
         }
 
         return null;
@@ -533,6 +529,22 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
     #endregion
 
+    #region 소리 이벤트 RPC
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_EmitNatural(float voicedB, Vector3 sourcePosition, Zone sourceZone)
+    {
+        float penalty = SoundEmitter.CalculateObstaclePenalty(sourcePosition, sourceZone);
+        SoundEmitter.EmitToEventBus(SoundChannel.Natural, voicedB, sourcePosition, penalty, sourceZone);
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_EmitWalkie(float voicedB, Vector3 sourcePosition, Zone receiverZone)
+    {
+        SoundEmitter.EmitToEventBus(SoundChannel.Walkie, voicedB, sourcePosition, 0f, receiverZone);
+    }
+
+    #endregion
     public bool ServerTryPickupRightHand(ItemObject item)
     {
         if (!HasStateAuthority || item == null)
@@ -1092,6 +1104,20 @@ public class PlayerController : NetworkBehaviour, IInteractable
         }
 
         ServerExitCapturedToNormal();
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_ProcessMinigameSuccess()
+    {
+        // 포획 상태가 아니라면 무전 무시
+        if (NetPlayerState != PlayerState.Captured) return;
+
+        // 기획서 1-4: 후유증 3% 즉시 감소
+        float nextValue = NetAftereffectPercent - 3.0f;
+        NetAftereffectPercent = Mathf.Max(0f, nextValue);
+
+        // 로그 기록 (검수용)
+        Debug.Log($"[미니게임] 성공! 후유증 3% 제거. 현재: {NetAftereffectPercent}%");
     }
 
 
