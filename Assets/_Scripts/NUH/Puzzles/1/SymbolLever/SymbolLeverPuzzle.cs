@@ -45,6 +45,8 @@ public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
     public override void Spawned()
     {
+        base.Spawned();
+
         ApplyPulledMaskToViews();
     }
 

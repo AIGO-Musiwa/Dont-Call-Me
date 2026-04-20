@@ -158,7 +158,7 @@ public class LobbyManager : MonoBehaviour
     private void ShowLobby(NetworkRunner runner)
     {
         lobbyPanel.SetActive(true);
-        roomCodeText.text = $"방 코드  {_launcher.RoomCode}";
+        roomCodeText.text = $"{_launcher.RoomCode}";
 
         bool isHost = runner.IsServer;
         readyButton.gameObject.SetActive(!isHost);
