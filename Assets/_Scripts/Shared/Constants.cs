@@ -24,7 +24,7 @@ public static class Constants
     public const byte GROUP_WALKIE = 3;
 
     // ── 무전기 ────────────────────────────────────────────
-    public const float WALKIE_RANGE = 5f;       // 무전기 소리 범위
+    public const float WALKIE_RANGE = 8f;       // 무전기 소리 범위
 }
 
 // ── 씬 이름 (Build Settings의 씬 이름과 반드시 일치) ────

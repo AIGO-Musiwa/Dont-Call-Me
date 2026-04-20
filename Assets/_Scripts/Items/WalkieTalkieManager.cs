@@ -58,6 +58,9 @@ public class WalkieTalkieManager : NetworkBehaviour
     // ActiveSender 외부 접근자
     public PlayerRef GetActiveSender() => ActiveSender;
 
+    // cachedPlayerss 외부 접근자
+    public IReadOnlyList<PlayerController> GetCachedPlayers() => cachedPlayers;
+
     public override void FixedUpdateNetwork()
     {
         if (!HasStateAuthority) return;
