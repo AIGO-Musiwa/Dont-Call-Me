@@ -49,6 +49,9 @@ public class MicrophonedBMeasurer : MonoBehaviour
 
     private void Update()
     {
+        // 로컬 플레이어가 아니면 실행 안함
+        if (Instance != this) return;
+
         if (recorder == null)
         {
             TryFetchRecorder();

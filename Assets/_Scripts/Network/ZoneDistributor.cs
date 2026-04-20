@@ -79,6 +79,8 @@ public class ZoneDistributor : NetworkBehaviour
         _hasDistributed = true;
 
         Log("플레이어 Zone/Role 배치 완료");
+
+        NotifyTeammateForVoice();
     }
 
     private List<PlayerData> GetOrderedReadyPlayerData()
@@ -178,6 +180,45 @@ public class ZoneDistributor : NetworkBehaviour
 
             Log($"배치 완료 | Player={playerRef} | SlotIndex={data.SlotIndex} | Zone={zone} | Role={role}");
         }
+    }
+
+    // 배치 완료 후 각 플레이어에게 같은 구역 팀원 NetworkId 전달
+    private void NotifyTeammateForVoice()
+    {
+        Dictionary<PlayerRef, PlayerController> refToController = new();
+
+        foreach (var kvp in _playerZoneMap)
+        {
+            if (!Runner.TryGetPlayerObject(kvp.Key, out var playerObj)) continue;
+            PlayerData data = playerObj.GetComponent<PlayerData>();
+            if (data == null) continue;
+
+            PlayerController pc = data.GetPlayerController();
+            if (pc == null) continue;
+
+            refToController[kvp.Key] = pc;
+        }
+
+        foreach (var kvp in _playerZoneMap)
+        {
+            if (!refToController.TryGetValue(kvp.Key, out PlayerController pc)) continue;
+
+            foreach (var otherKvp in _playerZoneMap)
+            {
+                if (otherKvp.Key == kvp.Key) continue;
+                if (otherKvp.Value != kvp.Value) continue;
+
+                if (!refToController.TryGetValue(otherKvp.Key, out PlayerController teammatePc)) continue;
+
+                PlayerVoiceController pvc = pc.GetComponent<PlayerVoiceController>();
+                if (pvc != null)
+                    pvc.Rpc_SetTeammateForVoice(teammatePc.Object.Id);
+
+                Log($"팀원 Voice 등록 | Player={kvp.Key} → Teammate={otherKvp.Key}");
+                break;
+            }
+        }
+
     }
 
     private void Log(string message)

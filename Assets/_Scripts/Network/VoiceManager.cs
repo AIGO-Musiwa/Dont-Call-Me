@@ -142,6 +142,8 @@ public class VoiceManager : MonoBehaviour
         }
     }
 
+    #endregion
+
     #region 무전기 API
 
     // PTT on/off
@@ -160,7 +162,7 @@ public class VoiceManager : MonoBehaviour
             recorder.InterestGroup = Constants.GROUP_WALKIE;
 
             // 같은 구역 팀원도 GROUP_WALKIE 구독 추가
-            ApplyGroup(new byte[] { myGroup, Constants.GROUP_WALKIE });
+            ApplyGroup(new byte[] { myGroup });
             Debug.Log("[VoiceManager] PTT ON → GROUP_WALKIE 송신 + 팀원 구독 추가");
         }
         else
@@ -183,9 +185,7 @@ public class VoiceManager : MonoBehaviour
         // 송신자 구역 무시
         if (localZone == senderZone) return;
 
-        byte myGroup = localZone == Zone.ZoneA
-            ? Constants.GROUP_ZONE_A
-            : Constants.GROUP_ZONE_B;
+        byte myGroup = GetMyZoneGroup();
 
         ApplyGroup(isOn
             ? new byte[] { myGroup, Constants.GROUP_WALKIE }
@@ -199,9 +199,7 @@ public class VoiceManager : MonoBehaviour
         if (recorder == null) FetchComponents();
         if (voiceConnection?.Client == null) return;
 
-        byte myGroup = localZone == Zone.ZoneA
-            ? Constants.GROUP_ZONE_A
-            : Constants.GROUP_ZONE_B;
+        byte myGroup = GetMyZoneGroup();
 
         ApplyGroup(isNear
             ? new byte[] { myGroup, Constants.GROUP_WALKIE }
@@ -216,15 +214,27 @@ public class VoiceManager : MonoBehaviour
         if (recorder == null) FetchComponents();
         if (voiceConnection?.Client == null) return;
 
-        byte myGroup = localZone == Zone.ZoneA
-            ? Constants.GROUP_ZONE_A
-            : Constants.GROUP_ZONE_B;
+        byte myGroup = GetMyZoneGroup();
 
         recorder.InterestGroup = isNear ? Constants.GROUP_WALKIE : myGroup;
 
-        ApplyGroup(isNear
-            ? new byte[] { myGroup, Constants.GROUP_WALKIE }
-            : new byte[] { myGroup });
+        ApplyGroup(new byte[] { myGroup, Constants.GROUP_WALKIE });
+
+        Debug.Log($"[VoiceManager] 송신자 구역 팀원 A범위 {(isNear ? "진입" : "이탈")} " +
+            $"→ Recorder {(isNear ? "GROUP_WALKIE" : $"{localZone} Group")}");
+    }
+
+    public void ResetSenderZoneTeammate()
+    {
+        if (recorder == null) FetchComponents();
+        if (voiceConnection?.Client == null) return;
+
+        byte myGroup = GetMyZoneGroup();
+
+        recorder.InterestGroup = myGroup;
+        ApplyGroup(new byte[] { myGroup });
+
+        Debug.Log($"[VoiceManager] 송신자 구역 팀원 PTT 종료 → {localZone} Group 완전 복귀");
     }
 
     #endregion
@@ -236,9 +246,14 @@ public class VoiceManager : MonoBehaviour
         Debug.Log($"[VoiceManager] Voice Group 적용 → [{string.Join(", ", groups)}]");
     }
 
-    #endregion
-
     #region 내부 유틸
+
+    private byte GetMyZoneGroup()
+    {
+        return localZone == Zone.ZoneA
+            ? Constants.GROUP_ZONE_A
+            : Constants.GROUP_ZONE_B;
+    }
 
     private void FetchComponents()
     {
