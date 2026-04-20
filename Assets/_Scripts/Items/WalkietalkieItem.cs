@@ -1,4 +1,6 @@
 using Fusion;
+using Photon.Voice.Unity;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class WalkieTalkieItem : ItemObject
@@ -8,11 +10,17 @@ public class WalkieTalkieItem : ItemObject
     [SerializeField] private WalkieMeterialController materialController;
     [SerializeField] private AudioSource whiteNoiseSource;
 
+    [Header("무전 음성 감쇠 설정")]
+    [SerializeField] private float walkieVoiceMinDistance = 2f;
+
     // ─── 네트워크 변수 ───────────────────────────────
-    [Networked] public Zone NetZone { get; set; }       // 무전기가 속한 구역
+    [Networked, OnChangedRender(nameof(OnZoneAssigned))]
+    public Zone NetZone { get; set; }       // 무전기가 속한 구역
     [Networked, OnChangedRender(nameof(OnWalkieStateChanged))]
     public WalkieState NetWalkieState {  get; set; }
 
+    // 송신자 구역 플레이어 AudioSource 캐시
+    private readonly List<AudioSource> senderZoneAudioSources = new();
 
     // ─── 초기화 ──────────────────────────────────────
     protected override void Awake()
@@ -34,6 +42,41 @@ public class WalkieTalkieItem : ItemObject
         materialController?.SetWalkieState(WalkieState.Idle);
 
         WalkieTalkieManager.Instance?.RegisterWalkieTalkie(this);
+
+        // 화이트 노이즈 AudioSource 3D 감쇠 설정
+        if (whiteNoiseSource != null)
+        {
+            whiteNoiseSource.spatialBlend = 1f;
+            whiteNoiseSource.rolloffMode = AudioRolloffMode.Logarithmic;
+            whiteNoiseSource.minDistance = 1f;
+            whiteNoiseSource.maxDistance = Constants.WALKIE_RANGE;
+            whiteNoiseSource.dopplerLevel = 0f;
+        }
+    }
+
+    private void Update()
+    {
+        UpdateWalkieVoiceVolume();
+    }
+
+    // ────────────────────────────────────────────────
+
+    private void OnZoneAssigned()
+    {
+        if (senderZoneAudioSources.Count > 0) return;
+
+        Zone senderZone = NetZone == Zone.ZoneA ? Zone.ZoneB : Zone.ZoneA;
+        var players = WalkieTalkieManager.Instance?.GetCachedPlayers();
+        if (players == null) return;
+
+        foreach (var pc in players)
+        {
+            if (pc == null) continue;
+            if (pc.NetZone != senderZone) continue;
+            AudioSource audioSource = pc.GetComponent<AudioSource>();
+            if (audioSource != null)
+                senderZoneAudioSources.Add(audioSource);
+        }
     }
 
     // ────────────────────────────────────────────────
@@ -49,8 +92,16 @@ public class WalkieTalkieItem : ItemObject
     {
         // material 업데이트
         materialController?.SetWalkieState(NetWalkieState);
-
         UpdateWhiteNoise();
+
+        //PTT 종료 시 Speaker 볼륨 초기화
+        if (NetWalkieState != WalkieState.RX)
+        {
+            foreach (var audioSource in senderZoneAudioSources)
+            {
+                if (audioSource != null) audioSource.volume = 1f;
+            }
+        }
     }
 
     // 화이트 노이즈 재생 여부를 현재 상태 + 근접 여부로 결정
@@ -119,6 +170,48 @@ public class WalkieTalkieItem : ItemObject
             return "기존 아이템 내려놓고 무전기 줍기";
 
         return "무전기 줍기";
+    }
+
+    // 무전기와의 거리에 따라 소리 조절
+    private void UpdateWalkieVoiceVolume()
+    {
+        // 무전기 수신 상태일 때만 처리
+        if (NetWalkieState != WalkieState.RX) return;
+
+        // 로컬 플레이어 가져오기
+        if (!Runner.TryGetPlayerObject(Runner.LocalPlayer, out var localObj)) return;
+        PlayerController localPc = localObj.GetComponent<PlayerData>()?.GetPlayerController();
+        if (localPc == null) return;
+
+        // 송신자 구역 팀원은 처리 X
+        if (localPc.NetZone != NetZone) return;
+
+        // ActiveSender Speaker 캐싱
+        PlayerRef activeSender = WalkieTalkieManager.Instance?.GetActiveSender() ?? PlayerRef.None;
+        if (activeSender == PlayerRef.None)
+        {
+            foreach(var audioSource in senderZoneAudioSources)
+            {
+                if (audioSource != null) audioSource.volume = 1f;
+            }
+
+            return;
+        }
+
+        if (senderZoneAudioSources.Count == 0) return;
+
+        // 로컬 플레이어와 수신 무전기 사이 거리 계산
+        float dist = Vector3.Distance(localPc.transform.position, transform.position);
+
+        // Logarithmic 감쇠
+        float volume = dist >= Constants.WALKIE_RANGE
+            ? 0f
+            : Mathf.Clamp01(walkieVoiceMinDistance / Mathf.Max(dist, walkieVoiceMinDistance));
+        
+        foreach (var audioSource in senderZoneAudioSources)
+        {
+            if (audioSource != null) audioSource.volume = volume;
+        }
     }
 
     // ─── RPC ───────────────────────────────────────

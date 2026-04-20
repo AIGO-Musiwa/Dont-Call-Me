@@ -511,6 +511,12 @@ public class PlayerController : NetworkBehaviour, IInteractable
     private void OnNearSenderChanged()
     {
         if (!HasInputAuthority) return;
+
+        bool isPTTActive = WalkieTalkieManager.Instance != null &&
+                            WalkieTalkieManager.Instance.GetActiveSender() != PlayerRef.None;
+
+        if (!isPTTActive) return;
+
         VoiceManager.Instance?.SetTeammateSenderGroup(NetIsNearSender);
     }
 
