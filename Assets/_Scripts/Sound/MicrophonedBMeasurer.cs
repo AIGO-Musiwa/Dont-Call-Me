@@ -1,6 +1,4 @@
-using Fusion;
 using Photon.Voice.Unity;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 public class MicrophonedBMeasurer : MonoBehaviour

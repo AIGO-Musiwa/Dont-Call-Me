@@ -34,7 +34,6 @@ public class PlayerVoiceController : NetworkBehaviour
         float volume = dist >= maxDistance
             ? 0f
             : Mathf.Clamp01(minDistance / Mathf.Max(dist, minDistance));
-        Debug.Log($"[Voice] dist: {dist}, volume: {volume}");
         teammateAudioSource.volume = volume;
     }
 
