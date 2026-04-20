@@ -120,6 +120,19 @@ public enum RotationDirection
     Right
 }
 
+public enum WireSocketColor
+{
+    Red = 0,
+    Orange = 1,
+    Yellow = 2,
+    Green = 3,
+    Blue = 4,
+    Navy = 5,
+    Purple = 6,
+    White = 7,
+    Black = 8
+}
+
 // ── 탈출 ──────────────────────────────────────────────────
 
 // 탈출 위치
