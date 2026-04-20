@@ -57,135 +57,42 @@ public class WireConnectionView : MonoBehaviour
     /// <summary>
     /// 현재 선택된 좌측 소켓 표시 반영
     /// </summary>
-    //public void ApplySelection(int selectedLeftIndex, bool hasSelection)
-    //{
-    //    for(int i = 0; i < leftSelectionHighlights.Count; i++)
-    //    {
-    //        if (leftSelectionHighlights[i] == null)
-    //            continue;
-
-    //        bool active = hasSelection && i == selectedLeftIndex;
-    //        leftSelectionHighlights[i].SetActive(active);
-    //    }
-    //}
-
     public void ApplySelection(int selectedLeftIndex, bool hasSelection)
     {
-        Debug.Log(
-            $"[WireConnectionView/ApplySelection/ENTER] " +
-            $"selectedLeftIndex={selectedLeftIndex} hasSelection={hasSelection} " +
-            $"highlightCount={leftSelectionHighlights.Count}",
-            this);
-
         for (int i = 0; i < leftSelectionHighlights.Count; i++)
         {
             if (leftSelectionHighlights[i] == null)
-            {
-                Debug.LogWarning(
-                    $"[WireConnectionView/ApplySelection/NULL_HIGHLIGHT] index={i}",
-                    this);
                 continue;
-            }
 
             bool active = hasSelection && i == selectedLeftIndex;
-
-            Debug.Log(
-                $"[WireConnectionView/ApplySelection/SET] " +
-                $"index={i} object={leftSelectionHighlights[i].name} active={active}",
-                this);
-
             leftSelectionHighlights[i].SetActive(active);
         }
     }
 
+
+
     /// <summary>
     /// 현재 연결 상태를 연결선 비주얼에 반영
     /// </summary>
-    //public void ApplyConnections(IReadOnlyList<int> connectedRightIndexByLeft)
-    //{
-    //    int count = Mathf.Min(connectionLineVisuals.Count, connectedRightIndexByLeft.Count);
-
-    //    for(int leftIndex = 0; leftIndex < count; leftIndex++)
-    //    {
-    //        Transform line = connectionLineVisuals[leftIndex];
-    //        if (line == null)
-    //            continue;
-
-    //        int rightIndex = connectedRightIndexByLeft[leftIndex];
-    //        if(rightIndex < 0 || rightIndex >= rightSocketPoints.Count)
-    //        {
-    //            line.gameObject.SetActive(false);
-    //            continue;
-    //        }
-
-    //        if(leftIndex >= leftSocketPoints.Count || leftSocketPoints[leftIndex] == null || rightSocketPoints[rightIndex] == null)
-    //        {
-    //            line.gameObject.SetActive(false);
-    //            continue;
-    //        }
-
-    //        Transform leftPoint = leftSocketPoints[leftIndex];
-    //        Transform rightPoint = rightSocketPoints[rightIndex];
-
-    //        Vector3 start = leftPoint.position;
-    //        Vector3 end = rightPoint.position;
-    //        Vector3 dir = end - start;
-    //        float distance = dir.magnitude;
-
-    //        if(distance <= 0.0001f)
-    //        {
-    //            line.gameObject.SetActive(false);
-    //            continue;
-    //        }
-
-    //        line.gameObject.SetActive(true);
-    //        line.position = (start + end) * 0.5f;
-    //        line.rotation = Quaternion.FromToRotation(cylinderAxis, dir.normalized);
-
-    //        Vector3 scale = line.localScale;
-    //        scale.x = lineThickness;
-    //        scale.z = lineThickness;
-    //        scale.y = distance * 0.5f;
-    //        line.localScale = scale;
-    //    }
-    //}
-
     public void ApplyConnections(IReadOnlyList<int> connectedRightIndexByLeft)
     {
-        Debug.Log(
-            $"[WireConnectionView/ApplyConnections/ENTER] " +
-            $"connectionCount={connectedRightIndexByLeft.Count} lineVisualCount={connectionLineVisuals.Count}",
-            this);
-
         int count = Mathf.Min(connectionLineVisuals.Count, connectedRightIndexByLeft.Count);
 
         for (int leftIndex = 0; leftIndex < count; leftIndex++)
         {
             Transform line = connectionLineVisuals[leftIndex];
-            int rightIndex = connectedRightIndexByLeft[leftIndex];
-
-            Debug.Log(
-                $"[WireConnectionView/ApplyConnections/PAIR] " +
-                $"leftIndex={leftIndex} rightIndex={rightIndex} line={(line != null ? line.name : "null")}",
-                this);
-
             if (line == null)
                 continue;
 
+            int rightIndex = connectedRightIndexByLeft[leftIndex];
             if (rightIndex < 0 || rightIndex >= rightSocketPoints.Count)
             {
-                Debug.LogWarning(
-                    $"[WireConnectionView/ApplyConnections/HIDE] reason=InvalidRightIndex leftIndex={leftIndex} rightIndex={rightIndex}",
-                    this);
                 line.gameObject.SetActive(false);
                 continue;
             }
 
             if (leftIndex >= leftSocketPoints.Count || leftSocketPoints[leftIndex] == null || rightSocketPoints[rightIndex] == null)
             {
-                Debug.LogWarning(
-                    $"[WireConnectionView/ApplyConnections/HIDE] reason=MissingPoint leftIndex={leftIndex} rightIndex={rightIndex}",
-                    this);
                 line.gameObject.SetActive(false);
                 continue;
             }
@@ -200,20 +107,11 @@ public class WireConnectionView : MonoBehaviour
 
             if (distance <= 0.0001f)
             {
-                Debug.LogWarning(
-                    $"[WireConnectionView/ApplyConnections/HIDE] reason=TooShort leftIndex={leftIndex} rightIndex={rightIndex}",
-                    this);
                 line.gameObject.SetActive(false);
                 continue;
             }
 
             line.gameObject.SetActive(true);
-
-            Debug.Log(
-                $"[WireConnectionView/ApplyConnections/SHOW] " +
-                $"leftIndex={leftIndex} rightIndex={rightIndex} distance={distance}",
-                this);
-
             line.position = (start + end) * 0.5f;
             line.rotation = Quaternion.FromToRotation(cylinderAxis, dir.normalized);
 
@@ -224,6 +122,8 @@ public class WireConnectionView : MonoBehaviour
             line.localScale = scale;
         }
     }
+
+
 
     /// <summary>
     /// 모든 선택 하이라이트 OFF
