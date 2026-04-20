@@ -106,8 +106,8 @@ public class ItemObject : NetworkBehaviour, IInteractable
         return true;
     }
 
-    /// <summary>
-    /// 아이템 상호작용이 성립하면 서버가 플레이어 오른손 장착을 시도한다.
+    //// <summary>
+    /// 아이템 상호작용이 성립하면 서버가 플레이어의 적절한 손(왼손/오른손)에 장착을 시도한다.
     /// </summary>
     public virtual void Interact(PlayerController actor)
     {
@@ -119,7 +119,16 @@ public class ItemObject : NetworkBehaviour, IInteractable
 
         // 상호작용 시 외곽선 효과 정리
         LoseFocus();
-        actor.ServerTryPickupRightHand(this);
+
+        // 🛠️ [회로 수리] 역할 아이템은 왼손, 일반 아이템은 오른손으로 배선 분기!
+        if (NetIsRoleItem)
+        {
+            actor.ServerTryPickupLeftHand(this);
+        }
+        else
+        {
+            actor.ServerTryPickupRightHand(this);
+        }
     }
 
     /// <summary>
@@ -227,6 +236,12 @@ public class ItemObject : NetworkBehaviour, IInteractable
                 if (_colliders[i].enabled != shouldEnable)
                     _colliders[i].enabled = shouldEnable;
             }
+        }
+        // 레이어 동기화
+        if (!equipped)
+        {
+            // 바닥에 떨어졌을 때: '모든 클라이언트'가 원래 레이어로 복구!
+            SetLayerRecursively(gameObject, _initialLayer);
         }
     }
 

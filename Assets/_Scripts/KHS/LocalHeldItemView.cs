@@ -43,6 +43,10 @@ public class LocalHeldItemView : MonoBehaviour
             ref _currentLeftViewModel,
             leftHandAnchor
         );
+
+        // [추가된 회로] 3. 생성된 1인칭 뷰모델과 네트워크 본체의 실시간 상태 동기화
+        SyncViewModelState(_lastLeftItem, _currentLeftViewModel);
+        SyncViewModelState(_lastRightItem, _currentRightViewModel);
     }
 
     /// <summary>
@@ -87,6 +91,26 @@ public class LocalHeldItemView : MonoBehaviour
 
         // 5. 모든 부속 부품을 'ViewModel' 레이어로 변경하여 오버레이 카메라에만 노출
         SetLayerRecursively(currentViewModel, LayerMask.NameToLayer(ViewModelLayer));
+    }
+
+    /// <summary>
+    /// [추가된 모듈] 네트워크 아이템 본체의 상태를 1인칭 뷰모델(복제품)에 실시간으로 복사한다.
+    /// </summary>
+    private void SyncViewModelState(ItemObject networkedItem, GameObject viewModel)
+    {
+        if (networkedItem == null || viewModel == null) return;
+
+        // 무전기(WalkieTalkieItem)일 경우 LED 상태 동기화
+        if (networkedItem.TryGetComponent(out WalkieTalkieItem walkieNet))
+        {
+            WalkieMeterialController viewMaterial = viewModel.GetComponentInChildren<WalkieMeterialController>();
+
+            if (viewMaterial != null)
+            {
+                // 기공사 참고: WalkieTalkieItem 스크립트 안에 있는 무전기 상태 변수 이름(NetWalkieState)에 맞게 연결해 줘!
+                viewMaterial.SetWalkieState(walkieNet.NetWalkieState);
+            }
+        }
     }
 
     private void SetLayerRecursively(GameObject obj, int newLayer)
