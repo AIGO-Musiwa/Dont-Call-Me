@@ -56,6 +56,8 @@ public class WireConnectionPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
     public override void Spawned()
     {
+        base.Spawned();
+
         SyncCachedConnectionsFromNetwork();
         RefreshAllViews();
     }

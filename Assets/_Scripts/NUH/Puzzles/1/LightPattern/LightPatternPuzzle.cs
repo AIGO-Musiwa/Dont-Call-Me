@@ -56,6 +56,8 @@ public class LightPatternPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
     public override void Spawned()
     {
+        base.Spawned();
+
         // 스폰 시 현재 네트워크 상태 기준으로 뷰 초기화
         ApplySolvedPresentation();
     }
