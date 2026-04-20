@@ -18,7 +18,8 @@ public class ItemObject : NetworkBehaviour, IInteractable
     public Vector3 ViewRotationOffset => viewRotationOffset;
 
     [Header("시각 효과")]
-    [SerializeField] protected MonoBehaviour outlineComponent; // 외곽선 스크립트 참조
+    // 🛠️ [수리] MonoBehaviour에서 ItemOutlineController 규격으로 변경
+    [SerializeField] protected ItemOutlineController outlineComponent; // 외곽선 스크립트 참조
 
     [Networked] public ItemType NetItemType { get; private set; }
     [Networked] public NetworkBool NetIsRoleItem { get; private set; }
@@ -28,6 +29,9 @@ public class ItemObject : NetworkBehaviour, IInteractable
     protected Collider[] _colliders;
     protected Rigidbody _rigidbody;
     private int _initialLayer; // [추가] 초기 레이어 저장용
+
+    // 🛠️ [신규 부품] 레이어 무한 덮어쓰기 방지용 메모리
+    private bool _wasEquipped = false;
 
     /// <summary>
     /// 아이템의 Collider / Rigidbody 참조를 캐싱한다.
@@ -40,8 +44,8 @@ public class ItemObject : NetworkBehaviour, IInteractable
         // [추가] 스폰 전 초기 레이어를 기억 (보통 Default)
         _initialLayer = gameObject.layer;
 
-        // 초기화 시 외곽선 비활성화
-        if (outlineComponent != null) outlineComponent.enabled = false;
+        // 🛠️ [수리] 초기화 시 외곽선 비활성화 (전용 함수 사용)
+        if (outlineComponent != null) outlineComponent.SetOutline(false);
     }
 
     /// <summary>
@@ -57,6 +61,8 @@ public class ItemObject : NetworkBehaviour, IInteractable
             NetCurrentHolder = PlayerRef.None;
         }
 
+        // 🛠️ [추가] 스폰 시점의 상태를 메모리에 기록
+        _wasEquipped = NetIsEquipped;
         ApplyPresentationState();
     }
 
@@ -73,8 +79,9 @@ public class ItemObject : NetworkBehaviour, IInteractable
     /// </summary>
     public virtual void OnFocus()
     {
+        // 🛠️ [수리] 외곽선 활성화 (전용 함수 사용)
         if (outlineComponent != null && !NetIsEquipped)
-            outlineComponent.enabled = true;
+            outlineComponent.SetOutline(true);
     }
 
     /// <summary>
@@ -82,8 +89,9 @@ public class ItemObject : NetworkBehaviour, IInteractable
     /// </summary>
     public virtual void LoseFocus()
     {
+        // 🛠️ [수리] 외곽선 비활성화 (전용 함수 사용)
         if (outlineComponent != null)
-            outlineComponent.enabled = false;
+            outlineComponent.SetOutline(false);
     }
 
     /// <summary>
@@ -106,27 +114,38 @@ public class ItemObject : NetworkBehaviour, IInteractable
         return true;
     }
 
-    //// <summary>
-    /// 아이템 상호작용이 성립하면 서버가 플레이어의 적절한 손(왼손/오른손)에 장착을 시도한다.
+    /// <summary>
+    /// 아이템 상호작용 시, 내 직업 장비인지 판별하여 왼손/오른손으로 분기한다.
     /// </summary>
     public virtual void Interact(PlayerController actor)
     {
-        if (!HasStateAuthority)
+        if (!HasStateAuthority || !CanInteract(actor))
             return;
 
-        if (!CanInteract(actor))
-            return;
-
-        // 상호작용 시 외곽선 효과 정리
         LoseFocus();
 
-        // 🛠️ [회로 수리] 역할 아이템은 왼손, 일반 아이템은 오른손으로 배선 분기!
+        // 1. [직업 대조 회로] 이 아이템이 '나의' 전용 장비인지 확인
+        bool isMyProfessionalGear = false;
+
         if (NetIsRoleItem)
         {
+            // 플레이어의 직업과 이 아이템의 규격이 일치하는지 검사
+            // (기공사의 Enum 명칭에 맞춰서 수정해줘!)
+            if (actor.NetPlayerRole == PlayerRole.Flashlight && NetItemType == ItemType.Flashlight)
+                isMyProfessionalGear = true;
+            else if (actor.NetPlayerRole == PlayerRole.WalkieTalkie && NetItemType == ItemType.WalkieTalkie)
+                isMyProfessionalGear = true;
+        }
+
+        // 2. [출력단 분기] 대조 결과에 따라 전송 포트 결정
+        if (isMyProfessionalGear)
+        {
+            // 내 직업 템이면 왼손으로 (강제 결속)
             actor.ServerTryPickupLeftHand(this);
         }
         else
         {
+            // 내 직업 템이 아니면(타 직업 템 포함) 무조건 오른손으로
             actor.ServerTryPickupRightHand(this);
         }
     }
@@ -159,8 +178,8 @@ public class ItemObject : NetworkBehaviour, IInteractable
         NetIsEquipped = true;
         NetCurrentHolder = holder.Object.InputAuthority;
 
-        // 장착 시 외곽선 강제 종료
-        if (outlineComponent != null) outlineComponent.enabled = false;
+        // 🛠️ [수리] 장착 시 외곽선 강제 종료 (전용 함수 사용)
+        if (outlineComponent != null) outlineComponent.SetOutline(false);
 
         ApplyPresentationState();
     }
@@ -244,12 +263,15 @@ public class ItemObject : NetworkBehaviour, IInteractable
             }
         }
 
-        // 레이어 동기화
-        if (!equipped)
+        // 🛠️ [핵심 수리] 레이어 동기화 (무한 덮어쓰기 방지)
+        if (!equipped && _wasEquipped)
         {
             // 바닥에 떨어졌을 때: '모든 클라이언트'가 원래 레이어로 복구!
             SetLayerRecursively(gameObject, _initialLayer);
         }
+
+        // 🛠️ [추가] 상태 메모리 갱신
+        _wasEquipped = equipped;
     }
 
     // [추가] 레이어 일괄 변경용 보조 함수

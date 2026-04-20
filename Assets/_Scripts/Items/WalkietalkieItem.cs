@@ -17,7 +17,7 @@ public class WalkieTalkieItem : ItemObject
     [Networked, OnChangedRender(nameof(OnZoneAssigned))]
     public Zone NetZone { get; set; }       // 무전기가 속한 구역
     [Networked, OnChangedRender(nameof(OnWalkieStateChanged))]
-    public WalkieState NetWalkieState {  get; set; }
+    public WalkieState NetWalkieState { get; set; }
 
     // 송신자 구역 플레이어 AudioSource 캐시
     private readonly List<AudioSource> senderZoneAudioSources = new();
@@ -56,6 +56,9 @@ public class WalkieTalkieItem : ItemObject
 
     private void Update()
     {
+        // 🛠️ [안전 차단기 추가] 퓨전 네트워크 전원이 들어오기 전에는 볼륨 조절 모터 가동 중지!
+        if (Object == null || !Object.IsValid) return;
+
         UpdateWalkieVoiceVolume();
     }
 
@@ -107,7 +110,7 @@ public class WalkieTalkieItem : ItemObject
     // 화이트 노이즈 재생 여부를 현재 상태 + 근접 여부로 결정
     public void UpdateWhiteNoise()
     {
-        if ( NetWalkieState != WalkieState.RX)
+        if (NetWalkieState != WalkieState.RX)
         {
             StopWhiteNoise();
             return;
@@ -190,7 +193,7 @@ public class WalkieTalkieItem : ItemObject
         PlayerRef activeSender = WalkieTalkieManager.Instance?.GetActiveSender() ?? PlayerRef.None;
         if (activeSender == PlayerRef.None)
         {
-            foreach(var audioSource in senderZoneAudioSources)
+            foreach (var audioSource in senderZoneAudioSources)
             {
                 if (audioSource != null) audioSource.volume = 1f;
             }
@@ -207,7 +210,7 @@ public class WalkieTalkieItem : ItemObject
         float volume = dist >= Constants.WALKIE_RANGE
             ? 0f
             : Mathf.Clamp01(walkieVoiceMinDistance / Mathf.Max(dist, walkieVoiceMinDistance));
-        
+
         foreach (var audioSource in senderZoneAudioSources)
         {
             if (audioSource != null) audioSource.volume = volume;
