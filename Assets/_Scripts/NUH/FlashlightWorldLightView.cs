@@ -17,6 +17,12 @@ public class FlashlightWorldLightView : MonoBehaviour
 
     private void LateUpdate()
     {
+        // 🛠️ [안전 차단기] 대상 아이템이 아직 네트워크에 소환되지 않았다면 모터 가동 중지!
+        // (참고: ownerItem 변수 이름은 기공사가 선언한 변수명에 맞게 수정해 줘)
+        if (ownerItem == null || ownerItem.Object == null || !ownerItem.Object.IsValid)
+            return;
+
+        // 전원이 확실히 들어왔을 때만 상태 갱신
         RefreshWorldLightState();
     }
 
