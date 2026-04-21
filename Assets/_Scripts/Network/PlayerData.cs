@@ -12,6 +12,7 @@ public class PlayerData : NetworkBehaviour
     [Networked] public NetworkBool HasReturnedToLobby { get; set; }     // 로비로 복귀 했는지 확인
     [Networked] public NetworkBool IsHost {  get; set; }                // 호스트인지 확인
     [Networked] public NetworkBool IsReviewingResult {  get; set; }     // 결과 화면을 보고 있는 중인지 여부
+    [Networked] public PlayerState FinalPlayerState { get; set; }       // 마지막 플레이어 상태
 
     // ── 게임 전용 ────────────────────────────────────────
     [Networked] public NetworkId PlayerControllerNetId { get; set; }

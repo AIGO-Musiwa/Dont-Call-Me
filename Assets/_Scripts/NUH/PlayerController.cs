@@ -905,6 +905,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return;
 
         NetPlayerState = PlayerState.Dead;
+        SaveFinalPlayerState(PlayerState.Dead);
 
         // 사망 로그 추가
         GameEventLogger.Instance?.LogDead(GetNickname(), GetSlotIndex());
@@ -924,6 +925,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return;
 
         NetPlayerState = PlayerState.Escaped;
+        SaveFinalPlayerState(PlayerState.Escaped);
 
         // 탈출 로그 추가
         GameEventLogger.Instance?.LogEscaped(GetNickname(), GetSlotIndex());
@@ -1081,6 +1083,12 @@ public class PlayerController : NetworkBehaviour, IInteractable
     {
         var data = Runner.GetPlayerObject(Object.InputAuthority)?.GetComponent<PlayerData>();
         return data != null ? data.SlotIndex : -1;
+    }
+
+    private void SaveFinalPlayerState(PlayerState state)
+    {
+        var data = Runner.GetPlayerObject(Object.InputAuthority)?.GetComponent<PlayerData>();
+        if (data != null) data.FinalPlayerState = state;
     }
 
     private Vector3 GetServerInteractionOrigin()

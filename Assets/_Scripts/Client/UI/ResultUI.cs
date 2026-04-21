@@ -75,7 +75,7 @@ public class ResultUI : MonoBehaviour
                     var data = runner.GetPlayerObject(player)?.GetComponent<PlayerData>();
                     if (data != null && data.SlotIndex == result.SlotIndex)
                     {
-                        isHost = runner.GetPlayerObject(player)?.InputAuthority == runner.LocalPlayer && runner.IsServer;
+                        isHost = data.IsHost;
                         break;
                     }
                 }

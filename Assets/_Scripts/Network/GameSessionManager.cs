@@ -1,7 +1,5 @@
 using Fusion;
-using NUnit.Framework;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -182,7 +180,7 @@ public class GameSessionManager : NetworkBehaviour
             {
                 Nickname = data.Nickname.ToString(),
                 SlotIndex = data.SlotIndex,
-                FinalState = pc != null ? pc.NetPlayerState : PlayerState.Dead,
+                FinalState = data.FinalPlayerState,
                 IsLocalPlayer = data.SlotIndex == localSlot
             });
         }

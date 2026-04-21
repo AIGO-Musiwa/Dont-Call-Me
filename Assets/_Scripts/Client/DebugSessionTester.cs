@@ -55,7 +55,12 @@ public class DebugSessionTester : MonoBehaviour
         var controllers = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
         foreach (var pc in controllers)
         {
-            pc.NetPlayerState = state;
+            if (state == PlayerState.Dead)
+                pc.ServerEnterDead();
+            else if (state == PlayerState.Escaped)
+                pc.ServerEnterEscaped();
+            else
+                pc.NetPlayerState = state;
         }
 
         Debug.Log($"[DebugSessionTester] 전원 → {state} | 대상 수: {controllers.Length}");
@@ -68,7 +73,7 @@ public class DebugSessionTester : MonoBehaviour
         {
             if (pc.HasInputAuthority)
             {
-                pc.Rpc_DebugSetState(state); // ★ RPC로 Host에게 요청
+                pc.Rpc_DebugSetState(state);    // RPC로 Host에게 요청
                 Debug.Log($"[DebugSessionTester] 로컬 플레이어 → {state}");
                 return;
             }
@@ -82,7 +87,14 @@ public class DebugSessionTester : MonoBehaviour
         foreach (var pc in controllers)
         {
             if (pc.HasStateAuthority && pc.NetZone == zone)
-                pc.NetPlayerState = state;
+            {
+                if (state == PlayerState.Dead)
+                    pc.ServerEnterDead();
+                else if (state == PlayerState.Escaped)
+                    pc.ServerEnterEscaped();
+                else
+                    pc.NetPlayerState = state;
+            }
         }
         Debug.Log($"[DebugSessionTester] {zone} 전원 → {state}");
     }
