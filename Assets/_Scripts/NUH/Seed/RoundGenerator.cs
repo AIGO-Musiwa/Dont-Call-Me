@@ -8,9 +8,9 @@ using UnityEngine;
 /// </summary>
 public static class RoundGenerator
 {
-    private const int PuzzleSeedSalt = 1001;        // 퍼즐 생성용 파생 시드 salt
-    private const int PlayerSeedSalt = 2001;        // 플레이어 배정용 파생 시드 salt
-    private const int AnswerSeedSalt = 3001;        // 퍼즐 정답용 파생 시드 salt
+    private const int PuzzleSeedSalt = 1001;
+    private const int PlayerSeedSalt = 2001;
+    private const int AnswerSeedSalt = 3001;
 
     /// <summary>
     /// 퍼즐/힌트 배치 결과 생성
@@ -55,9 +55,9 @@ public static class RoundGenerator
         SeedRandom rng = new(roundSeed + PlayerSeedSalt);
 
         List<int> copiedSlots = new(orderedSlotIndices);
-        copiedSlots.Sort();         // 입력 순서를 고정
+        copiedSlots.Sort();
 
-        rng.Shuffle(copiedSlots);   // 같은 시드면 같은 셔플 결과
+        rng.Shuffle(copiedSlots);
 
         for (int i = 0; i < copiedSlots.Count; i++)
         {
@@ -72,7 +72,6 @@ public static class RoundGenerator
                 SlotIndex = slotIndex,
                 Zone = zone,
                 Role = role
-
             });
         }
 
@@ -94,7 +93,7 @@ public static class RoundGenerator
 
     /// <summary>
     /// 특정 존/단계의 퍼즐 계획을 결과에 추가
-    /// 슬롯 배치와 정답 시드를 같이 계산
+    /// 퍼즐 1개에 연결된 힌트 여러 개까지 같이 계산한다.
     /// </summary>
     private static void AddZonePlans(
         RoundGenerationResult result,
@@ -105,37 +104,70 @@ public static class RoundGenerator
         int puzzleSlotCount,
         int hintSlotCount)
     {
-        int spawnCount = Mathf.Min(definitions.Count, puzzleSlotCount, hintSlotCount);
-
         List<int> puzzleSlotIndices = Enumerable.Range(0, puzzleSlotCount).ToList();
         List<int> hintSlotIndices = Enumerable.Range(0, hintSlotCount).ToList();
 
         rng.Shuffle(puzzleSlotIndices);
         rng.Shuffle(hintSlotIndices);
 
-        for(int i = 0; i < spawnCount; i++)
+        int puzzleCursor = 0;
+        int hintCursor = 0;
+        int localIndex = 0;
+
+        for (int i = 0; i < definitions.Count; i++)
         {
             PuzzleDefinition def = definitions[i];
             if (def == null)
                 continue;
 
-            int answerSeed = BuildAnswerSeed(result.RoundSeed, zone, stage, i);
+            if (puzzleCursor >= puzzleSlotIndices.Count)
+                break;
 
-            result.PuzzlePlans.Add(new RoundGenerationResult.PuzzleSpawnPlan
+            int requiredHintCount = def.HintCount;
+
+            // 힌트 슬롯이 부족하면 이 퍼즐은 스킵
+            if (hintCursor + requiredHintCount > hintSlotIndices.Count)
+                continue;
+
+            int answerSeed = BuildAnswerSeed(result.RoundSeed, zone, stage, localIndex);
+
+            RoundGenerationResult.PuzzleSpawnPlan puzzlePlan = new RoundGenerationResult.PuzzleSpawnPlan
             {
                 Definition = def,
                 Zone = zone,
                 Stage = stage,
-                PuzzleSlotIndex = puzzleSlotIndices[i],
-                HintSlotIndex = hintSlotIndices[i],
+                PuzzleSlotIndex = puzzleSlotIndices[puzzleCursor],
                 AnswerSeed = answerSeed
-            });
+            };
+
+            puzzleCursor++;
+            localIndex++;
+
+            for (int hintIndex = 0; hintIndex < def.HintDefinitions.Count; hintIndex++)
+            {
+                PuzzleDefinition.HintDefinition hintDef = def.HintDefinitions[hintIndex];
+                if (hintDef == null || hintDef.HintPrefab == null)
+                    continue;
+
+                puzzlePlan.HintPlans.Add(new RoundGenerationResult.HintSpawnPlan
+                {
+                    HintId = hintDef.HintId,
+                    HintPrefab = hintDef.HintPrefab,
+                    HintSlotIndex = hintSlotIndices[hintCursor],
+                    HintPositionOffset = hintDef.HintPositionOffset,
+                    HintRotationOffset = hintDef.HintRotationOffset
+                });
+
+                hintCursor++;
+            }
+
+            result.PuzzlePlans.Add(puzzlePlan);
         }
     }
 
     /// <summary>
     /// 퍼즐별 정답 생성용 파생 시드 생성
-    /// 같은 판/ 같은 퍼즐 위치면 같은 정답 시드를 보장
+    /// 같은 판 / 같은 존 / 같은 단계 / 같은 로컬 인덱스면 같은 정답 시드를 보장
     /// </summary>
     private static int BuildAnswerSeed(int roundSeed, Zone zone, PuzzleStage stage, int localIndex)
     {
