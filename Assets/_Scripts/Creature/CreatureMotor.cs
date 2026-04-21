@@ -14,6 +14,9 @@ public class CreatureMotor : MonoBehaviour
     private List<Transform> allWaypoints = new List<Transform>();
     private int currentWaypointIndex = 0;
 
+    //길이 막혀 영원히 서 있는 것을 방지하기 위한 타이머
+    private float patrolStuckTimer = 0f;
+
     public void Initialize()
     {
         //네브메시 에이전트 초기화
@@ -66,8 +69,13 @@ public class CreatureMotor : MonoBehaviour
         //네브메시 위에 없거나 웨이포인트가 부족하면 실행 안 함
         if (!agent.isOnNavMesh || allWaypoints.Count <= 1) return;
 
-        //경로가 없거나 목적지에 거의 도착했을 경우 새로운 목적지 설정
-        if (!agent.hasPath || agent.remainingDistance < 0.5f)
+        //순찰 중 경로가 막혀 2초 이상 제자리 걸음인지 체크
+        bool isNotMoving = agent.velocity.sqrMagnitude < 0.1f && !agent.pathPending;
+        if (isNotMoving) patrolStuckTimer += Time.deltaTime;
+        else patrolStuckTimer = 0f;
+
+        //경로가 없거나 목적지에 거의 도착했을 경우, 또는 막혀서 2.0초가 지났을 때 새로운 목적지 설정
+        if (!agent.hasPath || agent.remainingDistance < 0.5f || patrolStuckTimer > 2.0f)
         {
             int nextIndex = currentWaypointIndex;
             //현재 위치와 다른 새로운 목적지를 랜덤으로 설정

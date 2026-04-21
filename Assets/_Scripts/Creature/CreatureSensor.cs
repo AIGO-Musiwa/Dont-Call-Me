@@ -11,17 +11,24 @@ public class CreatureSensor : MonoBehaviour
 
     [Header("소리 및 코스트 설정")]
     public float alertThresholdDB = 18f;
-    public float criticalThresholdDB = 28f;
-    public float touchCaptureRange = 0.8f;      //몸통 박치기 판정 거리
+    public float criticalThresholdDB = 28f;    
+
+    [Header("사운드 차페 설정")]
+    public LayerMask soundObstacleMask;
+    public float penaltyThickWall = 15f;        //두꺼운 벽, 층간 바닥/천장 (기본값)
+    public float penaltyThinWall = 8f;          //얇은 벽
+    public float penaltyClosedDoor = 3f;        //닫힌 문
+    public float penaltyOpenDoor = 1f;          //열린 문
 
     [Header("포획 판정 설정")]
     public float captureRange = 2.0f;
     public float captureAngle = 90.0f;
+    public float touchCaptureRange = 0.8f;      //몸통 박치기 판정 거리
 
     [Header("은신 발각 설정")]
     public float cabinetDetectRange = 1.5f;
     public float deskDetectRange = 1.2f;
-
+   
     public float CalculatePerceivedDb(float voicedB, float distance, float obstaclePenalty)
     {
         //거리가 1m 미만일 때 log 값이 음수가 되는 방지하기 위해 최소 1f 적용
@@ -29,6 +36,34 @@ public class CreatureSensor : MonoBehaviour
         float perceivedDb = voicedB - distanceDrop - obstaclePenalty;
 
         return perceivedDb;
+    }
+
+    public float CalculateDynamicSoundPenalty(Vector3 sourcePos)
+    {
+        Vector3 earPos = transform.position + Vector3.up * eyeHeight;
+        Vector3 dir = (earPos - sourcePos).normalized;
+        float dist = Vector3.Distance(sourcePos, earPos);
+
+        //RaycastAll을 사용하여 소리가 뚫고 지나온 "모든" 물체를 꿰뚫어 검사
+        RaycastHit[] hits = Physics.RaycastAll(sourcePos, dir, dist, soundObstacleMask, QueryTriggerInteraction.Collide);
+
+        float totalPenalty = 0f;
+
+        foreach (RaycastHit hit in hits)
+        {
+            string tag = hit.collider.tag;
+
+
+            //태그에 따라 기획서의 dB 패널티를 정밀하게 누적 차감
+            if (tag == "ThinWall") totalPenalty += penaltyThinWall;
+            else if (tag == "Door_Closed") totalPenalty += penaltyClosedDoor;
+            else if (tag == "Door_Open") totalPenalty += penaltyOpenDoor;
+
+            //태그가 없는(Untagged) 일반 바닥, 천장, 외벽 등은 모두 '두꺼운 벽(-15dB)'으로 기본 취급
+            else totalPenalty += penaltyThickWall;            
+        }
+
+        return totalPenalty;
     }
 
     public bool CheckLineOfSight(Transform target)
