@@ -31466,6 +31466,7 @@ Transform:
   - {fileID: 1671836067}
   - {fileID: 331122827}
   - {fileID: 1031704363}
+  - {fileID: 1097461039}
   m_Father: {fileID: 840872497}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!43 &251464020
@@ -71578,8 +71579,11 @@ MonoBehaviour:
   - {fileID: 1927515668}
   - {fileID: 1671836068}
   - {fileID: 1031704364}
+  - {fileID: 1031704364}
   stage2PuzzleSlots: []
   stage2HintSlots: []
+  stage3PuzzleSlots: []
+  stage3HintSlots: []
 --- !u!43 &555277176
 Mesh:
   m_ObjectHideFlags: 0
@@ -92586,6 +92590,51 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 470138, guid: dc8f3955c063af240afd23143f496335, type: 3}
   m_PrefabInstance: {fileID: 265591551}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &736934128
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 736934130}
+  - component: {fileID: 736934129}
+  m_Layer: 0
+  m_Name: 4_3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &736934129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 736934128}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8013a287481084b40a00850523cba51b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HintPlacementSlot
+  slotId: 
+--- !u!4 &736934130
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 736934128}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 6.89, y: -3, z: -3.66}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 822224030}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &737064273
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -106091,6 +106140,7 @@ Transform:
   - {fileID: 1122666955}
   - {fileID: 1992235660}
   - {fileID: 904809586}
+  - {fileID: 736934130}
   m_Father: {fileID: 425709733}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &822595151
@@ -135362,8 +135412,11 @@ MonoBehaviour:
   - {fileID: 1865344479}
   - {fileID: 1122666956}
   - {fileID: 904809585}
+  - {fileID: 736934129}
   stage2PuzzleSlots: []
   stage2HintSlots: []
+  stage3PuzzleSlots: []
+  stage3HintSlots: []
 --- !u!1 &1072421723
 GameObject:
   m_ObjectHideFlags: 0
@@ -138683,6 +138736,51 @@ Transform:
   - {fileID: 161995889}
   m_Father: {fileID: 1622000119}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1097461038
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1097461039}
+  - component: {fileID: 1097461040}
+  m_Layer: 0
+  m_Name: 4_3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1097461039
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1097461038}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.09, y: -3, z: -7.6}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 249793110}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1097461040
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1097461038}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8013a287481084b40a00850523cba51b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HintPlacementSlot
+  slotId: 
 --- !u!43 &1097684753
 Mesh:
   m_ObjectHideFlags: 0
@@ -141818,7 +141916,7 @@ Transform:
   m_GameObject: {fileID: 1122666954}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1, y: -3, z: -1}
+  m_LocalPosition: {x: -1.69, y: -0.98, z: -11.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -219117,7 +219215,7 @@ Transform:
   m_GameObject: {fileID: 1671836066}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1, y: -3, z: -1}
+  m_LocalPosition: {x: 6.45, y: -3, z: -8.91}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

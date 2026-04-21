@@ -14,33 +14,30 @@ public static class NumericCodeAnswerGenerator
     /// 퍼즐 본체 / 모니터 / 월드 힌트 세트가 공용으로 사용
     /// </summary>
     [Serializable]
-    public class NumericCodeAnswerData 
+    public class NumericCodeAnswerData
     {
         public readonly List<int> FinalDigits = new();                              // 최종 4자리 정답
         public readonly List<NumericHintType> HintOrder = new();                    // 상단 힌트 sprite 순서
         public readonly List<NumericBookColor> BookPlacement = new();               // 20권 책 각각의 색 배치
         public readonly Dictionary<NumericBookColor, int> BookColorCounts = new();  // 색별 책 개수
+        public readonly List<int> MarkedFrameIndices = new();                       // X 표시 액자 인덱스
 
-        public NumericBookColor TargetBookColor;    // 어떤 색의 책을 몇개 세야 하는지
-        public int ClockHour;                       // 시계 숫자 
+        public NumericBookColor TargetBookColor;    // 어떤 색의 책을 세야 하는지
+        public int ClockHour;                       // 시계 숫자
         public int OpenedDrawerCount;               // 열린 서랍 수
-        public int MarkedFrameCount;                // X 액자 수 
+        public int MarkedFrameCount;                // X 액자 수
 
-        /// <summary>
-        /// 최종 4자리 숫자를 문자열로 반환
-        /// 디버그 로그 확인용
-        /// </summary>
         public string GetFinalCodeString()
         {
             return string.Join(string.Empty, FinalDigits);
         }
     }
 
-    private const int TotalDigidCount = 4;      // 최종 입력 자릿수
-    private const int TotalBookCount = 20;      // 총 책 수
-    private const int TotalFrameCount = 9;      // 총 액자 수
-    private const int MinSingleDigit = 1;       // 한 자리 숫자 최소값
-    private const int MaxSingleDigit = 9;       // 한 자리 숫자 최대값
+    private const int TotalDigitCount = 4;
+    private const int TotalBookCount = 20;
+    private const int TotalFrameCount = 9;
+    private const int MinSingleDigit = 1;
+    private const int MaxSingleDigit = 9;
 
     /// <summary>
     /// seed 로 이번 퍼즐 전체 정답 데이터 생성
@@ -50,19 +47,22 @@ public static class NumericCodeAnswerGenerator
         SeedRandom rng = new SeedRandom(seed);
         NumericCodeAnswerData data = new NumericCodeAnswerData();
 
-        // 1. 모니터 상단에 배치될 힌트 순서를 결정
+        // 1. 상단 힌트 순서 생성
         BuildHintOrder(rng, data);
 
-        // 2. 각 힌트 오브젝트가 가질 실제 숫자값 결정
+        // 2. 각 힌트 타입의 실제 숫자값 생성
         data.ClockHour = BuildClockHour(rng);
         data.OpenedDrawerCount = BuildOpenedDrawerCount(rng);
         data.MarkedFrameCount = BuildMarkedFrameCount(rng);
 
-        // 3. 책 관련 데이터 결정
+        // 3. 책 관련 데이터 생성
         data.TargetBookColor = BuildTargetBookColor(rng);
         BuildBookData(rng, data);
 
-        // 4. 힌트 순서에 맞춰 최종 4자리 정답 구성
+        // 4. 액자 인덱스 생성
+        BuildMarkedFrameIndices(rng, data);
+
+        // 5. 힌트 순서 기준 최종 4자리 정답 조합
         ComposeFinalDigits(data);
 
         return data;
@@ -73,7 +73,7 @@ public static class NumericCodeAnswerGenerator
     /// </summary>
     private static void BuildHintOrder(SeedRandom rng, NumericCodeAnswerData data)
     {
-        List<NumericHintType> order = new list<NumericHintType>
+        List<NumericHintType> order = new List<NumericHintType>(TotalDigitCount)
         {
             NumericHintType.Clock,
             NumericHintType.Drawer,
@@ -96,6 +96,8 @@ public static class NumericCodeAnswerGenerator
 
     /// <summary>
     /// 열린 서랍 수 생성
+    /// 실제 어떤 서랍이 열릴지는 DrawerHintDisplay가
+    /// 현재 프리팹의 실제 drawers.Count를 기준으로 seed 랜덤 선택한다.
     /// </summary>
     private static int BuildOpenedDrawerCount(SeedRandom rng)
     {
@@ -104,7 +106,7 @@ public static class NumericCodeAnswerGenerator
 
     /// <summary>
     /// X 표시 액자 수 생성
-    /// 액자 총 수는  9개이므로 1~9 범위 안에서 생성
+    /// 액자 총 수는 9개이므로 1~9 범위 안에서 생성
     /// </summary>
     private static int BuildMarkedFrameCount(SeedRandom rng)
     {
@@ -112,7 +114,7 @@ public static class NumericCodeAnswerGenerator
     }
 
     /// <summary>
-    /// 세야 할 책 색을 하나 고르기
+    /// 세야 할 책 색 하나 선택
     /// </summary>
     private static NumericBookColor BuildTargetBookColor(SeedRandom rng)
     {
@@ -121,7 +123,7 @@ public static class NumericCodeAnswerGenerator
     }
 
     /// <summary>
-    /// 책 20권의 색 분포와 실제 배치 순서를 만들기
+    /// 책 20권의 색 분포와 실제 배치 순서를 생성
     /// 규칙:
     /// - 총 20권
     /// - 4색
@@ -142,28 +144,20 @@ public static class NumericCodeAnswerGenerator
             NumericBookColor.Yellow
         };
 
-
-        // 타겟 색 개수를 먼저 한 자리 수로 정하기
         int targetCount = rng.NextInt(MinSingleDigit, MaxSingleDigit + 1);
 
-        // 나머지 3색에 최소 1권씩 배정한 뒤, 남은 수 분배
         Dictionary<NumericBookColor, int> counts = new Dictionary<NumericBookColor, int>();
-
         for (int i = 0; i < allColors.Length; i++)
             counts[allColors[i]] = 1;
 
-        // 타겟 색은 원하는 숫자로 덮어쓴다
         counts[data.TargetBookColor] = targetCount;
 
-        // 현재까지 배정된 총합 계산
         int currentTotal = 0;
         for (int i = 0; i < allColors.Length; i++)
             currentTotal += counts[allColors[i]];
 
-        // 남은 책 수 계산
         int remain = TotalBookCount - currentTotal;
 
-        // 타겟이 아닌 3색 목록
         List<NumericBookColor> otherColors = new List<NumericBookColor>();
         for (int i = 0; i < allColors.Length; i++)
         {
@@ -173,12 +167,9 @@ public static class NumericCodeAnswerGenerator
             otherColors.Add(allColors[i]);
         }
 
-        // 남은 책을 3색에 나눠 담기
-        // 각 색 최대 9권 넘지 않게 하기
         while (remain > 0)
         {
             List<NumericBookColor> candidates = new List<NumericBookColor>();
-
             for (int i = 0; i < otherColors.Count; i++)
             {
                 NumericBookColor color = otherColors[i];
@@ -186,7 +177,6 @@ public static class NumericCodeAnswerGenerator
                     candidates.Add(color);
             }
 
-            // 보험용
             if (candidates.Count == 0)
                 break;
 
@@ -196,17 +186,13 @@ public static class NumericCodeAnswerGenerator
             remain -= 1;
         }
 
-        // counts 결과를 최종 데이터에 복사
         for (int i = 0; i < allColors.Length; i++)
         {
             NumericBookColor color = allColors[i];
             data.BookColorCounts[color] = counts[color];
         }
 
-        // 책 20권의 실제 색 배치를 만들기
-        // 매터리얼만 갈아끼우므로 20칸짜리 색 리스트 만들어서 섞기
         List<NumericBookColor> placement = new List<NumericBookColor>(TotalBookCount);
-
         for (int i = 0; i < allColors.Length; i++)
         {
             NumericBookColor color = allColors[i];
@@ -215,18 +201,37 @@ public static class NumericCodeAnswerGenerator
             for (int j = 0; j < count; j++)
                 placement.Add(color);
         }
+
         rng.Shuffle(placement);
         data.BookPlacement.AddRange(placement);
     }
 
     /// <summary>
-    /// 힌트 순서에 맞춰 최종 4자리 숫자 조합하기
+    /// X 표시 액자 인덱스를 seed 기반으로 생성
+    /// 액자는 9개 고정이라는 기획을 전제로 한다.
+    /// </summary>
+    private static void BuildMarkedFrameIndices(SeedRandom rng, NumericCodeAnswerData data)
+    {
+        data.MarkedFrameIndices.Clear();
+
+        List<int> indices = new List<int>(TotalFrameCount);
+        for (int i = 0; i < TotalFrameCount; i++)
+            indices.Add(i);
+
+        rng.Shuffle(indices);
+
+        for (int i = 0; i < data.MarkedFrameCount; i++)
+            data.MarkedFrameIndices.Add(indices[i]);
+    }
+
+    /// <summary>
+    /// 힌트 순서에 맞춰 최종 4자리 숫자를 조합
     /// </summary>
     private static void ComposeFinalDigits(NumericCodeAnswerData data)
     {
         data.FinalDigits.Clear();
 
-        for(int i = 0; i < data.HintOrder.Count; i++)
+        for (int i = 0; i < data.HintOrder.Count; i++)
         {
             NumericHintType hintType = data.HintOrder[i];
             int digit = hintType switch
