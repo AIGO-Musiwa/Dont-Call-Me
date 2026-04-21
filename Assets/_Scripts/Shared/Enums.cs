@@ -141,6 +141,22 @@ public enum WireSocketColor
     Black = 8
 }
 
+public enum NumericHintType
+{
+    Clock = 0,
+    Drawer = 1,
+    Book = 2,
+    Frame = 3
+}
+
+public enum NumericBookColor
+{
+    Red = 0,
+    Green = 1,
+    Blue = 2,
+    Yellow = 3
+}
+
 // ── 탈출 ──────────────────────────────────────────────────
 
 // 탈출 위치
