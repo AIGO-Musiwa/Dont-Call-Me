@@ -37252,7 +37252,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerResultSlotUI
   filledGroup: {fileID: 328344509}
   nicknameText: {fileID: 1722676295}
-  stateText: {fileID: 723601193}
+  escapedImage: {fileID: 0}
+  deadImage: {fileID: 0}
 --- !u!43 &329454462
 Mesh:
   m_ObjectHideFlags: 0
@@ -50968,7 +50969,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85e76cd2210197b4f98486398c5f8b65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RescueZoneExitTrigger
-  myZone: 0
+  myZone: 1
 --- !u!65 &454197721
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -59677,7 +59678,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerResultSlotUI
   filledGroup: {fileID: 497145087}
   nicknameText: {fileID: 290942979}
-  stateText: {fileID: 2006288969}
+  escapedImage: {fileID: 0}
+  deadImage: {fileID: 0}
 --- !u!43 &497227488
 Mesh:
   m_ObjectHideFlags: 0
@@ -68714,7 +68716,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e2997af77fa5d447808a3fcd6d4edde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WalkieTalkieManager
-  walkiePickupRange: 3
 --- !u!4 &561823702
 Transform:
   m_ObjectHideFlags: 0
@@ -201258,7 +201259,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerResultSlotUI
   filledGroup: {fileID: 1609554534}
   nicknameText: {fileID: 1972534191}
-  stateText: {fileID: 772672411}
+  escapedImage: {fileID: 0}
+  deadImage: {fileID: 0}
 --- !u!43 &1610811338
 Mesh:
   m_ObjectHideFlags: 0
@@ -217643,6 +217645,75 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dc8f3955c063af240afd23143f496335, type: 3}
+--- !u!1001 &1761546926
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 633726243250805665, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -14.9482
+      objectReference: {fileID: 0}
+    - target: {fileID: 633726243250805665, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 9.597
+      objectReference: {fileID: 0}
+    - target: {fileID: 633726243250805665, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 42.15894
+      objectReference: {fileID: 0}
+    - target: {fileID: 633726243250805665, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 633726243250805665, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 633726243250805665, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 633726243250805665, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 633726243250805665, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 633726243250805665, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 633726243250805665, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1863606176079903827, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5087770689441799572, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5907772466891800655, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8883760405433385917, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
+      propertyPath: m_Name
+      value: HUD_Prefab
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
 --- !u!43 &1764462072
 Mesh:
   m_ObjectHideFlags: 0
@@ -240721,7 +240792,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerResultSlotUI
   filledGroup: {fileID: 1964560530}
   nicknameText: {fileID: 2082348170}
-  stateText: {fileID: 1562861686}
+  escapedImage: {fileID: 0}
+  deadImage: {fileID: 0}
 --- !u!43 &1966721002
 Mesh:
   m_ObjectHideFlags: 0
@@ -261782,3 +261854,4 @@ SceneRoots:
   - {fileID: 804518744}
   - {fileID: 196943988}
   - {fileID: 461540162}
+  - {fileID: 1761546926}

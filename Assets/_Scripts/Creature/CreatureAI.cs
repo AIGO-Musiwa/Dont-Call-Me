@@ -406,6 +406,19 @@ public class CreatureAI : NetworkBehaviour
                 continue;
             }
 
+            //상태나 시야각에 상관 없이 직접 닿았을 때 강제 포획
+            Vector3 myFlatPos = new Vector3(transform.position.x, 0, transform.position.z);
+            Vector3 targetFlatPos = new Vector3(p.transform.position.x, 0, p.transform.position.z);
+
+            float currentDist = Vector3.Distance(myFlatPos, targetFlatPos);
+            float currentYDiff = Mathf.Abs(transform.position.y - p.transform.position.y);
+
+            if (currentDist <= sensor.touchCaptureRange && currentYDiff <= 2.0f)
+            {
+                ExecuteCapture(p);
+                return true;
+            }
+
             //추적 중 포획 거리 내에 들어왔는지 확인 (안 숨은 상태)
             if (currentState == CreatureState.Chaser && playerTarget == p.transform)
             {
