@@ -12,6 +12,7 @@ public class CreatureSensor : MonoBehaviour
     [Header("소리 및 코스트 설정")]
     public float alertThresholdDB = 18f;
     public float criticalThresholdDB = 28f;
+    public float touchCaptureRange = 0.8f;      //몸통 박치기 판정 거리
 
     [Header("포획 판정 설정")]
     public float captureRange = 2.0f;
@@ -152,6 +153,10 @@ public class CreatureSensor : MonoBehaviour
         //포획 범위 기즈모 (반투명 빨간색 원)
         Handles.color = new Color(1f, 0f, 0f, 0.2f);
         Handles.DrawSolidDisc(transform.position, Vector3.up, captureRange);
+
+        //강제 포획 범위 기즈모 (진빨 빨간색 원)
+        Handles.color = new Color(1f, 0f, 0f, 0.4f);
+        Handles.DrawSolidDisc(transform.position, Vector3.up, touchCaptureRange);
 
         //은신 발각 범위 기즈모 (반투명 보라색 원 - 캐비닛 기준)
         Handles.color = new Color(0.5f, 0f, 0.5f, 0.2f);
