@@ -119,33 +119,36 @@ public class ItemObject : NetworkBehaviour, IInteractable
     /// </summary>
     public virtual void Interact(PlayerController actor)
     {
-        if (!HasStateAuthority || !CanInteract(actor))
+        if (!HasStateAuthority)
             return;
 
+        if (!CanInteract(actor))
+            return;
+
+        // 상호작용 시 외곽선 효과 정리
         LoseFocus();
 
-        // 1. [직업 대조 회로] 이 아이템이 '나의' 전용 장비인지 확인
+        // 🛠️ [정밀 분류 회로] 이 아이템이 '나의' 전용 장비인지 확인
         bool isMyProfessionalGear = false;
 
         if (NetIsRoleItem)
         {
-            // 플레이어의 직업과 이 아이템의 규격이 일치하는지 검사
-            // (기공사의 Enum 명칭에 맞춰서 수정해줘!)
-            if (actor.NetPlayerRole == PlayerRole.Flashlight && NetItemType == ItemType.Flashlight)
+            // 플레이어의 직업(PlayerRole)과 아이템 타입(ItemType) 대조
+            if (actor.NetPlayerRole == PlayerRole.WalkieTalkie && NetItemType == ItemType.WalkieTalkie)
                 isMyProfessionalGear = true;
-            else if (actor.NetPlayerRole == PlayerRole.WalkieTalkie && NetItemType == ItemType.WalkieTalkie)
+            else if (actor.NetPlayerRole == PlayerRole.Flashlight && NetItemType == ItemType.Flashlight)
                 isMyProfessionalGear = true;
         }
 
-        // 2. [출력단 분기] 대조 결과에 따라 전송 포트 결정
+        // 🛠️ [출력단 분기] 대조 결과에 따라 양손 컨베이어 벨트 결정
         if (isMyProfessionalGear)
         {
-            // 내 직업 템이면 왼손으로 (강제 결속)
+            // 내 직업 템이면 왼손으로 강제 결속
             actor.ServerTryPickupLeftHand(this);
         }
         else
         {
-            // 내 직업 템이 아니면(타 직업 템 포함) 무조건 오른손으로
+            // 내 직업 템이 아니면 (타 직군의 역할 템, 정문 열쇠 등 일반 템 모두) 무조건 오른손으로!
             actor.ServerTryPickupRightHand(this);
         }
     }
@@ -240,11 +243,10 @@ public class ItemObject : NetworkBehaviour, IInteractable
 
         if (_rigidbody != null)
         {
-            // 물리 엔진 가동 권한 통제
-            // 1. 장착 중(equipped)일 때는 내 손을 따라가야 하니 모두가 물리 연산 정지(true).
-            // 2. 떨어졌을 때(!equipped), 물리 연산(false)은 오직 '호스트(StateAuthority)'만 가동한다.
-            // 3. 클라이언트(프록시)들은 물리를 켜지 않고 호스트가 보내는 좌표만 수신한다.
-            bool shouldBeKinematic = equipped || !HasStateAuthority;
+            // 🛠️ [수리 완료] 강제 통제 회로 제거. 
+            // 장착 중일 때만 물리 엔진을 끄고, 떨어졌을 때는 켬!
+            // (동기화는 Fusion의 NetworkRigidbody3D가 자동으로 처리함)
+            bool shouldBeKinematic = equipped;
 
             if (_rigidbody.isKinematic != shouldBeKinematic)
                 _rigidbody.isKinematic = shouldBeKinematic;
