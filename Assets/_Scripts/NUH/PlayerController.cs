@@ -1235,7 +1235,12 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void Rpc_DebugSetState(PlayerState state)
     {
-        NetPlayerState = state;
+        if (state == PlayerState.Dead)
+            ServerEnterDead();
+        else if (state == PlayerState.Escaped)
+            ServerEnterEscaped();
+        else
+            NetPlayerState = state;
     }
     #endregion
 }
