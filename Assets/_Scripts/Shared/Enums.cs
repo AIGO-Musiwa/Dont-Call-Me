@@ -37,6 +37,15 @@ public enum CapturePhase
     Active,             // 실제 포획 당한 후 플레이 단계 (이때부터 1퍼씩 게이지 오름)
 }
 
+// 결과 확인용 플레이어 이벤트 종류
+public enum GameEventType
+{
+    Captured,
+    Rescued,
+    Dead,
+    Escaped
+}
+
 // ── 구역 ──────────────────────────────────────────────────
 
 public enum  Zone

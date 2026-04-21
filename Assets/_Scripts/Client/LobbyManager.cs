@@ -12,6 +12,10 @@ public class LobbyManager : MonoBehaviour
     // ── Inspector ─────────────────────────────────────────
     [Header("패널")]
     [SerializeField] private GameObject lobbyPanel;
+    [SerializeField] private GameObject resultPanel;
+
+    [Header("결과 오버레이")]
+    [SerializeField] private ResultOverlayController resultOverlay;
 
     [Header("방정보")]
     [SerializeField] private TextMeshProUGUI roomCodeText;
@@ -24,16 +28,14 @@ public class LobbyManager : MonoBehaviour
     [SerializeField] private Button startButton;
     [SerializeField] private Button exitButton;
 
-    [Header("에러 패널")]
-    [SerializeField] private GameObject errorPanel;
-    [SerializeField] private TextMeshProUGUI errorText;
-
     private GameLauncher _launcher;
     private bool _isReady;
     private readonly PlayerData[] _slots = new PlayerData[4];
 
     private void Start()
     {
+        resultPanel.SetActive(false);
+
         _launcher = GameLauncher.Instance;
         if (_launcher == null)
         {
@@ -52,7 +54,7 @@ public class LobbyManager : MonoBehaviour
             ShowLobby(_launcher.Runner);
 
         // 슬롯 재스캔
-        StartCoroutine(RebuildSlotsNextFrame());
+        StartCoroutine(RebuildSlotsAndShowOverlay());
 
         Debug.Log($"[LobbyManager] Start() 실행 | Runner={_launcher.Runner != null}");
     }
@@ -70,14 +72,10 @@ public class LobbyManager : MonoBehaviour
         if (!lobbyPanel.activeSelf) return;
 
         foreach (var slot in playerSlots)
-        {
             slot.Refresh();
-        }
 
         if (_launcher?.Runner != null && _launcher.Runner.IsServer)
-        {
             UpdateStartButton();
-        }
     }
 
     #region 이벤트 처리
@@ -107,12 +105,11 @@ public class LobbyManager : MonoBehaviour
     
     private void HandleHostDisconnected()
     {
+        // TODO : 호스트 연결 끊김 알람
         SceneManager.LoadScene(SceneNames.TITLE_INDEX);
-        errorText.text = "호스트 연결이 끊겼습니다.";
-        errorPanel.SetActive(true);
     }
 
-    private IEnumerator RebuildSlotsNextFrame()
+    private IEnumerator RebuildSlotsAndShowOverlay()
     {
         yield return null;
 
@@ -123,6 +120,10 @@ public class LobbyManager : MonoBehaviour
                 _slots[data.SlotIndex] = data;
         }
         RefreshSlots();
+
+        // 슬롯 바인딩 완료 후 오버레이 표시
+        if (ResultPayload.Pending != null && resultOverlay != null)
+            resultOverlay.Show(ResultPayload.Pending);
     }
 
     #endregion
@@ -185,13 +186,9 @@ public class LobbyManager : MonoBehaviour
         for (int i = 0; i < playerSlots.Length; i++)
         {
             if (_slots[i] != null)
-            {
                 playerSlots[i].SetPlayer(_slots[i]);
-            }
             else
-            {
-                playerSlots[i].SetEmpty();
-            }
+                playerSlots[i].SetEmpty();           
         }
     }
 

@@ -755,11 +755,17 @@ public class PlayerController : NetworkBehaviour, IInteractable
         ServerForceDropAllHeldItems();
         ApplyImmediateTraumaOnCapture();
 
+        // 포획 로그 추가
+        GameEventLogger.Instance?.LogCaptured(GetNickname(), GetSlotIndex());
+
         if (NetAftereffectPercent >= traumaDeathThreshold)
         {
             ServerEnterDead();
             return true;
         }
+
+        // 한 구역 전원이 Captured 상태면 사망 판정
+        GameSessionManager.Instance?.CheckZoneAllCaptured(NetZone);
 
         return true;
     }
@@ -831,6 +837,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
         //NetMovementLocked = false;
         //NetLookLocked = false;
 
+        // 구출 로그 추가
+        GameEventLogger.Instance?.LogRescued(GetNickname(), GetSlotIndex());
+
         return true;
     }
 
@@ -896,6 +905,10 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return;
 
         NetPlayerState = PlayerState.Dead;
+
+        // 사망 로그 추가
+        GameEventLogger.Instance?.LogDead(GetNickname(), GetSlotIndex());
+
         NetHideState = HideState.None;
         NetCapturePhase = CapturePhase.None;
         NetCurrentHideSpotId = default;
@@ -911,6 +924,10 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return;
 
         NetPlayerState = PlayerState.Escaped;
+
+        // 탈출 로그 추가
+        GameEventLogger.Instance?.LogEscaped(GetNickname(), GetSlotIndex());
+
         NetHideState = HideState.None;
         NetCapturePhase = CapturePhase.None;
         NetCurrentHideSpotId = default;
@@ -1050,6 +1067,20 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return traumaPenaltyCapture2;
 
         return traumaPenaltyCapture3Plus;
+    }
+
+    // PlayerData에서 닉네임을 가져옴 (로그용)
+    private string GetNickname()
+    {
+        var data = Runner.GetPlayerObject(Object.InputAuthority)?.GetComponent<PlayerData>();
+        return data != null ? data.Nickname.ToString() : "Unknown";
+    }
+
+    // PlayerData에서 SlotIndex를 가져옴 (로그용)
+    private int GetSlotIndex()
+    {
+        var data = Runner.GetPlayerObject(Object.InputAuthority)?.GetComponent<PlayerData>();
+        return data != null ? data.SlotIndex : -1;
     }
 
     private Vector3 GetServerInteractionOrigin()

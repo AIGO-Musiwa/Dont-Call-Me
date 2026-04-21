@@ -16399,6 +16399,9 @@ MonoBehaviour:
   nicknameText: {fileID: 354994724}
   escapedImage: {fileID: 473588971}
   deadImage: {fileID: 634038539}
+  hostMark: {fileID: 0}
+  localPlayerColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  defaultColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &160391518
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48602,6 +48605,72 @@ Transform:
   m_Children: []
   m_Father: {fileID: 540267084}
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
+--- !u!1 &438728823
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 438728826}
+  - component: {fileID: 438728825}
+  - component: {fileID: 438728824}
+  m_Layer: 0
+  m_Name: GameEventLogger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &438728824
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 438728823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 2392189742
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 438728825}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &438728825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 438728823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d394d18f90a28944881140b3eb06742f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameEventLogger
+  _PuzzlesSolved: 0
+  _RadioUsed: 0
+--- !u!4 &438728826
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 438728823}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 58.43979, y: 11.25, z: -49.80375}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &438897734
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -68529,6 +68598,8 @@ MonoBehaviour:
   - {fileID: 1255141406}
   stage2PuzzleSlots: []
   stage2HintSlots: []
+  stage3PuzzleSlots: []
+  stage3HintSlots: []
 --- !u!43 &555170896
 Mesh:
   m_ObjectHideFlags: 0
@@ -82094,6 +82165,8 @@ MonoBehaviour:
   - {fileID: 1722743426}
   stage2PuzzleSlots: []
   stage2HintSlots: []
+  stage3PuzzleSlots: []
+  stage3HintSlots: []
 --- !u!114 &661957174
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -139258,6 +139331,9 @@ MonoBehaviour:
   nicknameText: {fileID: 2077057448}
   escapedImage: {fileID: 1471222356}
   deadImage: {fileID: 360184462}
+  hostMark: {fileID: 0}
+  localPlayerColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  defaultColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &1162252730
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -147870,6 +147946,9 @@ MonoBehaviour:
   nicknameText: {fileID: 1933022175}
   escapedImage: {fileID: 217436997}
   deadImage: {fileID: 1461649284}
+  hostMark: {fileID: 0}
+  localPlayerColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  defaultColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &1222765405
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -148700,8 +148779,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0c7b06a87fdf0b4382a7fa2a03d8ceb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameSessionManager
-  resultPanel: {fileID: 318137229}
-  resultUI: {fileID: 1952394607}
+  _SessionDuration: 0
 --- !u!4 &1225637773
 Transform:
   m_ObjectHideFlags: 0
@@ -239416,7 +239494,14 @@ MonoBehaviour:
   - {fileID: 1162252729}
   - {fileID: 160391517}
   - {fileID: 1222765404}
+  survivorCountText: {fileID: 0}
+  playTimeText: {fileID: 0}
+  puzzlesSolvedText: {fileID: 0}
+  radioUsedText: {fileID: 0}
+  timelineContainer: {fileID: 0}
+  timelineCardPrefab: {fileID: 0}
   returnButton: {fileID: 4080262535166130621}
+  overlayController: {fileID: 0}
 --- !u!1001 &1953291993
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -264510,6 +264595,9 @@ MonoBehaviour:
   nicknameText: {fileID: 6742722147432720458}
   escapedImage: {fileID: 2308488276410131642}
   deadImage: {fileID: 4112015547999754566}
+  hostMark: {fileID: 0}
+  localPlayerColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  defaultColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &6625905796590653266
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -265289,3 +265377,4 @@ SceneRoots:
   - {fileID: 196943988}
   - {fileID: 461540162}
   - {fileID: 271244908}
+  - {fileID: 438728826}
