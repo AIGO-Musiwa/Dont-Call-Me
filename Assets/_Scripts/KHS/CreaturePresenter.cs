@@ -64,13 +64,14 @@ public class CreaturePresenter : MonoBehaviour
 
         // 2. 이동 속도 계산 및 애니메이터 반영
         UpdateVisualMovement();
-    }
 
-    private void LateUpdate()
-    {
-        // 프록시 속도 계산을 위해 모든 물리/네트워크 이동이 끝난 후 위치 기록
+        // 🛠️ [핵심 수리 포인트] 
+        // 퓨전의 보간(Interpolation) 이동을 정확히 캐치하기 위해,
+        // LateUpdate를 삭제하고 Update의 모든 계산이 끝난 직후 위치를 기록해!
         lastPosition = transform.position;
     }
+
+    // ⛔ LateUpdate는 타이밍 꼬임을 유발하므로 완전히 삭제했습니다.
 
     /// <summary>
     /// 상태가 변경될 때 발생하는 1회성 이벤트 트리거
@@ -79,12 +80,10 @@ public class CreaturePresenter : MonoBehaviour
     {
         Debug.Log($"크리처 상태 변속: {oldState} -> {newState}");
 
-        // 특정 상태 진입 시 필요한 애니메이션 트리거/사운드 작동
         switch (newState)
         {
             case CreatureState.Capture:
                 animator.SetTrigger(HashCaptureTrigger);
-                // TODO: 포획 시 발생하는 비명 소리 등 오디오 출력 기어 연결 가능
                 break;
         }
     }
@@ -102,7 +101,7 @@ public class CreaturePresenter : MonoBehaviour
             CreatureState.Patrol => ai.patrolSpeed,
             CreatureState.AlerMove => ai.patrolSpeed * 1.5f,
             CreatureState.Chaser => ai.chaseSpeed,
-            CreatureState.Capture => 0f, // 포획 중엔 이동 정지
+            CreatureState.Capture => 0f,
             _ => ai.chaseSpeed
         };
 
@@ -117,7 +116,6 @@ public class CreaturePresenter : MonoBehaviour
             // 프록시(Proxy): 위치 변화량을 통한 속도 역산 (추측항법)
             float distance = Vector3.Distance(transform.position, lastPosition);
 
-            // 순간이동(텔레포트) 시 엄청난 속도로 뛰는 애니메이션 방지
             if (distance > 5.0f)
             {
                 ResetMovementSensor();
@@ -139,9 +137,6 @@ public class CreaturePresenter : MonoBehaviour
         animator.SetFloat(HashMoveSpeed, visualSpeed);
     }
 
-    /// <summary>
-    /// 텔레포트나 상태 급변 시 센서 초기화 (찌꺼기 데이터 포맷)
-    /// </summary>
     private void ResetMovementSensor()
     {
         lastPosition = transform.position;

@@ -625,11 +625,34 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!target.TryGetItemObject(target.NetRightHandItem, out ItemObject targetItem))
             return false;
 
+        // 🛠️ [정밀 판별] 뺏어올 아이템이 내 직업 전용 장비인지 스캔!
+        bool isMyProfessionalGear = false;
+        if (targetItem.NetIsRoleItem)
+        {
+            if (NetPlayerRole == PlayerRole.WalkieTalkie && targetItem.NetItemType == ItemType.WalkieTalkie)
+                isMyProfessionalGear = true;
+            else if (NetPlayerRole == PlayerRole.Flashlight && targetItem.NetItemType == ItemType.Flashlight)
+                isMyProfessionalGear = true;
+        }
+
+        // 🛠️ 내 전용 장비이고, 내 왼손이 비어있다면 '왼손'으로 탈취!
+        if (isMyProfessionalGear && NetLeftHandItem == null)
+        {
+            target.NetRightHandItem = default;
+            NetLeftHandItem = targetItem.Object;
+
+            // 🚨 주의: AssignInputAuthority는 시스템 에러를 유발하므로 절대 쓰지 않음!
+            targetItem.OnEquipped(this);
+            return true;
+        }
+
+        // 🛠️ 남의 장비이거나, 내 왼손이 차있다면 기존처럼 '오른손'으로 탈취!
         if (!EnsureRightHandEmpty())
             return false;
 
         target.NetRightHandItem = default;
         NetRightHandItem = targetItem.Object;
+
         targetItem.OnEquipped(this);
 
         return true;
@@ -876,6 +899,29 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureExpireTimer = TickTimer.None;
         NetMovementLocked = true;
         NetLookLocked = true;
+    }
+
+    //왼손 아이템 줍기
+    public bool ServerTryPickupLeftHand(ItemObject item)
+    {
+        if (!HasStateAuthority || item == null)
+            return false;
+
+        if (!CanUseGameplayInput())
+            return false;
+
+        if (!item.CanInteract(this))
+            return false;
+
+        // 🛠️ [안전장치] 왼손은 자의로 아이템을 버리거나 교체할 수 없음!
+        // 이미 왼손에 직업 아이템이 쥐어져 있다면 픽업 모터를 정지시킴.
+        if (NetLeftHandItem != null)
+            return false;
+
+        // 손이 비어있을 때만 장착 승인
+        NetLeftHandItem = item.Object;
+        item.OnEquipped(this);
+        return true;
     }
 
     public bool ServerEnterHide(HideState hideState, NetworkObject hideSpotObject, Vector3 enterPosition, Quaternion enterRotation)
