@@ -635,25 +635,24 @@ public class PlayerController : NetworkBehaviour, IInteractable
                 isMyProfessionalGear = true;
         }
 
-        // 🛠️ [조건 분기 1] 내 전용 장비이고, 내 왼손이 비어있다면 '왼손'으로 탈취!
+        // 🛠️ 내 전용 장비이고, 내 왼손이 비어있다면 '왼손'으로 탈취!
         if (isMyProfessionalGear && NetLeftHandItem == null)
         {
-            target.NetRightHandItem = default; // 상대방 손에서 뺏기
-            NetLeftHandItem = targetItem.Object; // 내 왼손에 쥐기
+            target.NetRightHandItem = default;
+            NetLeftHandItem = targetItem.Object;
 
-            targetItem.Object.AssignInputAuthority(Object.InputAuthority); // 통신 권한 가져오기
+            // 🚨 주의: AssignInputAuthority는 시스템 에러를 유발하므로 절대 쓰지 않음!
             targetItem.OnEquipped(this);
             return true;
         }
 
-        // 🛠️ [조건 분기 2] 남의 장비이거나, 내 왼손이 이미 차있다면 기존처럼 '오른손'으로 탈취!
+        // 🛠️ 남의 장비이거나, 내 왼손이 차있다면 기존처럼 '오른손'으로 탈취!
         if (!EnsureRightHandEmpty())
             return false;
 
         target.NetRightHandItem = default;
         NetRightHandItem = targetItem.Object;
 
-        targetItem.Object.AssignInputAuthority(Object.InputAuthority);
         targetItem.OnEquipped(this);
 
         return true;

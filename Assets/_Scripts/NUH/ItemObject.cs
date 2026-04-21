@@ -140,15 +140,16 @@ public class ItemObject : NetworkBehaviour, IInteractable
                 isMyProfessionalGear = true;
         }
 
-        // 🛠️ [출력단 분기] 대조 결과에 따라 양손 컨베이어 벨트 결정
-        if (isMyProfessionalGear)
+        // 🛠️ [출력단 분기] 
+        // 내 전용 장비이면서, 동시에 "내 왼손이 완전히 비어있을 때만" 왼손으로 보낸다!
+        if (isMyProfessionalGear && actor.NetLeftHandItem == null)
         {
-            // 내 직업 템이면 왼손으로 강제 결속
             actor.ServerTryPickupLeftHand(this);
         }
         else
         {
-            // 내 직업 템이 아니면 (타 직군의 역할 템, 정문 열쇠 등 일반 템 모두) 무조건 오른손으로!
+            // 1. 남의 직업 템이거나
+            // 2. 내 직업 템인데 이미 왼손에 하나 들고 있다면 -> 무조건 오른손으로!
             actor.ServerTryPickupRightHand(this);
         }
     }
