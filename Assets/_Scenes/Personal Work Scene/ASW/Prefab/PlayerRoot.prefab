@@ -26,6 +26,7 @@ GameObject:
   - component: {fileID: 6872417279680758967}
   - component: {fileID: 2631477015144606700}
   - component: {fileID: 6911245852145029824}
+  - component: {fileID: -2594875032701061535}
   m_Layer: 0
   m_Name: PlayerRoot
   m_TagString: Untagged
@@ -439,6 +440,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92ead4377770a5b45a1a2698004b1929, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerVoiceController
+  minDistance: 5
+  maxDistance: 25
 --- !u!114 &6872417279680758967
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -484,6 +487,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MicrophonedBMeasurer
   measureInterval: 0.02
+--- !u!114 &-2594875032701061535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827289365566288008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4374e7b87ed63134e965f2c1ff7dfe1a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalHeldItemView
+  playerController: {fileID: 240582007588533922}
+  rightHandAnchor: {fileID: 1101863805230548405}
+  leftHandAnchor: {fileID: 1101863805230548405}
 --- !u!1 &889979416615262713
 GameObject:
   m_ObjectHideFlags: 0
@@ -540,7 +558,7 @@ Transform:
   m_GameObject: {fileID: 2098675536719637024}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
