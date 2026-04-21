@@ -625,11 +625,35 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!target.TryGetItemObject(target.NetRightHandItem, out ItemObject targetItem))
             return false;
 
+        // 🛠️ [정밀 판별] 뺏어올 아이템이 내 직업 전용 장비인지 스캔!
+        bool isMyProfessionalGear = false;
+        if (targetItem.NetIsRoleItem)
+        {
+            if (NetPlayerRole == PlayerRole.WalkieTalkie && targetItem.NetItemType == ItemType.WalkieTalkie)
+                isMyProfessionalGear = true;
+            else if (NetPlayerRole == PlayerRole.Flashlight && targetItem.NetItemType == ItemType.Flashlight)
+                isMyProfessionalGear = true;
+        }
+
+        // 🛠️ [조건 분기 1] 내 전용 장비이고, 내 왼손이 비어있다면 '왼손'으로 탈취!
+        if (isMyProfessionalGear && NetLeftHandItem == null)
+        {
+            target.NetRightHandItem = default; // 상대방 손에서 뺏기
+            NetLeftHandItem = targetItem.Object; // 내 왼손에 쥐기
+
+            targetItem.Object.AssignInputAuthority(Object.InputAuthority); // 통신 권한 가져오기
+            targetItem.OnEquipped(this);
+            return true;
+        }
+
+        // 🛠️ [조건 분기 2] 남의 장비이거나, 내 왼손이 이미 차있다면 기존처럼 '오른손'으로 탈취!
         if (!EnsureRightHandEmpty())
             return false;
 
         target.NetRightHandItem = default;
         NetRightHandItem = targetItem.Object;
+
+        targetItem.Object.AssignInputAuthority(Object.InputAuthority);
         targetItem.OnEquipped(this);
 
         return true;

@@ -217,23 +217,22 @@ public class WalkieTalkieItem : ItemObject
         }
     }
 
-    // ─── RPC (수리 완료: 권한 개방 및 소지자 검증 로직 추가) ────────────────
+    // ─── 🛠️ [개조] 통신 보안 락 해제 및 소지자 검증 ────────────────
 
-    // PTT 상태 변경 요청
-    [Rpc(RpcSources.All, RpcTargets.StateAuthority)] // 🛠️ [수리] InputAuthority -> All
-    public void RPC_RequestPTT(bool isPressed, RpcInfo info = default) // 🛠️ RpcInfo 부품 추가
+    // PTT 상태 변경 요청 (InputAuthority -> All 로 변경!)
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestPTT(bool isPressed, RpcInfo info = default)
     {
-        // 🛠️ [보안 회로] 이 스위치를 누른 사람(info.Source)이 실제 소지자(NetCurrentHolder)인지 검사!
+        // 🛠️ 보안 센서: 이 버튼을 누른 사람(info.Source)이 실제 소지자(NetCurrentHolder)인지 대조
         if (info.Source != NetCurrentHolder) return;
 
         WalkieTalkieManager.Instance?.HandlePTTRequest(info.Source, isPressed, this);
     }
 
-    // 무전음 dB 발행 요청
-    [Rpc(RpcSources.All, RpcTargets.StateAuthority)] // 🛠️ [수리] InputAuthority -> All
-    public void RPC_EmitWalkieSound(float voicedB, RpcInfo info = default) // 🛠️ RpcInfo 부품 추가
+    // (만약 소리 발행 RPC가 WalkieTalkieItem에 있다면 이것도 똑같이 All로 변경)
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_EmitWalkieSound(float voicedB, RpcInfo info = default)
     {
-        // 🛠️ [보안 회로] 실제 소지자만 소리를 낼 수 있음
         if (info.Source != NetCurrentHolder) return;
 
         // 수신 구역 무전기 위치로 발행
