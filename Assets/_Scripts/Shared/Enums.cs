@@ -104,6 +104,14 @@ public enum  WalkieState
     RX
 }
 
+// ── 라디오 ────────────────────────────────────────────────
+public enum RadioState
+{
+    Broken,
+    InActive,
+    Active
+}
+
 // ── 퍼즐 ──────────────────────────────────────────────────
 
 public enum LightPatternPanelVisualState : byte
