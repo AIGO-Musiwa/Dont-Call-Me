@@ -402,6 +402,7 @@ MonoBehaviour:
   creatureRespawnPoint3F: {fileID: 0}
   rescueProtectTime: 10
   rescueProtectTimer: 0
+  isRescueZoneOccupied: 0
 --- !u!114 &841392345713996855
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -440,14 +441,11 @@ MonoBehaviour:
   soundObstacleMask:
     serializedVersion: 2
     m_Bits: 0
-  penaltyThickWall: 15
-  penaltyThinWall: 8
-  penaltyClosedDoor: 3
-  penaltyOpenDoor: 1
-  captureRange: 2
+  defaultObstaclePenalty: 15
+  captureRange: 4
   captureAngle: 90
-  touchCaptureRange: 0.8
-  cabinetDetectRange: 1.5
+  touchCaptureRange: 2
+  cabinetDetectRange: 2
   deskDetectRange: 1.2
   debugSoundVolumeDB: 40
 --- !u!114 &3998803744345994779
