@@ -1,29 +1,31 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem; // New Input System 사용
+using UnityEngine.InputSystem;
 
 /// <summary>
-/// 5초간 1초 간격으로 입력을 성공해야 하는 심박계(ECG) 미니게임.
-/// 고정된 5개의 노드 위를 스캐너가 지나가며 판정하는 리듬게임 방식.
+/// 1500px 규격에 최적화된 심박계 미니게임.
+/// 성공/실패 시 배경 그래프 라인의 색상을 변경하여 강력한 시각 피드백을 제공함.
 /// </summary>
 public class CaptureMinigameUI : MonoBehaviour
 {
     [Header("연결된 UI 부품")]
-    [SerializeField] private RectTransform scannerBar;       // 좌우로 이동할 판정 바
-    [SerializeField] private RectTransform graphContainer;   // 스캐너가 움직일 전체 영역 (폭)
-    [SerializeField] private Slider traumaSlider;            // 후유증 게이지
+    [SerializeField] private RectTransform scannerBar;
+    [SerializeField] private RectTransform graphContainer;
+    [SerializeField] private Slider traumaSlider;
+
+    // 🛠️ [신규 단자] 배경 심전도 라인 이미지 (1500px 짜리 그 이미지!)
+    [SerializeField] private RawImage graphImage;
 
     [Header("게임 설정")]
-    [SerializeField] private float totalDuration = 5.0f;     // 스캐너가 끝까지 가는 데 걸리는 총 시간
-    [SerializeField] private int totalBeats = 5;             // 눌러야 할 총 노드 개수
-    [Range(0f, 0.5f)]
-    [SerializeField] private float successThreshold = 0.15f; // 판정 허용 범위 (유예 시간, 초 단위)
+    [SerializeField] private float totalDuration = 5.0f;
+    [SerializeField] private int totalBeats = 5;
+    [SerializeField] private float hitBoxWidth = 100f;
 
     [Header("시각 피드백")]
-    [SerializeField] private Image scannerImage; // 스캐너 색상 변경용
-    [SerializeField] private Color normalColor = Color.white;
-    [SerializeField] private Color successColor = Color.green;
-    [SerializeField] private Color failColor = Color.red;
+    [SerializeField] private RawImage scannerImage;
+    [SerializeField] private Color normalColor = Color.white; // 기본 흰색
+    [SerializeField] private Color successColor = Color.green; // 성공 녹색
+    [SerializeField] private Color failColor = Color.red;       // 실패 빨간색
 
     private PlayerController _owner;
     private float _sessionTimer = 0f;
@@ -40,8 +42,11 @@ public class CaptureMinigameUI : MonoBehaviour
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
+        // 🛠️ 기동 시 초기 색상 세팅 (흰색)
+        if (graphImage != null) graphImage.color = normalColor;
+        if (scannerImage != null) scannerImage.color = normalColor;
+
         ResetSession();
-        Debug.Log("<color=cyan>[ECG]</color> 시스템 기동 성공. 스캐너 이동 모드.");
     }
 
     private void ResetSession()
@@ -49,8 +54,6 @@ public class CaptureMinigameUI : MonoBehaviour
         _sessionTimer = 0f;
         _currentBeatIndex = 0;
         _hasClickedThisBeat = false;
-
-        if (scannerImage != null) scannerImage.color = normalColor;
         UpdateScannerPosition();
     }
 
@@ -58,17 +61,14 @@ public class CaptureMinigameUI : MonoBehaviour
     {
         if (!_isActive) return;
 
-        // 마우스 좌클릭 감지
         if (Pointer.current != null && Pointer.current.press.wasPressedThisFrame)
         {
             OnClickInput();
         }
 
-        // 1. 스캐너 이동 로직
         _sessionTimer += Time.deltaTime;
         UpdateScannerPosition();
 
-        // 2. 후유증 동기화
         if (_owner != null && traumaSlider != null)
         {
             traumaSlider.value = _owner.NetAftereffectPercent / 100f;
@@ -80,45 +80,34 @@ public class CaptureMinigameUI : MonoBehaviour
     private void UpdateScannerPosition()
     {
         if (scannerBar == null || graphContainer == null) return;
-
-        // 0.0 ~ 1.0 사이의 진행률 (5초 기준)
         float progress = Mathf.Clamp01(_sessionTimer / totalDuration);
-
-        // 그래프 컨테이너의 가로 길이를 기준으로 스캐너 X 좌표 이동
         float targetX = progress * graphContainer.rect.width;
         scannerBar.anchoredPosition = new Vector2(targetX, scannerBar.anchoredPosition.y);
     }
 
     private void UpdateSessionLogic()
     {
-        // 현재 몇 번째 비트를 지나고 있는지 계산 (0, 1, 2, 3, 4)
-        // 5초에 5비트면 1초마다 1비트씩 지나감.
         float timePerBeat = totalDuration / totalBeats;
         int checkIndex = Mathf.FloorToInt(_sessionTimer / timePerBeat);
 
-        // 스캐너가 다음 비트 구간으로 넘어갔을 때
         if (checkIndex > _currentBeatIndex)
         {
-            // 이전 구간에서 클릭을 안 하고 넘어왔다면 실패!
             if (!_hasClickedThisBeat && _currentBeatIndex < totalBeats)
             {
+                // 🛠️ 클릭 못 하고 넘어갔을 때 (실패 처리)
                 HandleFailure();
                 return;
             }
 
             _currentBeatIndex = checkIndex;
-            _hasClickedThisBeat = false; // 새 비트 구간이므로 클릭 초기화
+            _hasClickedThisBeat = false;
 
-            // 끝까지 무사히 도달했다면 미니게임 성공!
             if (_currentBeatIndex >= totalBeats)
             {
-                // 🛠️ [서버 통신 수리 완료] 서버로 성공 패킷 확실하게 발송!
                 if (_owner != null && _owner.Object.HasInputAuthority)
                 {
                     _owner.RPC_ProcessMinigameSuccess();
                 }
-
-                // 루프를 돌고 싶다면 ResetSession(), 한 번 성공하고 끝내고 싶다면 CloseUI()
                 ResetSession();
             }
         }
@@ -128,29 +117,22 @@ public class CaptureMinigameUI : MonoBehaviour
     {
         if (!_isActive || _hasClickedThisBeat) return;
 
-        // 각 비트가 위치한 정확한 타겟 시간 (예: 0.5초, 1.5초, 2.5초...)
-        // 스캐너가 이 시간을 지나갈 때 클릭해야 함!
-        float timePerBeat = totalDuration / totalBeats;
+        float widthPerBeat = graphContainer.rect.width / totalBeats;
+        float targetCenterX = (_currentBeatIndex * widthPerBeat) + (widthPerBeat / 2f);
+        float hitBoxStart = targetCenterX - (hitBoxWidth / 2f);
+        float hitBoxEnd = targetCenterX + (hitBoxWidth / 2f);
+        float currentScannerX = scannerBar.anchoredPosition.x;
 
-        // 현재 내가 도전 중인 비트의 정중앙 시간
-        float targetBeatTime = (_currentBeatIndex * timePerBeat) + (timePerBeat / 2f);
-
-        // 현재 스캐너의 시간과 타겟 시간의 오차 계산
-        float diff = Mathf.Abs(_sessionTimer - targetBeatTime);
-
-        // 오차가 허용 범위(successThreshold) 안이면 성공!
-        if (diff <= successThreshold)
+        if (currentScannerX >= hitBoxStart && currentScannerX <= hitBoxEnd)
         {
             _hasClickedThisBeat = true;
+            // 🛠️ 성공 시 녹색으로 깜빡임!
             StopAllCoroutines();
-            StartCoroutine(FlashColor(successColor));
-
-            Debug.Log($"<color=green>[ECG] 노드 {_currentBeatIndex + 1} 격파 성공!</color> 오차: {diff:F3}초");
+            StartCoroutine(FlashVisuals(successColor));
         }
         else
         {
-            // 엇박자로 클릭하면 실패!
-            Debug.Log($"<color=red>[ECG] 실패!</color> 엇박자 클릭! 오차: {diff:F3}초");
+            // 🛠️ 엇박자 클릭 시 실패 처리
             HandleFailure();
         }
     }
@@ -159,17 +141,27 @@ public class CaptureMinigameUI : MonoBehaviour
     {
         if (!_isActive) return;
 
+        // 🛠️ 실패 시 빨간색으로 깜빡임!
         StopAllCoroutines();
-        if (gameObject.activeInHierarchy) StartCoroutine(FlashColor(failColor));
-        ResetSession(); // 처음부터 다시
+        if (gameObject.activeInHierarchy) StartCoroutine(FlashVisuals(failColor));
+
+        ResetSession();
     }
 
-    private System.Collections.IEnumerator FlashColor(Color targetColor)
+    /// <summary>
+    /// 🛠️ [개조] 스캐너 바와 배경 그래프 라인을 동시에 깜빡이게 함
+    /// </summary>
+    private System.Collections.IEnumerator FlashVisuals(Color targetColor)
     {
-        if (scannerImage == null) yield break;
-        scannerImage.color = targetColor;
-        yield return new WaitForSeconds(0.15f);
+        // 1. 목표 색상으로 변경
+        if (scannerImage != null) scannerImage.color = targetColor;
+        if (graphImage != null) graphImage.color = targetColor;
+
+        yield return new WaitForSeconds(0.2f); // 깜빡임 시간
+
+        // 2. 다시 기본 흰색으로 복구
         if (scannerImage != null) scannerImage.color = normalColor;
+        if (graphImage != null) graphImage.color = normalColor;
     }
 
     public void CloseUI()
@@ -178,6 +170,5 @@ public class CaptureMinigameUI : MonoBehaviour
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
         gameObject.SetActive(false);
-        Debug.Log("<color=yellow>[ECG]</color> 시스템 종료.");
     }
 }
