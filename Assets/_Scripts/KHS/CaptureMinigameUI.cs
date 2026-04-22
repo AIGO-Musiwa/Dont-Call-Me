@@ -1,31 +1,31 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 /// <summary>
-/// 1500px 규격에 최적화된 심박계 미니게임.
-/// 성공/실패 시 배경 그래프 라인의 색상을 변경하여 강력한 시각 피드백을 제공함.
+/// 1500px 규격 최적화 심박계 미니게임.
+/// 스캐너는 고정된 비주얼을 유지하며, 배경 그래프(RawImage)의 색상만으로 피드백을 출력함.
 /// </summary>
 public class CaptureMinigameUI : MonoBehaviour
 {
     [Header("연결된 UI 부품")]
-    [SerializeField] private RectTransform scannerBar;
-    [SerializeField] private RectTransform graphContainer;
-    [SerializeField] private Slider traumaSlider;
+    [SerializeField] private RectTransform scannerBar;       // 이동을 담당하는 트랜스폼
+    [SerializeField] private RectTransform graphContainer;   // 1500px 기준 틀
+    [SerializeField] private Slider traumaSlider;            // 후유증 게이지
 
-    // 🛠️ [신규 단자] 배경 심전도 라인 이미지 (1500px 짜리 그 이미지!)
-    [SerializeField] private RawImage graphImage;
+    [Header("배경 피드백")]
+    [SerializeField] private RawImage graphImage;            // 배경 심전도 라인 (색상 변경 대상)
 
     [Header("게임 설정")]
-    [SerializeField] private float totalDuration = 5.0f;
-    [SerializeField] private int totalBeats = 5;
-    [SerializeField] private float hitBoxWidth = 100f;
+    [SerializeField] private float totalDuration = 5.0f;     // 총 이동 시간
+    [SerializeField] private int totalBeats = 5;             // 비트 수
+    [SerializeField] private float hitBoxWidth = 100f;       // 히트박스 가로 폭
 
-    [Header("시각 피드백")]
-    [SerializeField] private RawImage scannerImage;
-    [SerializeField] private Color normalColor = Color.white; // 기본 흰색
-    [SerializeField] private Color successColor = Color.green; // 성공 녹색
-    [SerializeField] private Color failColor = Color.red;       // 실패 빨간색
+    [Header("시각 피드백 색상")]
+    [SerializeField] private Color normalColor = Color.white;
+    [SerializeField] private Color successColor = Color.green;
+    [SerializeField] private Color failColor = Color.red;
 
     private PlayerController _owner;
     private float _sessionTimer = 0f;
@@ -42,10 +42,7 @@ public class CaptureMinigameUI : MonoBehaviour
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
-        // 🛠️ 기동 시 초기 색상 세팅 (흰색)
-        if (graphImage != null) graphImage.color = normalColor;
-        if (scannerImage != null) scannerImage.color = normalColor;
-
+        ResetVisuals();
         ResetSession();
     }
 
@@ -80,6 +77,8 @@ public class CaptureMinigameUI : MonoBehaviour
     private void UpdateScannerPosition()
     {
         if (scannerBar == null || graphContainer == null) return;
+
+        // 진행도에 따른 단순 위치 이동 (1500px 트랙)
         float progress = Mathf.Clamp01(_sessionTimer / totalDuration);
         float targetX = progress * graphContainer.rect.width;
         scannerBar.anchoredPosition = new Vector2(targetX, scannerBar.anchoredPosition.y);
@@ -94,7 +93,6 @@ public class CaptureMinigameUI : MonoBehaviour
         {
             if (!_hasClickedThisBeat && _currentBeatIndex < totalBeats)
             {
-                // 🛠️ 클릭 못 하고 넘어갔을 때 (실패 처리)
                 HandleFailure();
                 return;
             }
@@ -126,13 +124,13 @@ public class CaptureMinigameUI : MonoBehaviour
         if (currentScannerX >= hitBoxStart && currentScannerX <= hitBoxEnd)
         {
             _hasClickedThisBeat = true;
-            // 🛠️ 성공 시 녹색으로 깜빡임!
+
+            // 🛠️ 배경 그래프만 녹색으로 점등
             StopAllCoroutines();
             StartCoroutine(FlashVisuals(successColor));
         }
         else
         {
-            // 🛠️ 엇박자 클릭 시 실패 처리
             HandleFailure();
         }
     }
@@ -141,27 +139,39 @@ public class CaptureMinigameUI : MonoBehaviour
     {
         if (!_isActive) return;
 
-        // 🛠️ 실패 시 빨간색으로 깜빡임!
+        // 🛠️ 배경 그래프만 빨간색으로 점등
         StopAllCoroutines();
         if (gameObject.activeInHierarchy) StartCoroutine(FlashVisuals(failColor));
 
         ResetSession();
     }
 
-    /// <summary>
-    /// 🛠️ [개조] 스캐너 바와 배경 그래프 라인을 동시에 깜빡이게 함
-    /// </summary>
-    private System.Collections.IEnumerator FlashVisuals(Color targetColor)
+    private void ResetVisuals()
     {
-        // 1. 목표 색상으로 변경
-        if (scannerImage != null) scannerImage.color = targetColor;
+        if (graphImage != null) graphImage.color = normalColor;
+    }
+
+    private IEnumerator FlashVisuals(Color targetColor)
+    {
+        // 1. 색상 즉시 변경
         if (graphImage != null) graphImage.color = targetColor;
 
-        yield return new WaitForSeconds(0.2f); // 깜빡임 시간
+        yield return new WaitForSeconds(0.15f);
 
-        // 2. 다시 기본 흰색으로 복구
-        if (scannerImage != null) scannerImage.color = normalColor;
-        if (graphImage != null) graphImage.color = normalColor;
+        // 2. 부드러운 복구 (Lerp)
+        float elapsed = 0f;
+        float duration = 0.2f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            if (graphImage != null)
+                graphImage.color = Color.Lerp(targetColor, normalColor, t);
+
+            yield return null;
+        }
+
+        ResetVisuals();
     }
 
     public void CloseUI()
