@@ -42,6 +42,7 @@ public class CreatureAI : NetworkBehaviour
     [Header("구출 보호 설정")]
     public float rescueProtectTime = 10.0f;
     public float rescueProtectTimer = 0f;
+    public bool isRescueZoneOccupied = false;
 
     private CreatureMotor motor;
     private CreatureSensor sensor;
@@ -158,7 +159,7 @@ public class CreatureAI : NetworkBehaviour
     private void UpdateSensingAndPriorities()
     {
         //10초 보호 기간 중에는 시야 및 주변 감지를 모두 무시
-        if (rescueProtectTimer > 0f) return;
+        if (rescueProtectTimer > 0f || isRescueZoneOccupied) return;
 
         //수색 전체 제한 시간이 지났으면 강제 종료 후 순찰로 복귀
         if (CheckAndHanledSearchTimeout()) return;
@@ -180,7 +181,7 @@ public class CreatureAI : NetworkBehaviour
         if (currentState == CreatureState.Capture) return;
 
         //10초 보호 기간 중에는 모든 소리 자극을 무시
-        if (rescueProtectTimer > 0f) return;
+        if (rescueProtectTimer > 0f || isRescueZoneOccupied) return;
 
         // 소리 발생 구역이 다르면 무시
         if (soundEvent.sourceZone != myZone) return;
@@ -810,10 +811,15 @@ public class CreatureAI : NetworkBehaviour
     //구출 구역 이탈 시 보호 즉시 종료
     public void CancelRescueProtection()
     {
-        if (Object.HasStateAuthority && rescueProtectTimer > 0f)
+        if (Object.HasStateAuthority)
         {
-            rescueProtectTimer = 0f;
-            Debug.Log("[CreatureAI] 플레이어가 구출 구역을 이탈하여 10초 보호가 즉시 해제됩니다!");
+            isRescueZoneOccupied = false;
+
+            if (rescueProtectTimer > 0f)
+            {
+                rescueProtectTimer = 0f;
+                Debug.Log("[CreatureAI] 플레이어가 구출 구역을 이탈하여 10초 보호가 즉시 해제됩니다!");
+            }
         }
     }
 

@@ -15,10 +15,8 @@ public class CreatureSensor : MonoBehaviour
 
     [Header("사운드 차페 설정")]
     public LayerMask soundObstacleMask;
-    public float penaltyThickWall = 15f;        //두꺼운 벽, 층간 바닥/천장 (기본값)
-    public float penaltyThinWall = 8f;          //얇은 벽
-    public float penaltyClosedDoor = 3f;        //닫힌 문
-    public float penaltyOpenDoor = 1f;          //열린 문
+    [Tooltip("ObstacleData 컴포넌트가 없는 장애물의 기본 차폐 패널티")]
+    public float defaultObstaclePenalty = 15f;
 
     [Header("포획 판정 설정")]
     public float captureRange = 2.0f;
@@ -28,7 +26,11 @@ public class CreatureSensor : MonoBehaviour
     [Header("은신 발각 설정")]
     public float cabinetDetectRange = 1.5f;
     public float deskDetectRange = 1.2f;
-   
+
+    [Header("디버그 및 기즈모")]
+    [Tooltip("기즈모 뷰에서 확인할 가상의 발소리 크기")]
+    public float debugSoundVolumeDB = 40f;
+
     public float CalculatePerceivedDb(float voicedB, float distance, float obstaclePenalty)
     {
         //거리가 1m 미만일 때 log 값이 음수가 되는 방지하기 위해 최소 1f 적용
@@ -41,6 +43,9 @@ public class CreatureSensor : MonoBehaviour
     public float CalculateDynamicSoundPenalty(Vector3 sourcePos)
     {
         Vector3 earPos = transform.position + Vector3.up * eyeHeight;
+        
+        //소리 발생 위치를 0.5m (무릎 높이) 정도 살짝 띄워서 공중에서 쏘도록 보정
+        Vector3 safeSourcePos = sourcePos + Vector3.up * 0.5f;
         Vector3 dir = (earPos - sourcePos).normalized;
         float dist = Vector3.Distance(sourcePos, earPos);
 
@@ -50,17 +55,14 @@ public class CreatureSensor : MonoBehaviour
         float totalPenalty = 0f;
 
         foreach (RaycastHit hit in hits)
-        {
-            string tag = hit.collider.tag;
+        {            
+            ObstacleData obstacleData = hit.collider.GetComponent<ObstacleData>();
 
+            //컴포넌트가 있다면 설정된 값을 누적 차감
+            if (obstacleData != null) totalPenalty += obstacleData.GetPenalty();
 
-            //태그에 따라 기획서의 dB 패널티를 정밀하게 누적 차감
-            if (tag == "ThinWall") totalPenalty += penaltyThinWall;
-            else if (tag == "Door_Closed") totalPenalty += penaltyClosedDoor;
-            else if (tag == "Door_Open") totalPenalty += penaltyOpenDoor;
-
-            //태그가 없는(Untagged) 일반 바닥, 천장, 외벽 등은 모두 '두꺼운 벽(-15dB)'으로 기본 취급
-            else totalPenalty += penaltyThickWall;            
+            //컴포넌트가 없는 장애물은 기본 두꺼운 벽(-15dB)으로 취급
+            else totalPenalty += defaultObstaclePenalty;
         }
 
         return totalPenalty;
@@ -196,6 +198,23 @@ public class CreatureSensor : MonoBehaviour
         //은신 발각 범위 기즈모 (반투명 보라색 원 - 캐비닛 기준)
         Handles.color = new Color(0.5f, 0f, 0.5f, 0.2f);
         Handles.DrawSolidDisc(transform.position, Vector3.up, cabinetDetectRange);
+
+        //데시벨 감지 반경 기즈모 (장애물 없는 평지 기준)
+        //감쇠 공식 역산: Drop = 20 * Log10(Dist) -> Dist = 10 ^ (Drop / 20)
+
+        float alertDrop = debugSoundVolumeDB - alertThresholdDB;
+        float alertDist = alertDrop > 0 ? Mathf.Pow(10, alertDrop / 20f) : 0f;
+
+        float criticalDrop = debugSoundVolumeDB - criticalThresholdDB;
+        float criticalDist = criticalDrop > 0 ? Mathf.Pow(10, criticalDrop / 20f) : 0f;
+
+        // 노란색 테두리 (Alert 감지 최대 반경)
+        Handles.color = Color.yellow;
+        Handles.DrawWireDisc(transform.position, Vector3.up, alertDist);
+
+        // 빨간색 테두리 (Critical 감지 최대 반경)
+        Handles.color = Color.red;
+        Handles.DrawWireDisc(transform.position, Vector3.up, criticalDist);
     }
 #endif
 }
