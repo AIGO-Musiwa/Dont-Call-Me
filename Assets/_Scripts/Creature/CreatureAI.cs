@@ -42,6 +42,7 @@ public class CreatureAI : NetworkBehaviour
     [Header("구출 보호 설정")]
     public float rescueProtectTime = 10.0f;
     public float rescueProtectTimer = 0f;
+    public bool isRescueZoneOccupied = false;
 
     private CreatureMotor motor;
     private CreatureSensor sensor;
@@ -52,6 +53,9 @@ public class CreatureAI : NetworkBehaviour
     private float stateTimer = 0f;
     private float losLostTimer = 0f;
     private bool isCapturing = false;
+
+    //막힘 방지 타이머
+    private float stuckTimer = 0f;
 
     //포획 중인 플레이어와 그 위치를 기억하기 위한 변수
     private PlayerController currentCapturedPlayer;    
@@ -155,7 +159,7 @@ public class CreatureAI : NetworkBehaviour
     private void UpdateSensingAndPriorities()
     {
         //10초 보호 기간 중에는 시야 및 주변 감지를 모두 무시
-        if (rescueProtectTimer > 0f) return;
+        if (rescueProtectTimer > 0f || isRescueZoneOccupied) return;
 
         //수색 전체 제한 시간이 지났으면 강제 종료 후 순찰로 복귀
         if (CheckAndHanledSearchTimeout()) return;
@@ -177,13 +181,16 @@ public class CreatureAI : NetworkBehaviour
         if (currentState == CreatureState.Capture) return;
 
         //10초 보호 기간 중에는 모든 소리 자극을 무시
-        if (rescueProtectTimer > 0f) return;
+        if (rescueProtectTimer > 0f || isRescueZoneOccupied) return;
 
         // 소리 발생 구역이 다르면 무시
         if (soundEvent.sourceZone != myZone) return;
 
         //크리처와 소리 발생원 간의 거리 계산
         float distance = Vector3.Distance(transform.position, soundEvent.sourcePosition);
+
+        //센서의 동적 차폐 시스템을 통해 벽/문을 통과하며 깎일 dB를 계산
+        float dynamicPenalty = sensor.CalculateDynamicSoundPenalty(soundEvent.sourcePosition);
 
         //실제 체감 dB 연산
         float perceivedDb = sensor.CalculatePerceivedDb(soundEvent.voicedB, distance, soundEvent.obstaclePenaltydB);
@@ -216,6 +223,7 @@ public class CreatureAI : NetworkBehaviour
                     currentTrackedChannel = soundEvent.channel;
                     motor.MoveToDestination(targetLocation);
                     stateTimer = 0f;
+                    stuckTimer = 0f;
                 }
             }
 
@@ -225,6 +233,7 @@ public class CreatureAI : NetworkBehaviour
                 currentState = CreatureState.Chaser;
                 currentSearchPhase = SearchPhase.None;
                 stateTimer = 0f;
+                stuckTimer = 0f;
 
                 motor.SetSpeed(chaseSpeed);
                 targetLocation = soundEvent.sourcePosition;
@@ -245,6 +254,7 @@ public class CreatureAI : NetworkBehaviour
                 currentState = CreatureState.Chaser;
                 currentSearchPhase = SearchPhase.None;
                 stateTimer = 0f;
+                stuckTimer = 0f;
 
                 motor.SetSpeed(chaseSpeed);
                 targetLocation = soundEvent.sourcePosition;
@@ -268,6 +278,7 @@ public class CreatureAI : NetworkBehaviour
                     currentTrackedDb = perceivedDb;
                     currentTrackedChannel = soundEvent.channel;
                     motor.MoveToDestination(targetLocation);
+                    stuckTimer = 0f;
                     Debug.Log("소리로 AlertMove 유지");
                 }
             }
@@ -278,6 +289,7 @@ public class CreatureAI : NetworkBehaviour
                 currentState = CreatureState.AlerMove;
                 currentSearchPhase = SearchPhase.None;
                 stateTimer = 0f;
+                stuckTimer = 0f;
 
                 motor.SetSpeed(alertMoveSpeed);
                 targetLocation = soundEvent.sourcePosition;
@@ -329,6 +341,7 @@ public class CreatureAI : NetworkBehaviour
             currentState = CreatureState.AlerMove;
             currentSearchPhase = SearchPhase.None;
             stateTimer = 0f;
+            stuckTimer = 0f;
 
             //이동 속도를 경계 속도로 올리고, 타겟 위치를 무전기 위치로 설정하여 출발
             motor.SetSpeed(alertMoveSpeed);
@@ -449,7 +462,9 @@ public class CreatureAI : NetworkBehaviour
                     motor.SetSpeed(chaseSpeed);
 
                     //무전 코스트 초기화
-                    walkieTracker.ResetCost();                    
+                    walkieTracker.ResetCost();
+
+                    stuckTimer = 0f;
                 }
 
                 //플레이어를 발견했으므로 탐색 중단하고 트루 반환
@@ -492,6 +507,7 @@ public class CreatureAI : NetworkBehaviour
             overallSearchTimer = 0f;
             searchCenter = targetLocation;
             stateTimer = 0f;
+            stuckTimer = 0f;
             currentTrackedDb = 0f;
 
             //타겟 초기화 및 제자리 대기
@@ -508,6 +524,7 @@ public class CreatureAI : NetworkBehaviour
         overallSearchTimer = 0f;
         currentState = CreatureState.Patrol;
         stateTimer = 0f;
+        stuckTimer = 0f;
 
         //순찰 로직이 제대로 작동하도록 이동 중지
         motor.StopMoving();
@@ -529,20 +546,24 @@ public class CreatureAI : NetworkBehaviour
         //NavMesh의 경로 계산 딜레이로 인한 즉시 도착 판정 버그 방지
         stateTimer += Runner.DeltaTime;
 
-        //눈에 보이지 않는 소리를 쫓아가다가 막혔을 때나 NavMesh가 끊겨 있을 때
+        //도달 여부 확인
         bool reachedNormally = motor.HasReachedDestination(1.0f);
-        bool isPathBroken = (agent.pathStatus == NavMeshPathStatus.PathPartial || agent.pathStatus == NavMeshPathStatus.PathInvalid);
-        bool isStuck = agent.velocity.sqrMagnitude < 0.1f;
 
-        //0.2초 이상 지났을 때: 정상 도착했거나 길이 끊긴 곳에서 멈춰 섰거나 1초 이상 지났을 때
-        if (stateTimer > 0.2f && (reachedNormally || (isStuck && (isPathBroken || stateTimer > 1.0f))))
+        //NavMesh 경로 연산 중이 아닌데 속도가 0에 가깝다면 막힌 것으로 판단하여 타이머 증가
+        bool isNotMoving = agent.velocity.sqrMagnitude < 0.1f && !agent.pathPending;
+        if (isNotMoving) stuckTimer += Runner.DeltaTime;
+        else stuckTimer = 0f;
+
+        //정상 도착했거나, 1.5초 이상 갇혀있을 때 수색 상태로 넘김
+        if (stateTimer > 0.2f && (reachedNormally || stuckTimer > 1.5f))
         {
             //최초 소리 근원지에 도착했다면 제자리에서 주변 수색 시작
             if (currentSearchPhase == SearchPhase.None)
             {                
                 currentState = CreatureState.Search;
                 currentTrackedDb = 0f;
-                stateTimer = 0f;                
+                stateTimer = 0f;
+                stuckTimer = 0f;
                 motor.StopMoving();
 
                 //수색 시작 지점 설정
@@ -556,6 +577,7 @@ public class CreatureAI : NetworkBehaviour
             {                
                 currentState = CreatureState.Search;
                 stateTimer = 0f;
+                stuckTimer = 0f;
                 motor.StopMoving();
 
                 //추가 주변 수색 상태로 전환
@@ -574,6 +596,7 @@ public class CreatureAI : NetworkBehaviour
         {
             currentState = CreatureState.AlerMove;
             stateTimer = 0f;
+            stuckTimer = 0f;
             currentSearchPhase = SearchPhase.MovingToRandomPoint;
             motor.SetSpeed(alertMoveSpeed);
 
@@ -621,13 +644,16 @@ public class CreatureAI : NetworkBehaviour
         {
             stateTimer += Runner.DeltaTime;
 
-            //눈에 보이지 않는 소리를 쫓아가다가 막혔을 때나 NavMesh가 끊겨 있을 때
+            //도달 여부 확인
             bool reachedNormally = motor.HasReachedDestination(1.0f);
-            bool isPathBroken = (agent.pathStatus == NavMeshPathStatus.PathPartial || agent.pathStatus == NavMeshPathStatus.PathInvalid);
-            bool isStuck = agent.velocity.sqrMagnitude < 0.1f;
 
-            //0.2초 이상 지났을 때: 정상 도착했거나 길이 끊긴 곳에서 멈춰 섰거나 1초 이상 지났을 때
-            if (stateTimer > 0.2f && (reachedNormally || (isStuck && (isPathBroken || stateTimer > 1.0f))))
+            //NavMesh 경로 연산 중이 아닌데 속도가 0에 가깝다면 막힌 것으로 판단하여 타이머 증가
+            bool isNotMoving = agent.velocity.sqrMagnitude < 0.1f && !agent.pathPending;
+            if (isNotMoving) stuckTimer += Runner.DeltaTime;
+            else stuckTimer = 0f;
+
+            //정상 도착했거나, 1.5초 이상 갇혀있을 때 수색 상태로 넘김
+            if (stateTimer > 0.2f && (reachedNormally || stuckTimer > 1.5f))
             {
                 currentState = CreatureState.Search;
 
@@ -636,6 +662,7 @@ public class CreatureAI : NetworkBehaviour
                 overallSearchTimer = 0f;
                 searchCenter = transform.position;
                 stateTimer = 0f;
+                stuckTimer = 0f;
                 currentTrackedDb = 0f;
 
                 motor.StopMoving();
@@ -671,6 +698,7 @@ public class CreatureAI : NetworkBehaviour
         currentState = CreatureState.Capture;
         isCapturing = true;
         stateTimer = 0f;
+        stuckTimer = 0f;
         currentSearchPhase = SearchPhase.None;
         currentTrackedDb = 0f;
 
@@ -768,8 +796,12 @@ public class CreatureAI : NetworkBehaviour
                 currentSearchPhase = SearchPhase.None;
                 playerTarget = null;
                 currentTrackedDb = 0f;
+                stuckTimer = 0f;
                 motor.SetSpeed(patrolSpeed);
                 walkieTracker.ResetCost();
+
+                motor.StopMoving();
+                motor.ResumeMoving();
             }
 
             Debug.Log("[CreatureAI] 구출 구역 개방 성공! 10초간 크리처 상태 전이 보호가 활성화됩니다.");
@@ -779,10 +811,15 @@ public class CreatureAI : NetworkBehaviour
     //구출 구역 이탈 시 보호 즉시 종료
     public void CancelRescueProtection()
     {
-        if (Object.HasStateAuthority && rescueProtectTimer > 0f)
+        if (Object.HasStateAuthority)
         {
-            rescueProtectTimer = 0f;
-            Debug.Log("[CreatureAI] 플레이어가 구출 구역을 이탈하여 10초 보호가 즉시 해제됩니다!");
+            isRescueZoneOccupied = false;
+
+            if (rescueProtectTimer > 0f)
+            {
+                rescueProtectTimer = 0f;
+                Debug.Log("[CreatureAI] 플레이어가 구출 구역을 이탈하여 10초 보호가 즉시 해제됩니다!");
+            }
         }
     }
 

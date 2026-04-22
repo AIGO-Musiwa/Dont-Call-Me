@@ -434,13 +434,19 @@ MonoBehaviour:
   eyeHeight: 2
   obstaclMask:
     serializedVersion: 2
-    m_Bits: 136
+    m_Bits: 649
   alertThresholdDB: 18
   criticalThresholdDB: 28
+  soundObstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  defaultObstaclePenalty: 15
   captureRange: 2
   captureAngle: 90
+  touchCaptureRange: 0.8
   cabinetDetectRange: 2
   deskDetectRange: 1.2
+  debugSoundVolumeDB: 40
 --- !u!114 &3998803744345994779
 MonoBehaviour:
   m_ObjectHideFlags: 0
