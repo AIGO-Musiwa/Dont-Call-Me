@@ -220,20 +220,20 @@ public class WalkieTalkieItem : ItemObject
     // ─── 🛠️ [개조] 통신 보안 락 해제 및 소지자 검증 ────────────────
 
     // PTT 상태 변경 요청 (InputAuthority -> All 로 변경!)
-    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    public void RPC_RequestPTT(bool isPressed, RpcInfo info = default)
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_RequestPTT(bool isPressed)
     {
         // 🛠️ 보안 센서: 이 버튼을 누른 사람(info.Source)이 실제 소지자(NetCurrentHolder)인지 대조
-        if (info.Source != NetCurrentHolder) return;
+        if (Object.InputAuthority != NetCurrentHolder) return;
 
-        WalkieTalkieManager.Instance?.HandlePTTRequest(info.Source, isPressed, this);
+        WalkieTalkieManager.Instance?.HandlePTTRequest(Object.InputAuthority, isPressed, this);
     }
 
     // (만약 소리 발행 RPC가 WalkieTalkieItem에 있다면 이것도 똑같이 All로 변경)
-    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_EmitWalkieSound(float voicedB, RpcInfo info = default)
     {
-        if (info.Source != NetCurrentHolder) return;
+        if (Object.InputAuthority != NetCurrentHolder) return;
 
         // 수신 구역 무전기 위치로 발행
         Zone receiverZone = (NetZone == Zone.ZoneA) ? Zone.ZoneB : Zone.ZoneA;
