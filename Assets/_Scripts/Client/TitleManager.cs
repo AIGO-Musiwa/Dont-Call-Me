@@ -28,6 +28,8 @@ public class TitleManager : MonoBehaviour
 
     private void Start()
     {
+        errorPanel.SetActive(false);
+
         _launcher = GameLauncher.Instance;
         if (_launcher == null)
         {
@@ -38,6 +40,12 @@ public class TitleManager : MonoBehaviour
         // 이벤트 구독
         _launcher.OnJoinFailed += HandleConnectionFailed;
         _launcher.OnPlayerJoinedEvent += HandlePlayerJoined;
+
+        if (_launcher.checkecheck)
+        {
+            _launcher.checkecheck = false;
+            ShowError("호스트 연결 끊김");
+        }
     }
 
     private void OnDestroy()
@@ -100,7 +108,6 @@ public class TitleManager : MonoBehaviour
     // Title 씬 메뉴 보이기/숨기기
     public void Show() => titlePanel.SetActive(true);
     public void Hide() => titlePanel.SetActive(false);
-
     #endregion
 
     #region 내부 유틸

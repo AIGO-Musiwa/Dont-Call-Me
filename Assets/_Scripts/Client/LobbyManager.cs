@@ -32,6 +32,8 @@ public class LobbyManager : MonoBehaviour
     private bool _isReady;
     private readonly PlayerData[] _slots = new PlayerData[4];
 
+    private readonly Dictionary<PlayerRef, int> _playerRefToSlot = new();
+
     private void Start()
     {
         resultPanel.SetActive(false);
@@ -69,8 +71,6 @@ public class LobbyManager : MonoBehaviour
 
     private void Update()
     {
-        if (!lobbyPanel.activeSelf) return;
-
         foreach (var slot in playerSlots)
             slot.Refresh();
 
@@ -92,20 +92,17 @@ public class LobbyManager : MonoBehaviour
     private void HandlePlayerLeft(NetworkRunner runner, PlayerRef player)
     {
         // 슬롯 해제
-        for (int i = 0; i < _slots.Length; i++)
+        if (_playerRefToSlot.TryGetValue(player, out var slotIndex))
         {
-            if (_slots[i] != null && _slots[i].Object.InputAuthority == player)
-            {
-                _slots[i] = null;
-                break;
-            }
+            _slots[slotIndex] = null;
+            _playerRefToSlot.Remove(player);
         }
         RefreshSlots();
     }
     
     private void HandleHostDisconnected()
     {
-        // TODO : 호스트 연결 끊김 알람
+        _launcher.checkecheck = true;
         SceneManager.LoadScene(SceneNames.TITLE_INDEX);
     }
 
@@ -117,7 +114,11 @@ public class LobbyManager : MonoBehaviour
         foreach (var data in allData)
         {
             if (data.SlotIndex >= 0 && data.SlotIndex < _slots.Length)
+            {
                 _slots[data.SlotIndex] = data;
+                if (data.Object != null)
+                    _playerRefToSlot[data.Object.InputAuthority] = data.SlotIndex;
+            }
         }
         RefreshSlots();
 
@@ -177,6 +178,7 @@ public class LobbyManager : MonoBehaviour
         if (data == null || data.SlotIndex < 0) yield break;
 
         _slots[data.SlotIndex] = data;
+        _playerRefToSlot[player] = data.SlotIndex;
 
         RefreshSlots();
     }
