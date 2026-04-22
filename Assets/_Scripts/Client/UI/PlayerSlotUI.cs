@@ -33,9 +33,7 @@ public class PlayerSlotUI : MonoBehaviour
     public void SetPlayer(PlayerData data)
     {
         _boundPlayer = data;
-
         filledPanel.SetActive(true);
-
         Refresh();
     }
 
@@ -43,7 +41,6 @@ public class PlayerSlotUI : MonoBehaviour
     public void SetEmpty()
     {
         _boundPlayer = null;
-
         filledPanel.SetActive(false);
     }
 
@@ -54,15 +51,18 @@ public class PlayerSlotUI : MonoBehaviour
 
         hostBadge.SetActive(_boundPlayer.IsHost);
         nicknameText.text = _boundPlayer.Nickname.ToString();
-        if (_boundPlayer.IsReady)
-        {
-            readyText.text = "<color=#00FF00>READY</color>"; // 녹색
-        }
-        else
-        {
-            readyText.text = "<color=#FF0000>WAITING</color>"; // 적색
-        }
         micIcon.enabled = _boundPlayer.IsMicActive;
+
+        // 결과 화면을 확인 중인 플레이어는 상태 텍스트만 교체
+        if (_boundPlayer.IsReviewingResult)
+        {
+            readyText.text = "<color=#AAAAAA>결과 확인중</color>";
+            return;
+        }
+
+        readyText.text = _boundPlayer.IsReady
+            ? "<color=#00FF00>READY</color>"        // 녹색
+            : "<color=#FF0000>WAITING</color>";     // 적색
     }
 
     #endregion

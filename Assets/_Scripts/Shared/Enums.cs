@@ -37,6 +37,15 @@ public enum CapturePhase
     Active,             // 실제 포획 당한 후 플레이 단계 (이때부터 1퍼씩 게이지 오름)
 }
 
+// 결과 확인용 플레이어 이벤트 종류
+public enum GameEventType
+{
+    Captured,
+    Rescued,
+    Dead,
+    Escaped
+}
+
 // ── 구역 ──────────────────────────────────────────────────
 
 public enum  Zone
@@ -104,6 +113,14 @@ public enum  WalkieState
     RX
 }
 
+// ── 라디오 ────────────────────────────────────────────────
+public enum RadioState
+{
+    Broken,
+    InActive,
+    Active
+}
+
 // ── 퍼즐 ──────────────────────────────────────────────────
 
 public enum LightPatternPanelVisualState : byte
@@ -131,6 +148,22 @@ public enum WireSocketColor
     Purple = 6,
     White = 7,
     Black = 8
+}
+
+public enum NumericHintType
+{
+    Clock = 0,
+    Drawer = 1,
+    Book = 2,
+    Frame = 3
+}
+
+public enum NumericBookColor
+{
+    Red = 0,
+    Green = 1,
+    Blue = 2,
+    Yellow = 3
 }
 
 // ── 탈출 ──────────────────────────────────────────────────

@@ -224,33 +224,52 @@ public class PlayerController : NetworkBehaviour, IInteractable
     }
 
     /// <summary>
-    /// 조준선(Raycast)에 닿은 아이템의 외곽선을 실시간으로 제어한다.
+    /// 조준선(Raycast)에 닿은 아이템 또는 자식 퍼즐 부품의 외곽선을 실시간으로 제어한다.
     /// </summary>
     private void UpdateItemHighlight()
     {
-        // PlayerInteraction 컴포넌트의 레이캐스트 정보를 활용
-        if (Interaction != null && Interaction.TryGetCurrentTargetInfo(out NetworkId targetId, out _))
+        // 🛠️ 타겟의 NetworkId(본체)와 interactableId(자식 부품 번호)를 둘 다 가져옴!
+        if (Interaction != null && Interaction.TryGetCurrentTargetInfo(out NetworkId targetId, out int interactableId))
         {
             if (Runner.TryFindObject(targetId, out NetworkObject obj))
             {
-                // 조준 중인 오브젝트에서 외곽선 제어 모듈 검색
-                ItemOutlineController outline = obj.GetComponent<ItemOutlineController>();
+                ItemOutlineController outline = null;
 
+                // 1. 자식 부품(퍼즐 버튼 등)을 조준 중인지 정밀 확인
+                if (interactableId >= 0)
+                {
+                    // 조준 중인 특정 자식 부품을 찾음
+                    IInteractable childInteractable = FindChildInteractable(obj.transform, interactableId);
+
+                    if (childInteractable is MonoBehaviour mb)
+                    {
+                        // 그 자식 부품에 붙어있는 외곽선 모듈을 추출!
+                        outline = mb.GetComponent<ItemOutlineController>();
+                    }
+                }
+
+                // 2. 자식 부품에 모듈이 없거나, 일반 아이템(루트)인 경우 본체에서 추출
+                if (outline == null)
+                {
+                    outline = obj.GetComponent<ItemOutlineController>();
+                }
+
+                // 모듈을 성공적으로 찾았다면 전원 공급
                 if (outline != null)
                 {
-                    // 이전에 보던 것과 다른 새로운 아이템인 경우
+                    // 이전에 보던 것과 다른 새로운 타겟인 경우
                     if (_lastHighlightedOutline != outline)
                     {
-                        _lastHighlightedOutline?.SetOutline(false); // 이전 외곽선 해제
+                        _lastHighlightedOutline?.SetOutline(false); // 이전 외곽선 전원 차단
                         _lastHighlightedOutline = outline;
-                        _lastHighlightedOutline.SetOutline(true);   // 새 외곽선 가동
+                        _lastHighlightedOutline.SetOutline(true);   // 새 외곽선 전원 인가
                     }
-                    return; // 현재 아이템 유지 중이므로 종료
+                    return; // 센서 가동 유지 중이므로 여기서 종료
                 }
             }
         }
 
-        // 아무것도 조준하지 않거나 아이템이 아니면 하이라이트 해제
+        // 아무것도 조준하지 않거나 모듈이 없으면 잔류 전원 초기화
         ClearLastHighlight();
     }
 
@@ -736,11 +755,17 @@ public class PlayerController : NetworkBehaviour, IInteractable
         ServerForceDropAllHeldItems();
         ApplyImmediateTraumaOnCapture();
 
+        // 포획 로그 추가
+        GameEventLogger.Instance?.LogCaptured(GetNickname(), GetSlotIndex());
+
         if (NetAftereffectPercent >= traumaDeathThreshold)
         {
             ServerEnterDead();
             return true;
         }
+
+        // 한 구역 전원이 Captured 상태면 사망 판정
+        GameSessionManager.Instance?.CheckZoneAllCaptured(NetZone);
 
         return true;
     }
@@ -812,6 +837,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
         //NetMovementLocked = false;
         //NetLookLocked = false;
 
+        // 구출 로그 추가
+        GameEventLogger.Instance?.LogRescued(GetNickname(), GetSlotIndex());
+
         return true;
     }
 
@@ -877,6 +905,11 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return;
 
         NetPlayerState = PlayerState.Dead;
+        SaveFinalPlayerState(PlayerState.Dead);
+
+        // 사망 로그 추가
+        GameEventLogger.Instance?.LogDead(GetNickname(), GetSlotIndex());
+
         NetHideState = HideState.None;
         NetCapturePhase = CapturePhase.None;
         NetCurrentHideSpotId = default;
@@ -892,6 +925,11 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return;
 
         NetPlayerState = PlayerState.Escaped;
+        SaveFinalPlayerState(PlayerState.Escaped);
+
+        // 탈출 로그 추가
+        GameEventLogger.Instance?.LogEscaped(GetNickname(), GetSlotIndex());
+
         NetHideState = HideState.None;
         NetCapturePhase = CapturePhase.None;
         NetCurrentHideSpotId = default;
@@ -1031,6 +1069,26 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return traumaPenaltyCapture2;
 
         return traumaPenaltyCapture3Plus;
+    }
+
+    // PlayerData에서 닉네임을 가져옴 (로그용)
+    private string GetNickname()
+    {
+        var data = Runner.GetPlayerObject(Object.InputAuthority)?.GetComponent<PlayerData>();
+        return data != null ? data.Nickname.ToString() : "Unknown";
+    }
+
+    // PlayerData에서 SlotIndex를 가져옴 (로그용)
+    private int GetSlotIndex()
+    {
+        var data = Runner.GetPlayerObject(Object.InputAuthority)?.GetComponent<PlayerData>();
+        return data != null ? data.SlotIndex : -1;
+    }
+
+    private void SaveFinalPlayerState(PlayerState state)
+    {
+        var data = Runner.GetPlayerObject(Object.InputAuthority)?.GetComponent<PlayerData>();
+        if (data != null) data.FinalPlayerState = state;
     }
 
     private Vector3 GetServerInteractionOrigin()
@@ -1177,7 +1235,12 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void Rpc_DebugSetState(PlayerState state)
     {
-        NetPlayerState = state;
+        if (state == PlayerState.Dead)
+            ServerEnterDead();
+        else if (state == PlayerState.Escaped)
+            ServerEnterEscaped();
+        else
+            NetPlayerState = state;
     }
     #endregion
 }
