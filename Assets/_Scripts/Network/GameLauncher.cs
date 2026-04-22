@@ -22,6 +22,7 @@ public class GameLauncher : MonoBehaviour
     public string RoomCode { get; private set; }
     public string LocalNickname { get; private set; }
     public bool IsReturningToLobby { get; private set; }
+    public bool checkecheck { get; set; }
 
     // ── 이벤트 (Lobby 씬 내 UI에서 구독) ─────────────────
     public event Action<string> OnJoinFailed;                           // 방 참가/생성 실패 시 (TitleManager에서 구독)
@@ -52,8 +53,11 @@ public class GameLauncher : MonoBehaviour
 
     private void OnDestroy()
     {
-        Instance = null;
-        UnsubscribeCallbacks();
+        if (Instance == this)
+        {
+            Instance = null;
+            UnsubscribeCallbacks();
+        }
     }
 
     #endregion
@@ -84,6 +88,7 @@ public class GameLauncher : MonoBehaviour
         _intentionalShutdown = true;
         await Runner.Shutdown();
         Runner = null;
+        _playerSlots.Clear();
     }
 
     // 게임 종료 후 대기실로 복귀
@@ -245,6 +250,10 @@ public class GameLauncher : MonoBehaviour
     {
         if (runner.IsServer)
         {
+            var obj = runner.GetPlayerObject(player);
+            if (obj != null)
+                runner.Despawn(obj);
+
             _playerSlots.Remove(player);
         }
         OnPlayerLeftEvent?.Invoke(runner, player);
