@@ -1,209 +1,292 @@
 using Fusion;
 using UnityEngine;
 
+/// <summary>
+/// 게임 전체 Stage 진행 승인 및 전역 맵 변화 관리 매니저.
+/// 
+/// 역할
+/// - PuzzleProgressManager의 Stage1 완료 보고를 받는다.
+/// - 해당 Zone의 Stage2 해금을 승인한다.
+/// - 해당 Zone의 Stage3 진입 문을 연다.
+/// - 3막(Act3) 발동, 셔터/조명/사이렌 같은 전역 맵 변화를 담당한다.
+/// </summary>
 public class StageManager : NetworkBehaviour
 {
-    public static StageManager Instance { get; private set; }
+    public static StageManager Instance { get; private set; } // 전역 접근용 싱글톤
 
     [Header("퍼즐 관리 매니저 참조")]
-    public PuzzleProgressManager puzzleProgressManager;
+    [SerializeField] private PuzzleProgressManager puzzleProgressManager; // 퍼즐 진행도 집계 매니저 참조
+
+    [Header("Stage3 진입 문")]
+    [SerializeField] private GameObject zoneAStage3Door; // ZoneA 3단계 진입 문
+    [SerializeField] private GameObject zoneBStage3Door; // ZoneB 3단계 진입 문
 
     [Header("3막 연출 소리 설정")]
-    public AudioSource sirenAudioSource;
-    public AudioClip sirenClip;
+    [SerializeField] private AudioSource sirenAudioSource; // 전역 사이렌 AudioSource
+    [SerializeField] private AudioClip sirenClip;          // 3막 진입 시 재생할 사이렌 클립
 
     [Header("Zone A 계단 차단 (셔터)")]
-    public GameObject zoneA_StairA_Top;    //3F-2F
-    public GameObject zoneA_StairA_Bottom; //2F-1F
-    public GameObject zoneA_StairB_Top;    //3F-2F
-    public GameObject zoneA_StairB_Bottom; //2F-1F
+    [SerializeField] private GameObject zoneA_StairA_Top;    // ZoneA A계단 상단 차단벽 (3F-2F)
+    [SerializeField] private GameObject zoneA_StairA_Bottom; // ZoneA A계단 하단 차단벽 (2F-1F)
+    [SerializeField] private GameObject zoneA_StairB_Top;    // ZoneA B계단 상단 차단벽 (3F-2F)
+    [SerializeField] private GameObject zoneA_StairB_Bottom; // ZoneA B계단 하단 차단벽 (2F-1F)
 
     [Header("Zone B 계단 차단 (셔터)")]
-    public GameObject zoneB_StairA_Top;    //3F-2F
-    public GameObject zoneB_StairA_Bottom; //2F-1F
-    public GameObject zoneB_StairB_Top;    //3F-2F
-    public GameObject zoneB_StairB_Bottom; //2F-1F
+    [SerializeField] private GameObject zoneB_StairA_Top;    // ZoneB A계단 상단 차단벽 (3F-2F)
+    [SerializeField] private GameObject zoneB_StairA_Bottom; // ZoneB A계단 하단 차단벽 (2F-1F)
+    [SerializeField] private GameObject zoneB_StairB_Top;    // ZoneB B계단 상단 차단벽 (3F-2F)
+    [SerializeField] private GameObject zoneB_StairB_Bottom; // ZoneB B계단 하단 차단벽 (2F-1F)
 
-    //3막 진행 여부를 모든 클라이언트가 알 수 있도록 선언
-    [Networked] public NetworkBool IsAct3Active { get; set; }
+    [Header("디버그")]
+    [SerializeField] private bool enableDebugLog = true; // 디버그 로그 출력 여부
+
+    [Networked] public NetworkBool IsAct3Active { get; set; } // 3막 진행 여부 네트워크 동기화 값
+    [Networked] private NetworkBool NetZoneAStage1Completed { get; set; } // ZoneA Stage1 완료 승인 여부
+    [Networked] private NetworkBool NetZoneBStage1Completed { get; set; } // ZoneB Stage1 완료 승인 여부
 
     public override void Spawned()
     {
-        //싱글톤
-        if (Instance == null) Instance = this;
+        if (Instance == null)
+            Instance = this; // 싱글톤 설정
 
-        //호스트 서버에서만 초기 셋팅 진행
         if (HasStateAuthority)
         {
-            IsAct3Active = false;
+            IsAct3Active = false;             // 게임 시작 시 3막 비활성화
+            NetZoneAStage1Completed = false;  // ZoneA Stage1 완료 플래그 초기화
+            NetZoneBStage1Completed = false;  // ZoneB Stage1 완료 플래그 초기화
 
-            //게임 시작 시, 모든 셔터 비활성화
-            SetAllStairBlocksActive(false);
+            SetAllStairBlocksActive(false);   // 시작 시 계단 차단벽 전부 비활성화
+            SetStage3DoorOpen(Zone.ZoneA, false); // ZoneA 3단계 진입 문 닫기
+            SetStage3DoorOpen(Zone.ZoneB, false); // ZoneB 3단계 진입 문 닫기
         }
     }
 
-    #region 메인 루프 및 퍼즐 진행도 감시
-    public override void FixedUpdateNetwork()
-    {
-        //호스트 서버에서 매 프레임 감시 로직 실행
-        if (!HasStateAuthority) return;
+    #region Stage1 완료 -> Stage2 해금 / Stage3 문 개방
 
-        //매 프레임 진행 상황 확인 후 승인
-        if (puzzleProgressManager != null && puzzleProgressManager.IsRegistered)
-        {
-            //A동, B동 1단계 퍼즐이 모두 풀리면 2단계 퍼즐 해금
-            if (puzzleProgressManager.AreZoneAStage1PuzzlesSolved()) puzzleProgressManager.HandleZoneStage2Unlocked(Zone.ZoneA);
-            if (puzzleProgressManager.AreZoneBStage1PuzzlesSolved()) puzzleProgressManager.HandleZoneStage2Unlocked(Zone.ZoneB);
-        }
-    }
-
+    /// <summary>
+    /// 특정 Zone의 Stage1 퍼즐이 전부 해결되었음을 PuzzleProgressManager가 보고할 때 호출한다.
+    /// 
+    /// 처리 내용
+    /// - 해당 Zone Stage2 화면 해금 승인
+    /// - 해당 Zone Stage3 진입 문 개방
+    /// - 동일 Zone 중복 승인 방지
+    /// </summary>
     public void ReportZoneStage1Completed(Zone zone)
     {
-        if (!HasStateAuthority) return;
+        if (!HasStateAuthority)
+            return; // 서버 권한에서만 승인 가능
 
-        if (puzzleProgressManager != null)
+        if (puzzleProgressManager == null)
         {
-            //2단계 퍼즐 해금 승인
-            puzzleProgressManager.HandleZoneStage2Unlocked(zone);
-            Debug.Log($"[StageManager] {zone}의 Stage 2 해금을 승인했습니다.");
+            LogWarning("PuzzleProgressManager 참조가 없어 Stage2 해금을 승인할 수 없습니다.");
+            return;
         }
+
+        if (zone == Zone.ZoneA)
+        {
+            if (NetZoneAStage1Completed)
+                return; // 이미 승인된 ZoneA는 중복 처리 방지
+
+            NetZoneAStage1Completed = true;                   // ZoneA 완료 승인 기록
+            puzzleProgressManager.HandleZoneStage2Unlocked(Zone.ZoneA); // ZoneA Stage2 화면 ON 승인
+            SetStage3DoorOpen(Zone.ZoneA, true);             // ZoneA 3단계 진입 문 개방
+
+            Log("ZoneA Stage1 완료 승인 | ZoneA Stage2 화면 ON | ZoneA Stage3 문 OPEN");
+            return;
+        }
+
+        if (NetZoneBStage1Completed)
+            return; // 이미 승인된 ZoneB는 중복 처리 방지
+
+        NetZoneBStage1Completed = true;                      // ZoneB 완료 승인 기록
+        puzzleProgressManager.HandleZoneStage2Unlocked(Zone.ZoneB); // ZoneB Stage2 화면 ON 승인
+        SetStage3DoorOpen(Zone.ZoneB, true);                // ZoneB 3단계 진입 문 개방
+
+        Log("ZoneB Stage1 완료 승인 | ZoneB Stage2 화면 ON | ZoneB Stage3 문 OPEN");
+    }
+
+    /// <summary>
+    /// 특정 Zone의 Stage3 진입 문을 열거나 닫는다.
+    /// active=true면 문 개방 상태로 간주하여 비활성화 처리한다.
+    /// active=false면 문을 닫힌 상태로 간주하여 활성화 처리한다.
+    /// 
+    /// 주의:
+    /// - 문 오브젝트가 '막는 벽/셔터' 타입이면 이 방식이 맞다.
+    /// - 문 오브젝트가 '열린 문 모델'이면 팀 구조에 맞게 반대로 바꿔야 한다.
+    /// </summary>
+    private void SetStage3DoorOpen(Zone zone, bool isOpen)
+    {
+        GameObject targetDoor = zone == Zone.ZoneA ? zoneAStage3Door : zoneBStage3Door; // Zone별 대상 문 선택
+        if (targetDoor == null)
+            return; // 문 참조가 없으면 종료
+
+        targetDoor.SetActive(!isOpen); // 막는 오브젝트 기준: 열림이면 비활성화, 닫힘이면 활성화
     }
 
     #endregion
 
     #region 3막 이벤트 로직
+
+    /// <summary>
+    /// 3막(Act3)을 발동한다.
+    /// 
+    /// 처리 내용
+    /// - 크리처 강화
+    /// - 각 구역 랜덤 계단 차단 패턴 적용
+    /// - 각 구역 조명 연출 발동
+    /// - 전역 사이렌 재생
+    /// </summary>
     public void TriggerAct3()
     {
-        //권한 확인 및 중복 실행 방지
-        if (!HasStateAuthority || IsAct3Active) return;
+        if (!HasStateAuthority || IsAct3Active)
+            return; // 서버 권한 전용 + 중복 발동 방지
 
-        IsAct3Active = true;
+        IsAct3Active = true; // 3막 진행 상태 기록
 
-        //맵 내 모든 크리쳐 능력치 강화
-        CreatureAI[] allCreature = FindObjectsByType<CreatureAI>(FindObjectsSortMode.None);
-        foreach (CreatureAI creature in allCreature) creature.ApplyAct3Multipliers(true);
+        CreatureAI[] allCreature = FindObjectsByType<CreatureAI>(FindObjectsSortMode.None); // 씬의 모든 크리처 검색
+        foreach (CreatureAI creature in allCreature)
+            creature.ApplyAct3Multipliers(true); // 3막 배수 적용
 
-        //각 구역별 랜덤 계단 차단 패턴 적용
-        ApplyRandomPatternToZone(Zone.ZoneA);
-        ApplyRandomPatternToZone(Zone.ZoneB);
+        ApplyRandomPatternToZone(Zone.ZoneA); // ZoneA 계단 차단 패턴 적용
+        ApplyRandomPatternToZone(Zone.ZoneB); // ZoneB 계단 차단 패턴 적용
 
-        //각 구역 조명 매니저를 통한 3막 붉은 조명 연출 발동
-        ZoneLightingManager.GetManager(Zone.ZoneA)?.TriggerAct3Event(true);
-        ZoneLightingManager.GetManager(Zone.ZoneB)?.TriggerAct3Event(true);
+        ZoneLightingManager.GetManager(Zone.ZoneA)?.TriggerAct3Event(true); // ZoneA 조명 연출 발동
+        ZoneLightingManager.GetManager(Zone.ZoneB)?.TriggerAct3Event(true); // ZoneB 조명 연출 발동
 
-        //전역 사이렌 소리 실행 (RPC)
-        RPC_PlayAct3Effects();
-        Debug.Log("[StageManager] 3막(Act 3) 진입: 크리처 강화, 계단 차단, 조명 및 사이렌 발동 완료");
+        RPC_PlayAct3Effects(); // 전역 사이렌 재생 RPC 호출
+
+        Log("3막(Act3) 진입 완료 | 크리처 강화 | 계단 차단 | 조명/사이렌 발동");
     }
 
-    //3층에서 1층 이동 시 무조건 2층을 횡단하도록 엇갈림 패턴 무작위 적용
+    /// <summary>
+    /// 특정 Zone에 랜덤 계단 차단 패턴을 적용한다.
+    /// 3층에서 1층 이동 시 반드시 2층 횡단이 필요하도록 엇갈림 패턴을 사용한다.
+    /// </summary>
     private void ApplyRandomPatternToZone(Zone zone)
     {
-        //50%확률로 패턴 결정
-        bool isPattern1 = Random.value > 0.5f;
+        bool isPattern1 = Random.value > 0.5f; // 50% 확률로 패턴 결정
 
         if (zone == Zone.ZoneA)
         {
-            //패턴 1: A상단, B하단 차단 / 패턴 2: A하단, B상단 차단
-            if (zoneA_StairA_Top != null) zoneA_StairA_Top.SetActive(isPattern1);
-            if (zoneA_StairB_Bottom != null) zoneA_StairB_Bottom.SetActive(isPattern1);
+            if (zoneA_StairA_Top != null) zoneA_StairA_Top.SetActive(isPattern1);      // 패턴1: A상단 차단
+            if (zoneA_StairB_Bottom != null) zoneA_StairB_Bottom.SetActive(isPattern1); // 패턴1: B하단 차단
 
-            if (zoneA_StairA_Bottom != null) zoneA_StairA_Bottom.SetActive(!isPattern1);
-            if (zoneA_StairB_Top != null) zoneA_StairB_Top.SetActive(!isPattern1);
+            if (zoneA_StairA_Bottom != null) zoneA_StairA_Bottom.SetActive(!isPattern1); // 패턴2: A하단 차단
+            if (zoneA_StairB_Top != null) zoneA_StairB_Top.SetActive(!isPattern1);        // 패턴2: B상단 차단
 
-            Debug.Log($"[StageManager] Zone A 3막 계단 차단 패턴 {(isPattern1 ? "1" : "2")} 적용");
+            Log($"ZoneA 3막 계단 차단 패턴 {(isPattern1 ? "1" : "2")} 적용");
+            return;
         }
 
-        else if (zone == Zone.ZoneB)
-        {
-            //패턴 1: A상단, B하단 차단 / 패턴 2: A하단, B상단 차단
-            if (zoneB_StairA_Top != null) zoneB_StairA_Top.SetActive(isPattern1);
-            if (zoneB_StairB_Bottom != null) zoneB_StairB_Bottom.SetActive(isPattern1);
+        if (zoneB_StairA_Top != null) zoneB_StairA_Top.SetActive(isPattern1);       // 패턴1: A상단 차단
+        if (zoneB_StairB_Bottom != null) zoneB_StairB_Bottom.SetActive(isPattern1); // 패턴1: B하단 차단
 
-            if (zoneB_StairA_Bottom != null) zoneB_StairA_Bottom.SetActive(!isPattern1);
-            if (zoneB_StairB_Top != null) zoneB_StairB_Top.SetActive(!isPattern1);
+        if (zoneB_StairA_Bottom != null) zoneB_StairA_Bottom.SetActive(!isPattern1); // 패턴2: A하단 차단
+        if (zoneB_StairB_Top != null) zoneB_StairB_Top.SetActive(!isPattern1);       // 패턴2: B상단 차단
 
-            Debug.Log($"[StageManager] Zone B 3막 계단 차단 패턴 {(isPattern1 ? "1" : "2")} 적용");
-        }
+        Log($"ZoneB 3막 계단 차단 패턴 {(isPattern1 ? "1" : "2")} 적용");
     }
 
-    //모든 계단 차단벽 일괄 제어 함수
+    /// <summary>
+    /// 모든 계단 차단벽을 일괄 활성/비활성 처리한다.
+    /// </summary>
     private void SetAllStairBlocksActive(bool active)
     {
-        //Zone A
-        if (zoneA_StairA_Top != null) zoneA_StairA_Top.SetActive(active);
-        if (zoneA_StairA_Bottom != null) zoneA_StairA_Bottom.SetActive(active);
-        if (zoneA_StairB_Top != null) zoneA_StairB_Top.SetActive(active);
-        if (zoneA_StairB_Bottom != null) zoneA_StairB_Bottom.SetActive(active);
+        if (zoneA_StairA_Top != null) zoneA_StairA_Top.SetActive(active);       // ZoneA A계단 상단
+        if (zoneA_StairA_Bottom != null) zoneA_StairA_Bottom.SetActive(active); // ZoneA A계단 하단
+        if (zoneA_StairB_Top != null) zoneA_StairB_Top.SetActive(active);       // ZoneA B계단 상단
+        if (zoneA_StairB_Bottom != null) zoneA_StairB_Bottom.SetActive(active); // ZoneA B계단 하단
 
-        //Zone B
-        if (zoneB_StairA_Top != null) zoneB_StairA_Top.SetActive(active);
-        if (zoneB_StairA_Bottom != null) zoneB_StairA_Bottom.SetActive(active);
-        if (zoneB_StairB_Top != null) zoneB_StairB_Top.SetActive(active);
-        if (zoneB_StairB_Bottom != null) zoneB_StairB_Bottom.SetActive(active);
+        if (zoneB_StairA_Top != null) zoneB_StairA_Top.SetActive(active);       // ZoneB A계단 상단
+        if (zoneB_StairA_Bottom != null) zoneB_StairA_Bottom.SetActive(active); // ZoneB A계단 하단
+        if (zoneB_StairB_Top != null) zoneB_StairB_Top.SetActive(active);       // ZoneB B계단 상단
+        if (zoneB_StairB_Bottom != null) zoneB_StairB_Bottom.SetActive(active); // ZoneB B계단 하단
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void RPC_PlayAct3Effects()
     {
-        //사이렌 오이도 동기화 재생
-        if (sirenAudioSource != null && sirenClip != null)
-        {
-            sirenAudioSource.clip = sirenClip;
-            sirenAudioSource.loop = true;
-            sirenAudioSource.Play();
-        }
+        if (sirenAudioSource == null || sirenClip == null)
+            return; // 사이렌 참조 없으면 종료
+
+        sirenAudioSource.clip = sirenClip; // 사이렌 클립 설정
+        sirenAudioSource.loop = true;      // 반복 재생
+        sirenAudioSource.Play();           // 사이렌 재생
     }
+
     #endregion
 
     #region 디버그 및 테스트
-    //인스펙터의 StageManager 컴포넌트를 우클릭하여 실행
-    [ContextMenu("Debug/1단계 완료 강제 승인 (2단계 해금)")]
-    private void DebugForceUnlockStage2()
+
+    /// <summary>
+    /// 디버그용: 양쪽 Zone Stage1 완료를 강제로 승인하여
+    /// Stage2 화면 ON + Stage3 문 OPEN을 동시에 테스트한다.
+    /// </summary>
+    [ContextMenu("Debug/1단계 완료 강제 승인 (2단계 해금 + 3단계 문 개방)")]
+    private void DebugForceUnlockStage2AndOpenStage3Doors()
     {
         if (!Application.isPlaying)
         {
-            Debug.LogWarning("[StageManager] 플레이 모드에서만 실행 가능합니다.");
+            LogWarning("플레이 모드에서만 실행 가능합니다.");
             return;
         }
 
         if (!HasStateAuthority)
         {
-            Debug.LogWarning("[StageManager] 상태 권한이 있는 서버(호스트)에서만 실행 가능합니다.");
+            LogWarning("상태 권한이 있는 서버(호스트)에서만 실행 가능합니다.");
             return;
         }
 
-        if (puzzleProgressManager != null)
-        {
-            //타 개발자 코드의 테스트용 함수 호출하여 양쪽 구역 화면 모두 켬
-            puzzleProgressManager.HandleAllZonesStage2Unlocked();
-            Debug.Log("[StageManager] 디버그: 양쪽 구역의 2단계 해금을 강제로 승인했습니다.");
-        }
-        else
-        {
-            Debug.LogWarning("[StageManager] 디버그: PuzzleProgressManager가 연결되어 있지 않습니다.");
-        }
+        ReportZoneStage1Completed(Zone.ZoneA); // ZoneA 강제 승인
+        ReportZoneStage1Completed(Zone.ZoneB); // ZoneB 강제 승인
+
+        Log("디버그 | 양쪽 Zone Stage2 해금 + Stage3 문 개방 강제 적용");
     }
 
-    //인스펙터의 StageManager 컴포넌트를 우클릭하여 실행
+    /// <summary>
+    /// 디버그용: 3막을 조건 무시하고 즉시 발동한다.
+    /// </summary>
     [ContextMenu("Debug/3막(Act 3) 강제 진입")]
     private void DebugForceTriggerAct3()
     {
         if (!Application.isPlaying)
         {
-            Debug.LogWarning("[StageManager] 플레이 모드에서만 실행 가능합니다.");
+            LogWarning("플레이 모드에서만 실행 가능합니다.");
             return;
         }
 
         if (!HasStateAuthority)
         {
-            Debug.LogWarning("[StageManager] 상태 권한이 있는 서버(호스트)에서만 실행 가능합니다.");
+            LogWarning("상태 권한이 있는 서버(호스트)에서만 실행 가능합니다.");
             return;
         }
 
-        //조건 무시하고 즉시 3막 발동
-        TriggerAct3();
-        Debug.Log("[StageManager] 디버그: 3막을 강제로 발동시켰습니다.");
+        TriggerAct3(); // 조건 무시 즉시 발동
+
+        Log("디버그 | 3막 강제 발동");
     }
+
     #endregion
+
+    /// <summary>
+    /// 일반 디버그 로그 출력.
+    /// </summary>
+    private void Log(string message)
+    {
+        if (!enableDebugLog)
+            return;
+
+        Debug.Log($"[StageManager] {message}", this);
+    }
+
+    /// <summary>
+    /// 경고 디버그 로그 출력.
+    /// </summary>
+    private void LogWarning(string message)
+    {
+        if (!enableDebugLog)
+            return;
+
+        Debug.LogWarning($"[StageManager] {message}", this);
+    }
 }
