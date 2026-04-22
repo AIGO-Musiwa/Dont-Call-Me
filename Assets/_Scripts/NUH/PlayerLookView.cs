@@ -11,6 +11,7 @@ public class PlayerLookView : MonoBehaviour
     [SerializeField] private float eyeOffset = 0.1f;
     [SerializeField] private bool lockCursorForLocalPlayer = true;
     [SerializeField] private float capturedEyeHeight = 0.45f;
+    [SerializeField] private float lightRootOffset = 0.3f;
 
     private PlayerController _controller;
     private PlayerKCCMotor _motor;
@@ -110,8 +111,17 @@ public class PlayerLookView : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// lightRootOffset 만큼 카메라 transform의 y 위치를 낮춘 위치 반환 (손전등 라이트 루트용)
+    /// </summary>
     public Transform GetCameraLightRoot()
     {
+        
+        if (cameraLightRoot == null || playerCamera == null)
+            return null;
+        Vector3 offset = new Vector3(0f, -lightRootOffset, 0f);
+        cameraLightRoot.position = playerCamera.transform.position + offset;
+        cameraLightRoot.rotation = playerCamera.transform.rotation;
         return cameraLightRoot;
     }
 }
