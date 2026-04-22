@@ -135,6 +135,7 @@ public class StageManager : NetworkBehaviour
     /// - 각 구역 랜덤 계단 차단 패턴 적용
     /// - 각 구역 조명 연출 발동
     /// - 전역 사이렌 재생
+    /// - 3막 진입 시 사망으로 인한 강제 실패 방지
     /// </summary>
     public void TriggerAct3()
     {
@@ -154,6 +155,8 @@ public class StageManager : NetworkBehaviour
         ZoneLightingManager.GetManager(Zone.ZoneB)?.TriggerAct3Event(true); // ZoneB 조명 연출 발동
 
         RPC_PlayAct3Effects(); // 전역 사이렌 재생 RPC 호출
+
+        GameSessionManager.Instance.notifyEscapeUnlocked(); // 탈출구 해금 알림
 
         Log("3막(Act3) 진입 완료 | 크리처 강화 | 계단 차단 | 조명/사이렌 발동");
     }
