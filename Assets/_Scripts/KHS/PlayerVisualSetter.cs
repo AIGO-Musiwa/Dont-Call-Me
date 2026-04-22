@@ -1,10 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-/// <summary>
-/// 비주얼 및 오디오 수신 장치 동기화 모듈
-/// 본체 메쉬의 그림자 설정을 통해 로컬/리모트 표현을 최적화한다.
-/// </summary>
 public class PlayerVisualSetter : MonoBehaviour
 {
     [Header("메쉬")]
@@ -20,29 +16,22 @@ public class PlayerVisualSetter : MonoBehaviour
         if (fullBodyMesh == null) return;
 
         Renderer[] allRenderers = fullBodyMesh.GetComponentsInChildren<Renderer>(true);
-
-        // 오디오 리스너 참조 확인
-        AudioListener listener = null;
-        if (playerCamera != null)
-        {
-            listener = playerCamera.GetComponent<AudioListener>();
-        }
+        AudioListener listener = playerCamera != null ? playerCamera.GetComponent<AudioListener>() : null;
 
         if (isLocal)
         {
             // --- [로컬 플레이어 설정] ---
             int localLayer = LayerMask.NameToLayer(localLayerName);
-            if (localLayer == -1) { Debug.LogError($"{localLayerName} 레이어가 없습니다!"); return; }
+            if (localLayer == -1) return;
 
-            // 본체 레이어를 내 화면 전용 숨김 레이어로 변경
             SetLayerRecursively(fullBodyMesh, localLayer);
 
             if (playerCamera != null)
             {
-                playerCamera.enabled = true; // 내 카메라는 활성화
-                if (listener != null) listener.enabled = true; // 내 귀(Listener)는 활성화
+                playerCamera.enabled = true;
+                if (listener != null) listener.enabled = true;
 
-                // 내 카메라에서 내 레이어만 제외 (내 몸 안 보이게)
+                // 내 카메라에서 내 몸뚱아리만 스캔 제외 (안 보이게)
                 playerCamera.cullingMask &= ~(1 << localLayer);
 
                 int remoteLayer = LayerMask.NameToLayer(remoteLayerName);
@@ -52,10 +41,11 @@ public class PlayerVisualSetter : MonoBehaviour
             foreach (var renderer in allRenderers)
             {
                 renderer.enabled = true;
-                // [정비] 로컬에서는 본체 그림자를 완전히 끈다
-                renderer.shadowCastingMode = ShadowCastingMode.Off;
-                renderer.receiveShadows = false;
-                renderer.lightProbeUsage = LightProbeUsage.Off;
+                // 🛠️ [핵심 부품 교체] Off가 아니라 ShadowsOnly를 쓴다!
+                // 이렇게 하면 내 몸은 안 보이지만, 바닥에 그림자는 투사됨.
+                renderer.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+                renderer.receiveShadows = true;
+                renderer.lightProbeUsage = LightProbeUsage.BlendProbes;
             }
         }
         else
@@ -64,19 +54,18 @@ public class PlayerVisualSetter : MonoBehaviour
             int remoteLayer = LayerMask.NameToLayer(remoteLayerName);
             if (remoteLayer == -1) remoteLayer = 0;
 
-            // 본체 레이어를 다른 사람이 볼 수 있는 레이어로 변경
             SetLayerRecursively(fullBodyMesh, remoteLayer);
 
             if (playerCamera != null)
             {
-                playerCamera.enabled = false; // 남의 카메라는 비활성화
-                if (listener != null) listener.enabled = false; // 남의 귀는 비활성화
+                playerCamera.enabled = false;
+                if (listener != null) listener.enabled = false;
             }
 
             foreach (var renderer in allRenderers)
             {
                 renderer.enabled = true;
-                // [정비] 리모트 유저(남)의 그림자는 정상적으로 출력한다
+                // 🛠️ 타인이 보는 내 모습은 몸과 그림자 모두 활성화!
                 renderer.shadowCastingMode = ShadowCastingMode.On;
                 renderer.receiveShadows = true;
                 renderer.lightProbeUsage = LightProbeUsage.BlendProbes;
