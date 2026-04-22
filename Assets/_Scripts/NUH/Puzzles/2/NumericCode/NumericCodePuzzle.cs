@@ -12,23 +12,24 @@ using UnityEngine;
 /// - 4개가 모두 입력되면 정답 판정한다.
 /// - 오답이면 빨간 화면 3회 점멸 후 입력 초기화
 /// - 정답이면 퍼즐 클리어 후 3단계 힌트 화면으로 전환
+/// - solved 상태가 네트워크로 바뀌면 모든 클라이언트에서 성공 화면을 반영한다.
 /// </summary>
 public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 {
     [Header("참조")]
-    [SerializeField] private NumericCodeView codeView;           // 하단 입력 / 실패 연출 / 성공 화면 담당 뷰
+    [SerializeField] private NumericCodeView codeView; // 하단 입력 / 실패 연출 / 성공 화면 담당 뷰
 
     [Header("설정")]
     [SerializeField] private int digitCount = 4;                 // 최종 입력 자릿수
-    [SerializeField] private bool lockInputDuringFailEffect = true;
-    [SerializeField] private bool showStage3HintImmediately = true;
+    [SerializeField] private bool lockInputDuringFailEffect = true; // 실패 연출 중 입력 잠금 여부
+    [SerializeField] private bool showStage3HintImmediately = true; // 성공 직후 3단계 힌트 화면으로 바로 전환할지 여부
 
     [Header("실패 연출 대기")]
-    [SerializeField] private float failFlashInterval = 0.15f;    // NumericCodeView와 동일 값 권장
-    [SerializeField] private int failFlashCount = 3;             // NumericCodeView와 동일 값 권장
+    [SerializeField] private float failFlashInterval = 0.15f; // NumericCodeView와 동일 값 권장
+    [SerializeField] private int failFlashCount = 3;          // NumericCodeView와 동일 값 권장
 
     [Header("디버그")]
-    [SerializeField] private bool enableDebugLog = true;
+    [SerializeField] private bool enableDebugLog = true; // 디버그 로그 출력 여부
 
     private NumericCodeAnswerGenerator.NumericCodeAnswerData _answerData; // seed 기반 정답 데이터
     private bool _hasAnswerSeed;                                          // 시드 적용 완료 여부
@@ -38,28 +39,28 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private int NetInputCount { get; set; } // 현재 입력된 숫자 개수
 
     [Networked]
-    private int NetDigit0 { get; set; }     // 1번째 입력 숫자
+    private int NetDigit0 { get; set; } // 1번째 입력 숫자
 
     [Networked]
-    private int NetDigit1 { get; set; }     // 2번째 입력 숫자
+    private int NetDigit1 { get; set; } // 2번째 입력 숫자
 
     [Networked]
-    private int NetDigit2 { get; set; }     // 3번째 입력 숫자
+    private int NetDigit2 { get; set; } // 3번째 입력 숫자
 
     [Networked]
-    private int NetDigit3 { get; set; }     // 4번째 입력 숫자
+    private int NetDigit3 { get; set; } // 4번째 입력 숫자
 
     [Networked, OnChangedRender(nameof(OnFailFlashTriggered))]
     private int NetFailFlashSerial { get; set; } // 실패 연출 이벤트 카운터
 
     public override void Spawned()
     {
-        base.Spawned();
+        base.Spawned(); // 부모 기본 Spawned 로직 실행
 
-        RefreshInputView();
+        RefreshInputView(); // 현재 입력 상태를 화면에 반영
 
         if (IsSolved)
-            ApplySolvedPresentation();
+            ApplySolvedPresentation(); // 이미 solved 상태로 스폰되었으면 성공 화면 반영
     }
 
     /// <summary>
@@ -67,17 +68,20 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// </summary>
     public void ApplyAnswerSeed(int seed)
     {
-        _answerData = NumericCodeAnswerGenerator.Generate(seed);
-        _hasAnswerSeed = true;
-        _isFailRoutineRunning = false;
+        _answerData = NumericCodeAnswerGenerator.Generate(seed); // seed 기반 정답 데이터 생성
+        _hasAnswerSeed = true;                                   // 시드 적용 완료 표시
+        _isFailRoutineRunning = false;                           // 실패 연출 상태 초기화
 
         if (HasStateAuthority)
-            ResetInputStateOnly();
+            ResetInputStateOnly(); // 권한 쪽에서 입력 상태 초기화
 
         if (codeView != null)
-            codeView.ResetToDefault();
+            codeView.ResetToDefault(); // 화면 뷰 기본 상태로 초기화
 
-        RefreshInputView();
+        RefreshInputView(); // 입력 표시 갱신
+
+        if (IsSolved)
+            ApplySolvedPresentation(); // seed 적용 시 이미 solved 상태면 성공 화면 반영
 
         Log($"정답 시드 적용 완료 | seed = {seed} | code = {_answerData.GetFinalCodeString()}");
     }
@@ -88,21 +92,21 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     public void OnDigitPressed(int digitValue)
     {
         if (!HasStateAuthority)
-            return;
+            return; // 상태 권한 없는 쪽은 실제 입력 처리 불가
 
         if (!CanAcceptDigitInput())
-            return;
+            return; // 현재 입력 불가 상태면 종료
 
         if (digitValue < 0 || digitValue > 9)
-            return;
+            return; // 0~9 범위 밖 입력 방어
 
-        AppendDigit(digitValue);
-        RefreshInputView();
+        AppendDigit(digitValue); // 네트워크 입력 상태에 숫자 추가
+        RefreshInputView();      // 화면 갱신
 
         Log($"숫자 입력 | value = {digitValue} | inputCount = {NetInputCount}/{digitCount}");
 
         if (IsInputComplete())
-            EvaluateInput();
+            EvaluateInput(); // 자릿수 다 찼으면 정답 판정
     }
 
     /// <summary>
@@ -112,18 +116,18 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     public bool CanAcceptDigitInput()
     {
         if (IsSolved)
-            return false;
+            return false; // solved 상태면 입력 불가
 
         if (!_hasAnswerSeed)
-            return false;
+            return false; // 정답 시드 미적용 상태면 입력 불가
 
         if (_isFailRoutineRunning && lockInputDuringFailEffect)
-            return false;
+            return false; // 실패 연출 중 잠금 옵션이면 입력 불가
 
         if (NetInputCount >= digitCount)
-            return false;
+            return false; // 이미 입력이 가득 찼으면 입력 불가
 
-        return true;
+        return true; // 그 외에는 입력 가능
     }
 
     /// <summary>
@@ -132,14 +136,14 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// </summary>
     public List<int> GetCurrentInputDigits()
     {
-        List<int> digits = new List<int>(NetInputCount);
+        List<int> digits = new List<int>(NetInputCount); // 현재 입력 수만큼 리스트 생성
 
-        if (NetInputCount >= 1) digits.Add(NetDigit0);
-        if (NetInputCount >= 2) digits.Add(NetDigit1);
-        if (NetInputCount >= 3) digits.Add(NetDigit2);
-        if (NetInputCount >= 4) digits.Add(NetDigit3);
+        if (NetInputCount >= 1) digits.Add(NetDigit0); // 첫 번째 입력 추가
+        if (NetInputCount >= 2) digits.Add(NetDigit1); // 두 번째 입력 추가
+        if (NetInputCount >= 3) digits.Add(NetDigit2); // 세 번째 입력 추가
+        if (NetInputCount >= 4) digits.Add(NetDigit3); // 네 번째 입력 추가
 
-        return digits;
+        return digits; // 현재 입력 숫자 목록 반환
     }
 
     /// <summary>
@@ -158,22 +162,22 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         switch (NetInputCount)
         {
             case 0:
-                NetDigit0 = digitValue;
+                NetDigit0 = digitValue; // 첫 번째 자리에 저장
                 break;
             case 1:
-                NetDigit1 = digitValue;
+                NetDigit1 = digitValue; // 두 번째 자리에 저장
                 break;
             case 2:
-                NetDigit2 = digitValue;
+                NetDigit2 = digitValue; // 세 번째 자리에 저장
                 break;
             case 3:
-                NetDigit3 = digitValue;
+                NetDigit3 = digitValue; // 네 번째 자리에 저장
                 break;
             default:
-                return;
+                return; // 그 외는 방어적으로 종료
         }
 
-        NetInputCount++;
+        NetInputCount++; // 현재 입력 개수 증가
     }
 
     /// <summary>
@@ -181,7 +185,7 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// </summary>
     private bool IsInputComplete()
     {
-        return NetInputCount >= digitCount;
+        return NetInputCount >= digitCount; // 목표 자릿수 도달 여부 반환
     }
 
     /// <summary>
@@ -190,27 +194,28 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private void EvaluateInput()
     {
         if (_answerData == null || _answerData.FinalDigits.Count < digitCount)
-            return;
+            return; // 정답 데이터가 비정상이면 종료
 
-        List<int> inputDigits = GetCurrentInputDigits();
+        List<int> inputDigits = GetCurrentInputDigits(); // 현재 입력 숫자 목록 가져오기
 
-        bool isCorrect = true;
+        bool isCorrect = true; // 정답 여부 가정
+
         for (int i = 0; i < digitCount; i++)
         {
             if (inputDigits[i] != _answerData.FinalDigits[i])
             {
-                isCorrect = false;
+                isCorrect = false; // 하나라도 다르면 오답
                 break;
             }
         }
 
         if (isCorrect)
         {
-            HandleSolved();
+            HandleSolved(); // 정답 처리
             return;
         }
 
-        HandleFailed();
+        HandleFailed(); // 오답 처리
     }
 
     /// <summary>
@@ -218,9 +223,9 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// </summary>
     private void HandleSolved()
     {
-        MarkSolved();
+        MarkSolved(); // solved 상태를 네트워크에 반영
 
-        ApplySolvedPresentation();
+        ApplySolvedPresentation(); // 권한 쪽은 즉시 성공 화면 반영
 
         Log("숫자 입력 퍼즐 성공");
     }
@@ -230,9 +235,9 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// </summary>
     private void HandleFailed()
     {
-        MarkFailed();
+        MarkFailed(); // 공통 실패 훅 호출
 
-        StartCoroutine(CoHandleFail());
+        StartCoroutine(CoHandleFail()); // 실패 연출 코루틴 시작
 
         Log("숫자 입력 퍼즐 실패");
     }
@@ -242,20 +247,20 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// </summary>
     private IEnumerator CoHandleFail()
     {
-        _isFailRoutineRunning = true;
+        _isFailRoutineRunning = true; // 실패 연출 중 표시
 
-        TriggerFailFlash();
+        TriggerFailFlash(); // 실패 점멸 이벤트 발생
 
-        float waitTime = failFlashInterval * failFlashCount * 2f;
-        yield return new WaitForSeconds(waitTime);
+        float waitTime = failFlashInterval * failFlashCount * 2f; // 빨강/흰색 왕복 총 대기 시간
+        yield return new WaitForSeconds(waitTime); // 연출 끝날 때까지 대기
 
-        ResetInputStateOnly();
-        RefreshInputView();
+        ResetInputStateOnly(); // 입력 상태 초기화
+        RefreshInputView();    // 화면 입력 표시 갱신
 
         if (codeView != null)
-            codeView.ResetToDefault();
+            codeView.ResetToDefault(); // 화면 기본 상태로 초기화
 
-        _isFailRoutineRunning = false;
+        _isFailRoutineRunning = false; // 실패 연출 종료 표시
 
         Log("오답 연출 종료 후 입력 초기화");
     }
@@ -265,11 +270,10 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// </summary>
     private void TriggerFailFlash()
     {
-        NetFailFlashSerial++;
+        NetFailFlashSerial++; // 실패 연출 시리얼 증가로 렌더 콜백 유도
 
-        // 호스트 즉시 반영
         if (codeView != null)
-            codeView.PlayFailFlash();
+            codeView.PlayFailFlash(); // 권한 쪽은 즉시 실패 점멸 반영
     }
 
     /// <summary>
@@ -278,12 +282,12 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private void OnFailFlashTriggered()
     {
         if (codeView == null)
-            return;
+            return; // 뷰 없으면 종료
 
         if (IsSolved)
-            return;
+            return; // 이미 solved면 실패 연출 무시
 
-        codeView.PlayFailFlash();
+        codeView.PlayFailFlash(); // 실패 점멸 반영
     }
 
     /// <summary>
@@ -291,7 +295,7 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// </summary>
     private void OnInputStateChanged()
     {
-        RefreshInputView();
+        RefreshInputView(); // 현재 입력 상태를 화면에 다시 반영
     }
 
     /// <summary>
@@ -300,9 +304,9 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private void RefreshInputView()
     {
         if (codeView == null)
-            return;
+            return; // 뷰 없으면 종료
 
-        codeView.ApplyInputDigits(GetCurrentInputDigits());
+        codeView.ApplyInputDigits(GetCurrentInputDigits()); // 현재 입력 숫자를 화면에 반영
     }
 
     /// <summary>
@@ -310,11 +314,11 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// </summary>
     private void ResetInputStateOnly()
     {
-        NetInputCount = 0;
-        NetDigit0 = 0;
-        NetDigit1 = 0;
-        NetDigit2 = 0;
-        NetDigit3 = 0;
+        NetInputCount = 0; // 입력 개수 초기화
+        NetDigit0 = 0;     // 첫 번째 숫자 초기화
+        NetDigit1 = 0;     // 두 번째 숫자 초기화
+        NetDigit2 = 0;     // 세 번째 숫자 초기화
+        NetDigit3 = 0;     // 네 번째 숫자 초기화
     }
 
     /// <summary>
@@ -323,15 +327,27 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private void ApplySolvedPresentation()
     {
         if (codeView == null)
-            return;
+            return; // 뷰 없으면 종료
 
         if (showStage3HintImmediately)
         {
-            codeView.ShowStage3HintState();
+            codeView.ShowStage3HintState(); // 바로 3단계 힌트 화면으로 전환
             return;
         }
 
-        codeView.ShowSolvedState();
+        codeView.ShowSolvedState(); // 성공 화면 표시
+    }
+
+    /// <summary>
+    /// solved 상태가 네트워크로 변경되었을 때 모든 클라이언트에서 호출된다.
+    /// Host/Client 관계없이 성공 화면 전환을 동일하게 반영한다.
+    /// </summary>
+    protected override void HandleSolvedStateChanged()
+    {
+        if (!IsSolved)
+            return; // solved가 아닌 상태 변화는 무시
+
+        ApplySolvedPresentation(); // 성공 화면 반영
     }
 
     /// <summary>
@@ -340,8 +356,8 @@ public class NumericCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private void Log(string message)
     {
         if (!enableDebugLog)
-            return;
+            return; // 로그 꺼져 있으면 종료
 
-        Debug.Log($"[NumericCodePuzzle] {message}", this);
+        Debug.Log($"[NumericCodePuzzle] {message}", this); // 디버그 로그 출력
     }
 }

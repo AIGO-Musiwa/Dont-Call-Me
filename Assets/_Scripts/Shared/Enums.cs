@@ -166,6 +166,15 @@ public enum NumericBookColor
     Yellow = 3
 }
 
+public enum MazeMoveDirection 
+{
+    Up,
+    Down,
+    Left,
+    Right
+}
+
+
 // ── 탈출 ──────────────────────────────────────────────────
 
 // 탈출 위치

@@ -40428,6 +40428,9 @@ MonoBehaviour:
   nicknameText: {fileID: 1722676295}
   escapedImage: {fileID: 0}
   deadImage: {fileID: 0}
+  hostMark: {fileID: 0}
+  localPlayerColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  defaultColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &328518257
 GameObject:
   m_ObjectHideFlags: 0
@@ -64235,6 +64238,9 @@ MonoBehaviour:
   nicknameText: {fileID: 290942979}
   escapedImage: {fileID: 0}
   deadImage: {fileID: 0}
+  hostMark: {fileID: 0}
+  localPlayerColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  defaultColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!43 &497227488
 Mesh:
   m_ObjectHideFlags: 0
@@ -156689,8 +156695,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0c7b06a87fdf0b4382a7fa2a03d8ceb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameSessionManager
-  resultPanel: {fileID: 318137229}
-  resultUI: {fileID: 1952394607}
+  _SessionDuration: 0
 --- !u!4 &1225637773
 Transform:
   m_ObjectHideFlags: 0
@@ -214444,6 +214449,9 @@ MonoBehaviour:
   nicknameText: {fileID: 1972534191}
   escapedImage: {fileID: 0}
   deadImage: {fileID: 0}
+  hostMark: {fileID: 0}
+  localPlayerColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  defaultColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!43 &1609762909
 Mesh:
   m_ObjectHideFlags: 0
@@ -227603,63 +227611,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PuzzlePlacementSlot
   slotId: 
---- !u!1 &1734401222
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1734401224}
-  - component: {fileID: 1734401223}
-  m_Layer: 0
-  m_Name: PlayerSpectatorController
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1734401223
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1734401222}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a9aab57ee0226d4599d80229a3d3b14, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerSpectatorController
-  spectatorCamera: {fileID: 0}
-  spectatorOrbitCamera: {fileID: 0}
-  lookAction: {fileID: 0}
-  zoomAction: {fileID: 0}
-  horizontalSpeed: 0.2
-  verticalSpeed: 0.15
-  defaultVerticalAngle: 15
-  minVerticalAngle: -30
-  maxVerticalAngle: 65
-  zoomSpeed: 0.1
-  defaultDistance: 4
-  minDistance: 2.5
-  maxDistance: 6.5
---- !u!4 &1734401224
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1734401222}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!43 &1740647483
 Mesh:
   m_ObjectHideFlags: 0
@@ -252172,6 +252123,72 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1 &1952115062
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1952115065}
+  - component: {fileID: 1952115064}
+  - component: {fileID: 1952115063}
+  m_Layer: 0
+  m_Name: GameEventLogger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1952115063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1952115062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 3945866343
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 1952115064}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &1952115064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1952115062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d394d18f90a28944881140b3eb06742f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameEventLogger
+  _PuzzlesSolved: 0
+  _RadioUsed: 0
+--- !u!4 &1952115065
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1952115062}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -10.13793, y: 7.03463, z: -21}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1952394605
 GameObject:
   m_ObjectHideFlags: 0
@@ -252227,7 +252244,14 @@ MonoBehaviour:
   - {fileID: 497145089}
   - {fileID: 1964560532}
   - {fileID: 328344511}
+  survivorCountText: {fileID: 0}
+  playTimeText: {fileID: 0}
+  puzzlesSolvedText: {fileID: 0}
+  radioUsedText: {fileID: 0}
+  timelineContainer: {fileID: 0}
+  timelineCardPrefab: {fileID: 0}
   returnButton: {fileID: 401285651}
+  overlayController: {fileID: 0}
 --- !u!1 &1952727044
 GameObject:
   m_ObjectHideFlags: 0
@@ -254606,6 +254630,9 @@ MonoBehaviour:
   nicknameText: {fileID: 2082348170}
   escapedImage: {fileID: 0}
   deadImage: {fileID: 0}
+  hostMark: {fileID: 0}
+  localPlayerColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  defaultColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1964576989
 GameObject:
   m_ObjectHideFlags: 0
@@ -277984,10 +278011,10 @@ SceneRoots:
   - {fileID: 788411544}
   - {fileID: 497817132}
   - {fileID: 1122243060}
-  - {fileID: 1734401224}
   - {fileID: 1593590108}
   - {fileID: 772434945}
   - {fileID: 804518744}
   - {fileID: 196943988}
   - {fileID: 255740978}
   - {fileID: 2125078174}
+  - {fileID: 1952115065}
