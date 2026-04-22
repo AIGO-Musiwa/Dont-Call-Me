@@ -930,6 +930,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
         // 탈출 로그 추가
         GameEventLogger.Instance?.LogEscaped(GetNickname(), GetSlotIndex());
 
+        // 같은 Zone의 Captured 플레이어 Dead 처리
+        GameSessionManager.Instance?.CheckZoneEscaped(NetZone);
+
         NetHideState = HideState.None;
         NetCapturePhase = CapturePhase.None;
         NetCurrentHideSpotId = default;
@@ -1219,15 +1222,22 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_ProcessMinigameSuccess()
     {
-        // 포획 상태가 아니라면 무전 무시
+        // 포획 상태가 아니라면 무시
         if (NetPlayerState != PlayerState.Captured) return;
 
-        // 기획서 1-4: 후유증 3% 즉시 감소
-        float nextValue = NetAftereffectPercent - 3.0f;
-        NetAftereffectPercent = Mathf.Max(0f, nextValue);
+        // 🛠️ 기획서 1-4: 후유증 3% 감소 
+        NetAftereffectPercent = Mathf.Max(0f, NetAftereffectPercent - 3.0f);
 
-        // 로그 기록 (검수용)
-        Debug.Log($"[미니게임] 성공! 후유증 3% 제거. 현재: {NetAftereffectPercent}%");
+        // 🛠️ [핵심 부품 추가] 
+        // 깎인 만큼 '살아남을 수 있는 제한 시간(타이머)'도 실질적으로 늘려줘야 해!
+        if (NetCaptureExpireTimer.IsRunning)
+        {
+            // 타이머의 남은 시간에 3초(3%에 해당하는 시간)를 더해줌
+            float currentRemaining = NetCaptureExpireTimer.RemainingTime(Runner).GetValueOrDefault(0);
+            NetCaptureExpireTimer = TickTimer.CreateFromSeconds(Runner, currentRemaining + 3.0f);
+        }
+
+        Debug.Log($"[미니게임] 서버 동기화 완료! 후유증 3% 삭감. 현재 후유증: {NetAftereffectPercent}%");
     }
 
 
