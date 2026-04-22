@@ -32275,19 +32275,19 @@ PrefabInstance:
     - target: {fileID: 3251357313860427317, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
       propertyPath: traumaGauge
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1611786292}
     - target: {fileID: 3251357313860427317, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
       propertyPath: capturedGroup
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1915168111}
     - target: {fileID: 3251357313860427317, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
       propertyPath: traumaTimeText
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 2087472024}
     - target: {fileID: 3251357313860427317, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
       propertyPath: traumaPercentText
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 718090198}
     - target: {fileID: 5087770689441799572, guid: c6ba95a083c07ce40a8235532303f35d, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -103407,7 +103407,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
   m_Material: {fileID: 0}
-  m_Color: {r: 0.11764693, g: 1, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -107808,7 +107808,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 750, y: 0}
-  m_SizeDelta: {x: 1, y: 300}
+  m_SizeDelta: {x: 5, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &891592730
 MonoBehaviour:
@@ -125117,13 +125117,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68659de183754014caa664d78e78c440, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CaptureMinigameUI
-  scannerBar: {fileID: 359311022}
+  scannerBar: {fileID: 891592729}
   graphContainer: {fileID: 861709086}
   traumaSlider: {fileID: 1611786292}
+  graphImage: {fileID: 861709087}
   totalDuration: 5
   totalBeats: 5
   hitBoxWidth: 80
-  scannerImage: {fileID: 0}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   successColor: {r: 0, g: 1, b: 0, a: 1}
   failColor: {r: 1, g: 0, b: 0, a: 1}
