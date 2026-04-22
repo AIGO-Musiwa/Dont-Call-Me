@@ -930,6 +930,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
         // 탈출 로그 추가
         GameEventLogger.Instance?.LogEscaped(GetNickname(), GetSlotIndex());
 
+        // 같은 Zone의 Captured 플레이어 Dead 처리
+        GameSessionManager.Instance?.CheckZoneEscaped(NetZone);
+
         NetHideState = HideState.None;
         NetCapturePhase = CapturePhase.None;
         NetCurrentHideSpotId = default;
