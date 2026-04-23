@@ -195,16 +195,18 @@ public class PlayerController : NetworkBehaviour, IInteractable
             input.Buttons.IsSet(InputButtons.Walkie) &&
             !_prevWalkiePressed)
         {
-            _prevWalkiePressed = true;                                   // 이전 상태 갱신
-            GetHeldWalkieTalkie()?.RPC_RequestPTT(true);                 // PTT 시작 요청
+            _prevWalkiePressed = true;
+            if (GetHeldWalkieTalkie() != null)
+                RPC_RequestPTT(true);
         }
         // 무전기 PTT 떼기
         else if (HasInputAuthority &&
                  !input.Buttons.IsSet(InputButtons.Walkie) &&
                  _prevWalkiePressed)
         {
-            _prevWalkiePressed = false;                                  // 이전 상태 갱신
-            GetHeldWalkieTalkie()?.RPC_RequestPTT(false);                // PTT 종료 요청
+            _prevWalkiePressed = false;
+            if (GetHeldWalkieTalkie() != null)
+                RPC_RequestPTT(false);
         }
     }
 
@@ -564,6 +566,15 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return rightWalkie;                                           // 오른손 무전기 반환
 
         return null;                                                      // 들고 있는 무전기 없음
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_RequestPTT(bool isPressed)
+    {
+        WalkieTalkieItem walkie = GetHeldWalkieTalkie();
+        if (walkie == null) return;
+
+        WalkieTalkieManager.Instance?.HandlePTTRequest(Object.InputAuthority, isPressed, walkie);
     }
 
     #endregion
