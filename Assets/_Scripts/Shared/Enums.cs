@@ -101,7 +101,7 @@ public enum ItemType
     FrontDoorKey,       // 정문 열쇠
     MasterKey,          // 마스터 키
 
-    BasicCube,          // 테스트용 큐브
+    Reagent,            // 시약 퍼즐
 }
 
 // ── 무전기 ────────────────────────────────────────────────
@@ -117,8 +117,10 @@ public enum  WalkieState
 public enum RadioState
 {
     Broken,
-    InActive,
-    Active
+    InProgress,
+    Ready,
+    Active,
+    Disabled
 }
 
 // ── 퍼즐 ──────────────────────────────────────────────────
@@ -174,7 +176,33 @@ public enum MazeMoveDirection
     Right
 }
 
+public enum ReagentType
+{
+    None = 0,
+    ReagentA = 1,
+    ReagentB = 2,
+    ReagentC = 3,
+    ReagentD = 4,
+    ReagentE = 5,
+    ReagentF = 6,
+}
 
+public enum ReagentActionType
+{
+    None = 0,
+    Heat = 1,
+    Cool = 2,
+}
+
+public enum ReagentButtonType
+{
+    Previous = 0,
+    Next = 1,
+    Confirm = 2,
+    StartCraft = 3,
+    Heat = 4,
+    Cool = 5,
+}
 // ── 탈출 ──────────────────────────────────────────────────
 
 // 탈출 위치

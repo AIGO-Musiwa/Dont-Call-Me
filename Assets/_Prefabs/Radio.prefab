@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3471644988895811720}
   - component: {fileID: 2983928308364387623}
   - component: {fileID: 8731498352722650824}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -124,7 +124,8 @@ GameObject:
   - component: {fileID: 9159537069379257552}
   - component: {fileID: 9159537069378160144}
   - component: {fileID: 2067297389569236236}
-  m_Layer: 0
+  - component: {fileID: 1230386808349935442}
+  m_Layer: 6
   m_Name: Radio
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -218,4 +219,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SmartGlassController
   glassRenderer: {fileID: 2983928308364387623}
   materialIndex: 0
-  activeEmissionColor: {r: 0, g: 2.5, b: 0, a: 2.5}
+  outlineComponent: {fileID: 2067297389569236236}
+  brokenColor: {r: 2.5, g: 0, b: 0, a: 2.5}
+  progressColor: {r: 0, g: 0, b: 2.5, a: 2.5}
+  readyColor: {r: 1.25, g: 1.25, b: 1.25, a: 2.5}
+  activeColor: {r: 0, g: 2.5, b: 0, a: 2.5}
+  disabledColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
+--- !u!114 &1230386808349935442
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9159537069380098256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
