@@ -142,7 +142,7 @@ public class PlayerSpectatorController : MonoBehaviour
             return;
 
         // 이전 대상 전환 입력 상태.
-        bool interactPressed = input.Buttons.IsSet(InputButtons.Interact);
+        bool interactPressed = input.Buttons.IsSet(InputButtons.InteractPressed);
 
         // 다음 대상 전환 입력 상태.
         bool walkiePressed = input.Buttons.IsSet(InputButtons.Walkie);
