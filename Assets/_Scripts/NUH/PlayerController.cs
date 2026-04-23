@@ -76,6 +76,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
     private ChangeDetector stateChangeDetector;                          // PlayerState 변경 감지기
     private ItemOutlineController _lastHighlightedOutline;               // 마지막으로 강조 중인 외곽선 장치
 
+    private HUDController _localHUD;                                     // 🛠️ 로컬 UI 상태 업데이트를 위한 캐시
+
     [SerializeField] private Transform debugCaptureAnchor;               // 테스트용 임시 포획 Anchor
 
     public override void Spawned()
@@ -120,6 +122,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
             if (hud != null)
             {
                 hud.LinkPlayer(this);                                    // HUD와 플레이어 연결
+                _localHUD = hud;                                         // 🛠️ HUD 캐시 저장
             }
             else
             {
@@ -145,7 +148,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
             foreach (var change in stateChangeDetector.DetectChanges(this))
             {
                 if (change == nameof(NetPlayerState))
-                    GameSessionManager.Instance?.EvaluateEndCondition();  // 상태 변경 시 게임 종료 조건 평가
+                    GameSessionManager.Instance?.EvaluateEndCondition(); // 상태 변경 시 게임 종료 조건 평가
             }
         }
 
@@ -212,10 +215,35 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!HasInputAuthority || NetPlayerState != PlayerState.Normal)
         {
             ClearLastHighlight();                                        // 조준 강조 해제
+            if (_localHUD != null) _localHUD.UpdateInteractionGauge(0f, 10f); // 🛠️ 강제 HUD 게이지 초기화
             return;
         }
 
         UpdateItemHighlight();                                           // 조준 대상 외곽선 갱신
+        UpdateInteractionHUD();                                          // 🛠️ 조준 대상 UI 게이지 갱신
+    }
+
+    // 🛠️ [신규 부품] 조준 중인 오브젝트의 진행도를 HUD에 실시간으로 그린다
+    private void UpdateInteractionHUD()
+    {
+        if (_localHUD == null) return;
+
+        if (Interaction != null && Interaction.TryGetCurrentTargetInfo(out NetworkId targetId, out int interactableId))
+        {
+            if (Runner.TryFindObject(targetId, out NetworkObject targetObj))
+            {
+                // 현재 바라보고 있는 대상이 라디오라면
+                if (targetObj.TryGetComponent(out Radio radio))
+                {
+                    // 수리 진행도를 HUD에 전달 (최대 수리 시간 10초 기준)
+                    _localHUD.UpdateInteractionGauge(radio.RepairProgress, 10f);
+                    return;
+                }
+            }
+        }
+
+        // 라디오를 보고 있지 않거나 유효하지 않으면 게이지 전원 차단
+        _localHUD.UpdateInteractionGauge(0f, 10f);
     }
 
     /// <summary>
@@ -1075,7 +1103,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
         Collider[] colliders = targetObject.GetComponentsInChildren<Collider>(true); // 대상 콜라이더 전부 수집
 
         Vector3 bestPoint = targetObject.transform.position;              // 초기 최적점
-        float bestSqrDistance = (bestPoint - origin).sqrMagnitude;       // 초기 거리
+        float bestSqrDistance = (bestPoint - origin).sqrMagnitude;        // 초기 거리
         bool foundCollider = false;                                       // 유효 콜라이더 탐색 여부
 
         for (int i = 0; i < colliders.Length; i++)
@@ -1085,7 +1113,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
                 continue;
 
             Vector3 point = col.ClosestPoint(origin);                     // 현재 콜라이더 최단점 계산
-            float sqrDistance = (point - origin).sqrMagnitude;            // 현재 거리 계산
+            float sqrDistance = (point - origin).sqrMagnitude;             // 현재 거리 계산
 
             if (!foundCollider || sqrDistance < bestSqrDistance)
             {
