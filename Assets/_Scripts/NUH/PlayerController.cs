@@ -42,7 +42,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [SerializeField] private float traumaDeathThreshold = 100f;          // 후유증 사망 임계값
     [SerializeField] private float rescueBaseTimeSeconds = 100f;         // 기본 구조 제한 시간
 
-    [Networked] public PlayerState NetPlayerState { get; set; }          // 현재 플레이어 상태
+    [Networked, OnChangedRender(nameof(OnPlayerStateChanged))]
+    public PlayerState NetPlayerState { get; set; }                      // 현재 플레이어 상태
     [Networked] public PlayerRole NetPlayerRole { get; set; }            // 현재 플레이어 역할
     [Networked, OnChangedRender(nameof(OnZoneChanged))]
     public Zone NetZone { get; set; }                                    // 현재 플레이어 구역
@@ -514,6 +515,11 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
     #region 무전기 관련 함수
 
+    private void OnPlayerStateChanged()
+    {
+        GetComponent<PlayerVoiceController>()?.OnNetPlayerStateChanged();
+    }
+
     private void OnZoneChanged()
     {
         if (!HasInputAuthority)
@@ -678,6 +684,10 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (isMyProfessionalGear && NetLeftHandItem == null)
         {
             target.NetRightHandItem = default;                            // 상대 오른손 아이템 제거
+
+            if (targetItem is WalkieTalkieItem walkieLeft)
+                WalkieTalkieManager.Instance?.OnWalkieTalkieDropped(target.Object.InputAuthority, walkieLeft);
+
             NetLeftHandItem = targetItem.Object;                          // 내 왼손에 탈취 장착
             targetItem.OnEquipped(this);                                  // 장착 처리
             return true;

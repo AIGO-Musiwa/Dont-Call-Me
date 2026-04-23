@@ -442,6 +442,8 @@ public class PlayerSpectatorController : MonoBehaviour
             SetSpectatorOutputActive(false);     // 관전 카메라 끄기
             SetOwnerGameplayCameraActive(true);  // 1인칭 카메라 켜기
         }
+
+        NotifyListenerTransform(spectating);
     }
 
     /// <summary>
@@ -499,6 +501,27 @@ public class PlayerSpectatorController : MonoBehaviour
 
         VoiceManager.Instance?.SetSpectatingTarget(target);
         VoiceManager.Instance?.UpdateSpectatorZone(target.NetZone);
+    }
+
+    private void NotifyListenerTransform(bool spectating)
+    {
+        if (_owner == null) return;
+
+        // 관전 진입 시 → 관전 카메라 AudioListener
+        // 관전 종료 시 → 1인칭 카메라 AudioListener
+        Transform listenerTransform = spectating
+            ? _spectatorAudioListener?.transform
+            : _ownerGameplayAudioListener?.transform;
+
+        // PlayerVoiceController에 주입
+        _owner.GetComponent<PlayerVoiceController>()?.SetListenerTransform(listenerTransform);
+
+        // WalkieTalkieItem에 주입
+        var walkies = WalkieTalkieManager.Instance?.GetAllWalkieTalkies();
+        if (walkies == null) return;
+
+        foreach (var walkie in walkies)
+            walkie?.SetListenerTransform(listenerTransform);
     }
 
     /// <summary>
