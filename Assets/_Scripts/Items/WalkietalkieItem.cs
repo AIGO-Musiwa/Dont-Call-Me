@@ -203,8 +203,13 @@ public class WalkieTalkieItem : ItemObject
 
         if (senderZoneAudioSources.Count == 0) return;
 
+        // 관전 중이면 관전 대상 위치 기준, 아니면 로컬 플레이어 위치 기준
+        Vector3 listenerPos = VoiceManager.Instance != null
+            ? VoiceManager.Instance.GetListenerPosition(localPc.transform.position)
+            : localPc.transform.position;
+
         // 로컬 플레이어와 수신 무전기 사이 거리 계산
-        float dist = Vector3.Distance(localPc.transform.position, transform.position);
+        float dist = Vector3.Distance(listenerPos, transform.position);
 
         // Logarithmic 감쇠
         float volume = dist >= Constants.WALKIE_RANGE
@@ -231,7 +236,7 @@ public class WalkieTalkieItem : ItemObject
 
     // (만약 소리 발행 RPC가 WalkieTalkieItem에 있다면 이것도 똑같이 All로 변경)
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    public void RPC_EmitWalkieSound(float voicedB, RpcInfo info = default)
+    public void RPC_EmitWalkieSound(float voicedB)
     {
         if (Object.InputAuthority != NetCurrentHolder) return;
 

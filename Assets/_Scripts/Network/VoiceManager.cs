@@ -24,6 +24,9 @@ public class VoiceManager : MonoBehaviour
     // 현재 로컬 플레이어 구역
     private Zone localZone;
 
+    // 관전 중인 대상
+    private PlayerController spectatingTarget;
+
     public Recorder LocalRecorder => recorder;
 
     #region Unity LifeCycle
@@ -108,6 +111,41 @@ public class VoiceManager : MonoBehaviour
     public void SwitchToLobbyMode()
     {
         SetVoiceGroup(Constants.GROUP_LOBBY);
+    }
+
+    // 관전 모드 - 사망/탈출한 플레이어끼리만 소통
+    public void SwitchToSpectatorMode(Zone targetZone)
+    {
+        if (recorder == null) FetchComponents();
+        if (recorder == null) return;
+
+        recorder.InterestGroup = Constants.GROUP_SPECTATOR;
+        UpdateSpectatorZone(targetZone);
+
+        Debug.Log($"[VoiceManager] 관전 모드 → {targetZone} 구독 + GROUP_SPECTATOR 송신");
+    }
+
+    // 관전 대상 구역 변경 시 구독 갱신
+    public void UpdateSpectatorZone(Zone targetZone)
+    {
+        if (voiceConnection?.Client == null) return;
+
+        byte targetGroup = targetZone == Zone.ZoneA ? Constants.GROUP_ZONE_A : Constants.GROUP_ZONE_B;
+        ApplyGroup(new byte[] { targetGroup, Constants.GROUP_WALKIE, Constants.GROUP_SPECTATOR });
+    }
+
+    // 관전 대상 위치 저장
+    public void SetSpectatingTarget(PlayerController target)
+    {
+        spectatingTarget = target;
+    }
+
+    // 거리 계산 기준 위치 반환 (관전 중이면 관전 대상 위치)
+    public Vector2 GetListenerPosition(Vector3 defaultPosition)
+    {
+        return spectatingTarget != null
+            ? spectatingTarget.transform.position
+            : defaultPosition;
     }
 
     // 인게임 모드 - 같은 구역 플레이어끼리만 소통

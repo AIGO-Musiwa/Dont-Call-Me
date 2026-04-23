@@ -29,6 +29,11 @@ public class PlayerVoiceController : NetworkBehaviour
         if (!HasInputAuthority) return;
         if (teammatePc == null || teammateAudioSource == null) return;
 
+        // 관전 중이면 관전 대상 위치 기준, 아니면 내 위치 기준
+        Vector3 listenerPos = VoiceManager.Instance != null
+            ? VoiceManager.Instance.GetListenerPosition(transform.position)
+            : transform.position;
+
         float dist = Vector3.Distance(transform.position, teammatePc.transform.position);
 
         float volume = dist >= maxDistance
@@ -36,7 +41,18 @@ public class PlayerVoiceController : NetworkBehaviour
             : Mathf.Clamp01(minDistance / Mathf.Max(dist, minDistance));
         teammateAudioSource.volume = volume;
     }
+    
+    public void OnNetPlayerStateChanged()
+    {
+        if (!HasInputAuthority) return;
 
+        if (playerController.NetPlayerState == PlayerState.Dead ||
+            playerController.NetPlayerState == PlayerState.Escaped)
+        {
+            VoiceManager.Instance?.SwitchToSpectatorMode(playerController.NetZone);
+        }
+    }
+    
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
         if (HasInputAuthority)

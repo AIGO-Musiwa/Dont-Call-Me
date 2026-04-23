@@ -39,7 +39,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [SerializeField] private float traumaDeathThreshold = 100f;
     [SerializeField] private float rescueBaseTimeSeconds = 100f;
 
-    [Networked] public PlayerState NetPlayerState { get; set; }
+    [Networked, OnChangedRender(nameof(OnPlayerStateChanged))]
+    public PlayerState NetPlayerState { get; set; }
     [Networked] public PlayerRole NetPlayerRole { get; set; }
     [Networked, OnChangedRender(nameof(OnZoneChanged))]
     public Zone NetZone { get; set; }
@@ -511,6 +512,11 @@ public class PlayerController : NetworkBehaviour, IInteractable
     }
 
     #region 무전기 관련 함수
+    private void OnPlayerStateChanged()
+    {
+        GetComponent<PlayerVoiceController>()?.OnNetPlayerStateChanged();
+    }
+
     private void OnZoneChanged()
     {
         if (!HasInputAuthority) return;
@@ -658,6 +664,10 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (isMyProfessionalGear && NetLeftHandItem == null)
         {
             target.NetRightHandItem = default;
+
+            if (targetItem is WalkieTalkieItem walkieLeft)
+                WalkieTalkieManager.Instance?.OnWalkieTalkieDropped(target.Object.InputAuthority, walkieLeft);
+
             NetLeftHandItem = targetItem.Object;
 
             // 🚨 주의: AssignInputAuthority는 시스템 에러를 유발하므로 절대 쓰지 않음!
