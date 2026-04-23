@@ -156,7 +156,7 @@ public class InputHandler : MonoBehaviour
 
         input.Set(data);
 
-        _interactPressed = false;
+        //_interactPressed = false;
         _lookInputAccumulated = Vector2.zero;
         _zoomInput = 0f;
     }

@@ -37,4 +37,12 @@ public class SimpleAudioTrigger : MonoBehaviour
             soundCartridge.Play(_source);
         }
     }
+    // 🛠️ [추가된 부품] 외부에서 소리를 강제로 차단합니다.
+    public void Stop()
+    {
+        if (_source != null && _source.isPlaying)
+        {
+            _source.Stop();
+        }
+    }
 }
