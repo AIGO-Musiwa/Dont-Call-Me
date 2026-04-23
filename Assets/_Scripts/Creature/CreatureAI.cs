@@ -708,6 +708,10 @@ public class CreatureAI : NetworkBehaviour
         //해당 구역 조명 관리자에게 암전 명령 전달
         ZoneLightingManager myZoneLightManager = ZoneLightingManager.GetManager(myZone);
         if (myZoneLightManager != null) myZoneLightManager.SetCaptureDarkout(true);
+
+        //포획 시 해당 구역의 구출 구역 문 강제 폐쇄
+        RescueZoneDoor rescueDoor = RescueZoneDoor.GetDoor(myZone);
+        if (rescueDoor != null) rescueDoor.CloseDoor();
     }
 
     private void UpdateCaptureState()
