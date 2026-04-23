@@ -599,6 +599,18 @@ public class PlayerController : NetworkBehaviour, IInteractable
         return true;
     }
 
+    public bool ServerClearRightHandItemWithoutDrop()
+    {
+        if (!HasStateAuthority)
+            return false;
+
+        if (NetRightHandItem == null)
+            return false;
+
+        NetRightHandItem = default;
+        return true;
+    }
+
     public bool ServerDropRightHandItem()
     {
         if (!HasStateAuthority)
