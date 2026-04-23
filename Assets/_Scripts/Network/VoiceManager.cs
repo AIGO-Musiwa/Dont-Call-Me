@@ -24,6 +24,13 @@ public class VoiceManager : MonoBehaviour
     // 현재 로컬 플레이어 구역
     private Zone localZone;
 
+    // 관전 중인 대상
+    private PlayerController spectatingTarget;
+    private byte[] pendingSpectatorGroups;
+    private bool hasPendingSpectatorGroups;
+
+    public PlayerController GetSpectatingTarget() => spectatingTarget;
+
     public Recorder LocalRecorder => recorder;
 
     #region Unity LifeCycle
@@ -37,6 +44,8 @@ public class VoiceManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        spectatingTarget = null;
     }
 
     private void OnDestroy()
@@ -69,14 +78,21 @@ public class VoiceManager : MonoBehaviour
     // Voice 룸 입장 대기 후 그룹 적용
     private void TryApplyPendingGroup()
     {
-        if (!hasPendingGroup) return;
         if (voiceConnection == null) FetchComponents();
         if (voiceConnection == null) return;
-
         if (voiceConnection.Client.State != ClientState.Joined) return;
 
-        ApplyGroup(new byte[] { pendingGroup });
-        hasPendingGroup = false;
+        if (hasPendingSpectatorGroups && pendingSpectatorGroups != null)
+        {
+            ApplyGroup(pendingSpectatorGroups);
+            hasPendingSpectatorGroups = false;
+            pendingSpectatorGroups = null;
+        }
+        else if (hasPendingGroup)
+        {
+            ApplyGroup(new byte[] { pendingGroup });
+            hasPendingGroup = false;
+        }
     }
 
     #endregion
@@ -110,6 +126,41 @@ public class VoiceManager : MonoBehaviour
         SetVoiceGroup(Constants.GROUP_LOBBY);
     }
 
+    // 관전 모드 - 사망/탈출한 플레이어끼리만 소통
+    public void SwitchToSpectatorMode(Zone targetZone)
+    {
+        if (recorder == null) FetchComponents();
+        if (recorder == null) return;
+
+        recorder.InterestGroup = Constants.GROUP_SPECTATOR;
+        UpdateSpectatorZone(targetZone);
+
+        Debug.Log($"[VoiceManager] 관전 모드 → {targetZone} 구독 + GROUP_SPECTATOR 송신");
+    }
+
+    // 관전 대상 구역 변경 시 구독 갱신
+    public void UpdateSpectatorZone(Zone targetZone)
+    {
+        byte targetGroup = targetZone == Zone.ZoneA ? Constants.GROUP_ZONE_A : Constants.GROUP_ZONE_B;
+        byte[] groups = new byte[] {targetGroup, Constants.GROUP_WALKIE, Constants.GROUP_SPECTATOR};
+
+        if (voiceConnection?.Client != null && voiceConnection.Client.State == ClientState.Joined)
+        {
+            ApplyGroup(groups);
+        }
+        else
+        {
+            pendingSpectatorGroups = groups;
+            hasPendingSpectatorGroups = true;
+        }
+    }
+
+    // 관전 대상 위치 저장
+    public void SetSpectatingTarget(PlayerController target)
+    {
+        spectatingTarget = target;
+    }
+
     // 인게임 모드 - 같은 구역 플레이어끼리만 소통
     public void SwitchToGameMode(Zone zone)
     {
@@ -121,14 +172,10 @@ public class VoiceManager : MonoBehaviour
     private void SetVoiceGroup(byte groupId)
     {
         if (recorder == null || voiceConnection == null)
-        {
             FetchComponents();
-        }
 
         if (recorder != null)
-        {
             recorder.InterestGroup = groupId;
-        }
 
         if (voiceConnection?.Client != null && voiceConnection.Client.State == ClientState.Joined)
         {

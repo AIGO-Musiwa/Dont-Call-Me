@@ -22,6 +22,7 @@ public static class Constants
     public const byte GROUP_ZONE_A = 1;
     public const byte GROUP_ZONE_B = 2;
     public const byte GROUP_WALKIE = 3;
+    public const byte GROUP_SPECTATOR = 4;
 
     // ── 무전기 ────────────────────────────────────────────
     public const float WALKIE_RANGE = 8f;       // 무전기 소리 범위

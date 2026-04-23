@@ -80,6 +80,10 @@ public class MicrophonedBMeasurer : MonoBehaviour
 
     private void Measure()
     {
+        // 관전자 상태면 소리 발행 안함
+        if (localPc.NetPlayerState == PlayerState.Dead ||
+            localPc.NetPlayerState == PlayerState.Escaped) return;
+
         float rms = recorder.LevelMeter?.CurrentAvgAmp ?? 0f;
 
         if (rms < silenceThreshold)
