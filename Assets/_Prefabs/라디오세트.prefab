@@ -110,6 +110,7 @@ MonoBehaviour:
   audioTrigger: {fileID: 7991528676488813438}
   maxRepairTime: 10
   lureDuration: 20
+  safetyLockTime: 1.5
   _CurrentState: 0
   _RepairProgress: 0
 --- !u!114 &3471356287084576588
@@ -400,7 +401,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
