@@ -74,7 +74,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8812317249355542820}
@@ -233,8 +233,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72446cc3f32794f4a8c62c035bf7dd89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerKCCMotor
-  walkSpeed: 4
-  runSpeed: 6
+  walkSpeed: 15
+  runSpeed: 15
   crouchSpeed: 2
   lookSensitivity: 0.2
   pitchMin: -80
@@ -260,6 +260,7 @@ MonoBehaviour:
   eyeOffset: 0.1
   lockCursorForLocalPlayer: 1
   capturedEyeHeight: 0.45
+  lightRootOffset: 0.3
 --- !u!114 &2312676653009107545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -460,7 +461,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerPresenter
   controller: {fileID: 240582007588533922}
   animator: {fileID: 8893577440312624272}
-  shadowAnimator: {fileID: 0}
   visualSetter: {fileID: 2631477015144606700}
 --- !u!114 &2631477015144606700
 MonoBehaviour:
