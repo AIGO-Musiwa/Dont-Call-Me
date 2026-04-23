@@ -23,6 +23,8 @@ public class HUDController : MonoBehaviour
     [Header("Normal UI 부품")]
     [SerializeField] private TextMeshProUGUI itemNameText;  // 장착 중인 아이템 이름
     [SerializeField] private Image crosshairImage;          // 중앙 조준점
+    // 🛠️ [신규 부품] 중앙 조준점 주변을 감싸는 원형 진행도 게이지
+    [SerializeField] private Image interactionGaugeImage;
 
     [Header("Captured UI 부품")]
     [SerializeField] private TextMeshProUGUI traumaPercentText; // 후유증 수치 (%)
@@ -33,7 +35,7 @@ public class HUDController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI spectatorStatusText; // "관전 중" 고정 문구
     [SerializeField] private TextMeshProUGUI spectatorTargetText; // "관전 대상 이름"
     [SerializeField] private TextMeshProUGUI spectatorGuideText;  // "조작 가이드"
-    [SerializeField] private GameObject deathOverlay;            // 사망 직후 안내 UI
+    [SerializeField] private GameObject deathOverlay;             // 사망 직후 안내 UI
 
     private ItemObject _lastItem;
     // 초기 상태를 알 수 없는 상태(-1)로 설정하여 첫 프레임에 무조건 초기화 실행
@@ -57,6 +59,11 @@ public class HUDController : MonoBehaviour
         }
 
         if (crosshairImage == null) crosshairImage = FindInChild<Image>("Crosshair");
+
+        // 🛠️ 게이지 자동 검색 및 초기화 시 전원 차단
+        if (interactionGaugeImage == null) interactionGaugeImage = FindInChild<Image>("InteractionGauge");
+        if (interactionGaugeImage != null) interactionGaugeImage.gameObject.SetActive(false);
+
         if (traumaGauge == null) traumaGauge = FindInChild<Slider>("TraumaGauge");
         if (minigameUI == null) minigameUI = GetComponentInChildren<CaptureMinigameUI>(true);
 
@@ -95,17 +102,42 @@ public class HUDController : MonoBehaviour
         }
     }
 
+    // ─── [새로 추가된 데이터 주입구] ────────────────────────────────────────
+
     /// <summary>
-    /// 플레이어 상태 전환 시 단 한 번 실행되는 레이아웃 스위칭 로직
+    /// 라디오 수리 등 '지속형 상호작용'의 진행도를 원형 게이지로 그린다.
+    /// 외부(PlayerController 등)에서 매 프레임 호출해주어야 함.
     /// </summary>
+    /// <param name="current">현재 진행도 (예: 3초)</param>
+    /// <param name="max">최대 진행도 (예: 10초)</param>
+    public void UpdateInteractionGauge(float current, float max)
+    {
+        if (interactionGaugeImage == null) return;
+
+        // 진행도가 0보다 크고 완전히 끝나지 않았을 때만 게이지 표시
+        if (current > 0f && current < max)
+        {
+            if (!interactionGaugeImage.gameObject.activeSelf)
+                interactionGaugeImage.gameObject.SetActive(true);
+
+            interactionGaugeImage.fillAmount = current / max;
+        }
+        else
+        {
+            // 진행도가 0이거나 완료되면 게이지 전원 차단
+            if (interactionGaugeImage.gameObject.activeSelf)
+                interactionGaugeImage.gameObject.SetActive(false);
+        }
+    }
+
+    // ─── [이하 기존 코드 유지] ────────────────────────────────────────
+
     private void OnStateChanged(PlayerState newState)
     {
-        // 각 그룹 활성화 제어
         if (normalGroup != null) normalGroup.SetActive(newState == PlayerState.Normal);
         if (capturedGroup != null) capturedGroup.SetActive(newState == PlayerState.Captured);
         if (spectatorGroup != null) spectatorGroup.SetActive(newState == PlayerState.Dead || newState == PlayerState.Escaped);
 
-        // 미니게임 제어
         if (newState == PlayerState.Captured)
         {
             if (minigameUI != null) minigameUI.OpenUI(playerController);
@@ -114,20 +146,13 @@ public class HUDController : MonoBehaviour
         {
             if (minigameUI != null) minigameUI.CloseUI();
         }
-
-        Debug.Log($"[HUD] 시스템 상태 전환 완료: {newState}");
     }
 
-    /// <summary>
-    /// 일반 생존 상태: 장착 아이템 정보 및 조준점 동기화
-    /// </summary>
     private void UpdateNormalHUD()
     {
         if (itemNameText == null) return;
 
         ItemObject currentItem = playerController.GetRightHandItemObject();
-
-        // 최적화: 아이템이 바뀔 때만 텍스트 갱신
         if (_lastItem != currentItem)
         {
             itemNameText.text = (currentItem != null) ? currentItem.ItemName : "맨손";
@@ -135,18 +160,11 @@ public class HUDController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 포획 상태: 후유증 수치 및 사망 한계 시간 실시간 출력
-    /// </summary>
     private void UpdateCapturedHUD()
     {
         float trauma = playerController.NetAftereffectPercent;
-
-        // 1. 퍼센트 및 슬라이더 갱신
         if (traumaPercentText != null) traumaPercentText.text = $"후유증: {trauma:F1}%";
         if (traumaGauge != null) traumaGauge.value = trauma / 100f;
-
-        // 2. 남은 생존 시간 계산 (기획상 100% 도달 시 사망)
         if (traumaTimeText != null)
         {
             float remainingTime = Mathf.Max(0, 100f - trauma);
@@ -154,22 +172,14 @@ public class HUDController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 사망/관전 상태: 관전 대상 및 상태 메시지 갱신
-    /// </summary>
     private void UpdateSpectatorHUD()
     {
-        // 1. 사망 오버레이 (죽은 직후 안내 텍스트)
         if (deathOverlay != null)
-        {
             deathOverlay.SetActive(playerController.NetPlayerState == PlayerState.Dead);
-        }
 
-        // 2. 관전 컨트롤러로부터 현재 대상 정보 수신
         if (playerController.SpectatorController != null)
         {
             string targetName = playerController.SpectatorController.GetCurrentTargetName();
-
             if (string.IsNullOrEmpty(targetName))
             {
                 if (spectatorStatusText != null) spectatorStatusText.text = "<color=red>관전 종료</color>";
@@ -185,14 +195,10 @@ public class HUDController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 로컬 플레이어 스폰 시 시스템 페어링
-    /// </summary>
     public void LinkPlayer(PlayerController pc)
     {
         playerController = pc;
-        _isInitialized = false; // 새로 연결 시 초기화 시퀀스 강제 가동
-        Debug.Log($"[HUD] 유닛 {pc.Object.InputAuthority}번과 시스템 페어링 완료.");
+        _isInitialized = false;
     }
 
     private void CleanUpLayout()
