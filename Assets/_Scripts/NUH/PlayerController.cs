@@ -188,6 +188,16 @@ public class PlayerController : NetworkBehaviour, IInteractable
             }
         }
 
+        //  지속성(Hold) 상호작용 회로 
+        if (HasInputAuthority && input.Buttons.IsSet(InputButtons.Interact))
+        {
+            if (Interaction != null && Interaction.TryGetCurrentTargetInfo(out NetworkId targetId, out int interactableId))
+            {
+                // 누르고 있는 동안 매 틱마다 델타타임을 서버로 전송
+                RPC_RequestHoldInteract(targetId, interactableId, Runner.DeltaTime);
+            }
+        }
+
         // 무전기 PTT 누르기 시작
         if (HasInputAuthority &&
             input.Buttons.IsSet(InputButtons.Walkie) &&
@@ -1217,6 +1227,47 @@ public class PlayerController : NetworkBehaviour, IInteractable
         }
 
         ServerExitCapturedToNormal();
+    }
+
+    /// <summary>
+    /// 지속성 상호작용(Hold)을 서버에 요청한다.
+    /// </summary>
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void RPC_RequestHoldInteract(NetworkId targetId, int interactableId, float holdDeltaTime)
+    {
+        if (!HasStateAuthority || !CanUseGameplayInput())
+            return;
+
+        if (!Runner.TryFindObject(targetId, out NetworkObject targetObject) || targetObject == null)
+            return;
+
+        float maxDistance = Interaction != null ? Interaction.InteractDistance : 2f;
+        if (!IsTargetWithinInteractDistance(targetObject, maxDistance))
+            return;
+
+        IInteractable interactable = null;
+
+        // 1. 자식 상호작용 탐색
+        if (interactableId >= 0)
+        {
+            interactable = FindChildInteractable(targetObject.transform, interactableId);
+        }
+
+        // 2. 루트 상호작용 탐색
+        if (interactable == null)
+        {
+            if (PlayerInteraction.TryFindInteractable(targetObject.transform, out _, out IInteractable rootInteractable, out _))
+                interactable = rootInteractable;
+        }
+
+        if (interactable == null || !interactable.CanInteract(this))
+            return;
+
+        // 🛠️ [핵심] 찾은 대상이 '지속형(Hold)' 규격을 지원한다면 델타타임 주입!
+        if (interactable is IHoldInteractable holdInteractable)
+        {
+            holdInteractable.OnHoldInteract(this, holdDeltaTime);
+        }
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]

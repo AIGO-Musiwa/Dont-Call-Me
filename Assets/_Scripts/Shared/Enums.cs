@@ -117,8 +117,10 @@ public enum  WalkieState
 public enum RadioState
 {
     Broken,
-    InActive,
-    Active
+    InProgress,
+    Ready,
+    Active,
+    Disabled
 }
 
 // ── 퍼즐 ──────────────────────────────────────────────────
