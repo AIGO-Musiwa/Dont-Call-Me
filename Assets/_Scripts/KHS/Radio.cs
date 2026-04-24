@@ -20,12 +20,22 @@ public class Radio : NetworkBehaviour, IHoldInteractable
     [SerializeField] private float lureDuration = 20f;      // 작동 후 유인 상태 지속 시간
     [SerializeField] private float safetyLockTime = 1.5f;   // 수리 완료 후 즉시 작동 방지 잠금 시간
 
+    [Header("소리 설정")]
+    [SerializeField] private float repairSounddB = 41f;         // 수리 중 자연음 dB
+    [SerializeField] private float radioLureSounddB = 47f;      // 유인 소리 무전음 dB
+    [SerializeField] private float radioSoundInterval = 0.5f;   // 유인 소리 발행 주기
+    private Zone myZone;
+
     [Networked] public RadioState CurrentState { get; set; }       // 현재 라디오 상태
     [Networked] public float RepairProgress { get; set; }          // 현재 수리 진행도
     [Networked] public TickTimer RepairTimeout { get; set; }       // Hold 중단 시 수리 실패로 되돌리는 타이머
     [Networked] public TickTimer ActivationLockTimer { get; set; } // 수리 완료 직후 작동 방지 잠금 타이머
 
+    [Networked] private TickTimer radioSoundTimer { get; set; } // 유인 소리 주기 타이머
+
     private ChangeDetector _changeDetector; // 상태 변경 감지기
+
+    public void SetZone(Zone zone) => myZone = zone;
 
     public override void Spawned()
     {
@@ -37,6 +47,7 @@ public class Radio : NetworkBehaviour, IHoldInteractable
             RepairProgress = 0f;                  // 수리 진행도 초기화
             RepairTimeout = TickTimer.None;       // 수리 타이머 초기화
             ActivationLockTimer = TickTimer.None; // 안전 잠금 초기화
+            radioSoundTimer = TickTimer.None;     // 유인 소리 주기 타이머 초기화
         }
 
         RefreshVisuals(); // 시작 시 시각/음향 반영
@@ -52,7 +63,16 @@ public class Radio : NetworkBehaviour, IHoldInteractable
             if (RepairTimeout.ExpiredOrNotRunning(Runner))
             {
                 CurrentState = RadioState.Broken; // 일정 시간 Hold가 끊기면 다시 고장 상태
-                RepairProgress = 0f;              // 진행도 초기화
+            }
+        }
+
+        if (CurrentState == RadioState.Active)
+        {
+            if (radioSoundTimer.ExpiredOrNotRunning(Runner))
+            {
+                SoundEmitter.EmitWalkieDirect(radioLureSounddB, transform.position, myZone);
+
+                radioSoundTimer = TickTimer.CreateFromSeconds(Runner, radioSoundInterval);
             }
         }
     }
@@ -149,6 +169,9 @@ public class Radio : NetworkBehaviour, IHoldInteractable
         CurrentState = RadioState.InProgress; // 수리 진행 상태로 전환
         RepairProgress += deltaTime; // 이번 틱 수리 진행도 누적
         RepairTimeout = TickTimer.CreateFromSeconds(Runner, 0.2f); // 잠깐이라도 Hold가 끊기면 되돌아가도록 갱신
+
+        // 수리 중 자연음 dB 발행
+        SoundEmitter.EmitNatural(repairSounddB, transform.position, myZone, actor);
 
         if (RepairProgress >= maxRepairTime)
         {
