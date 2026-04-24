@@ -58,8 +58,12 @@ public class WalkieTalkieManager : NetworkBehaviour
     // ActiveSender 외부 접근자
     public PlayerRef GetActiveSender() => ActiveSender;
 
+
     // cachedPlayerss 외부 접근자
     public IReadOnlyList<PlayerController> GetCachedPlayers() => cachedPlayers;
+
+    // allWakies 외부 접근자
+    public IReadOnlyList<WalkieTalkieItem> GetAllWalkieTalkies() => allWalkies;
 
     public override void FixedUpdateNetwork()
     {
@@ -219,8 +223,9 @@ public class WalkieTalkieManager : NetworkBehaviour
     {
         if (!Runner.TryGetPlayerObject(Runner.LocalPlayer, out var localObj)) return;
         PlayerController localPc = localObj.GetComponent<PlayerData>()?.GetPlayerController();
-
         if (localPc == null) return;
+
+        if (localPc.IsSpectatorState()) return;
 
         if (ActiveSender == Runner.LocalPlayer)
         {
@@ -249,6 +254,7 @@ public class WalkieTalkieManager : NetworkBehaviour
 
         if (localPc == null) return;
 
+        if (localPc.IsSpectatorState()) return;
 
         if (_lastActiveSender == Runner.LocalPlayer)
         {

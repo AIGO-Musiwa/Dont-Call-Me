@@ -174,6 +174,7 @@ public class PlayerSpectatorController : MonoBehaviour
         ClampTargetIndex();                   // 대상 인덱스를 안전 범위로 보정
         ApplyCameraMode(true);                // 평상시 카메라를 끄고 관전 카메라를 켠다.
         ApplyCurrentTarget();                 // 첫 관전 대상에 Follow / LookAt 적용
+        NotifySpectatorTarget();              // 관전 대상 보이스 구역 적용
     }
 
     /// <summary>
@@ -199,6 +200,9 @@ public class PlayerSpectatorController : MonoBehaviour
 
         // 평상시 카메라를 다시 켜고 관전 카메라는 끈다.
         ApplyCameraMode(false);
+
+        // 관전 대상 초기화
+        VoiceManager.Instance?.SetSpectatingTarget(null);
     }
 
     /// <summary>
@@ -357,6 +361,7 @@ public class PlayerSpectatorController : MonoBehaviour
             _targetIndex = 0; // 마지막이면 처음으로 순환
 
         ApplyCurrentTarget(); // 새 대상에 바로 카메라 적용
+        NotifySpectatorTarget(); // 관전 대상 보이스 구역 갱신
     }
 
     /// <summary>
@@ -373,6 +378,7 @@ public class PlayerSpectatorController : MonoBehaviour
             _targetIndex = _targets.Count - 1; // 처음이면 마지막으로 순환
 
         ApplyCurrentTarget(); // 새 대상에 바로 카메라 적용
+        NotifySpectatorTarget(); // 관전 대상 보이스 구역 갱신
     }
 
     /// <summary>
@@ -436,6 +442,8 @@ public class PlayerSpectatorController : MonoBehaviour
             SetSpectatorOutputActive(false);     // 관전 카메라 끄기
             SetOwnerGameplayCameraActive(true);  // 1인칭 카메라 켜기
         }
+
+        NotifyListenerTransform(spectating);
     }
 
     /// <summary>
@@ -481,6 +489,39 @@ public class PlayerSpectatorController : MonoBehaviour
             return anchor.GetAnchor();
 
         return target.transform;
+    }
+
+    // 현재 관전 대상을 VoiceManager에 알림
+    private void NotifySpectatorTarget()
+    {
+        if (_targets.Count == 0 || _targetIndex < 0 || _targetIndex >= _targets.Count) return;
+
+        PlayerController target = _targets[_targetIndex];
+        if (target == null) return;
+
+        VoiceManager.Instance?.SetSpectatingTarget(target);
+        VoiceManager.Instance?.UpdateSpectatorZone(target.NetZone);
+    }
+
+    private void NotifyListenerTransform(bool spectating)
+    {
+        if (_owner == null) return;
+
+        // 관전 진입 시 → 관전 카메라 AudioListener
+        // 관전 종료 시 → 1인칭 카메라 AudioListener
+        Transform listenerTransform = spectating
+            ? _spectatorAudioListener?.transform
+            : _ownerGameplayAudioListener?.transform;
+
+        // PlayerVoiceController에 주입
+        _owner.GetComponent<PlayerVoiceController>()?.SetListenerTransform(listenerTransform);
+
+        // WalkieTalkieItem에 주입
+        var walkies = WalkieTalkieManager.Instance?.GetAllWalkieTalkies();
+        if (walkies == null) return;
+
+        foreach (var walkie in walkies)
+            walkie?.SetListenerTransform(listenerTransform);
     }
 
     /// <summary>
