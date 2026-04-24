@@ -18,9 +18,9 @@ public class BuildingData
 }
 
 /// <summary>
-/// 서버(StateAuthority)에서 게임 시작 시 건물/층별로 라디오를 1개씩 랜덤 생성하는 매니저
+/// 서버(StateAuthority)에서 정해진 시드값에 따라 건물/층별로 라디오를 1개씩 고정 난수 생성하는 매니저
 /// </summary>
-public class RadioSpawnManager : NetworkBehaviour
+public class RadioSpawnManager : NetworkBehaviour, IPuzzleSeedReceiver // 🛠️ 시드 수신기 인터페이스 장착
 {
     [Header("생성 부품")]
     [SerializeField] private NetworkObject radioPrefab;
@@ -28,17 +28,38 @@ public class RadioSpawnManager : NetworkBehaviour
     [Header("배치도 데이터")]
     [SerializeField] private List<BuildingData> buildings;
 
+    private bool _isDeployed = false; // 🛠️ 중복 생성 방지용 안전 퓨즈
+
     public override void Spawned()
     {
-        // 멀티플레이 환경이므로, 맵 생성의 권한을 가진 호스트(서버)만 스폰을 담당함
+        // 🛠️ 예전에는 여기서 바로 스폰했지만, 이제는 메인 시드가 들어올 때까지 대기(Standby) 상태 유지
+    }
+
+    // ─── [시드 수신 단자 (IPuzzleSeedReceiver 규약)] ─────────────────────
+
+    /// <summary>
+    /// PuzzleSeedSync 모듈에서 시드를 분배할 때 호출됨.
+    /// </summary>
+    public void ApplyAnswerSeed(int seed)
+    {
+        // 1. 이미 배치가 끝났다면 중복 실행 방지
+        if (_isDeployed) return;
+
+        // 2. 퓨전 엔진 규격: 실제 스폰(Runner.Spawn)은 서버에서만 수행해야 함!
+        // 서버가 스폰하면 클라이언트들에게는 자동으로 동기화됨.
         if (HasStateAuthority)
         {
-            DeployRadios();
+            DeployRadios(seed);
         }
     }
 
-    private void DeployRadios()
+    private void DeployRadios(int seed)
     {
+        // 🛠️ UnityEngine.Random 대신, 기공사의 정밀 부품인 SeedRandom 사용!
+        SeedRandom rng = new SeedRandom(seed);
+
+        _isDeployed = true; // 스위치 차단
+
         foreach (var building in buildings)
         {
             foreach (var floor in building.floors)
@@ -47,25 +68,26 @@ public class RadioSpawnManager : NetworkBehaviour
                 if (floor.spawnPoints == null || floor.spawnPoints.Count == 0)
                     continue;
 
-                // 1. 해당 층의 스폰 포인트 중 하나를 랜덤으로 뽑음 (가챠!)
-                int randomIndex = Random.Range(0, floor.spawnPoints.Count);
+                // 🛠️ SeedRandom.NextInt를 사용하여 시드에 기반한 완벽하게 통제된 난수 추출
+                // NextInt는 maxInclusive가 아니라 maxExclusive처럼 동작하도록 설계되어 있으니 배열 길이를 그대로 넣음
+                int randomIndex = rng.NextInt(0, floor.spawnPoints.Count);
                 Transform selectedPoint = floor.spawnPoints[randomIndex];
 
-                // 2. 🛠️ 전방(Forward) 축 정렬 및 스폰
-                // selectedPoint.rotation을 넘겨주면, 빈 오브젝트의 Z축(파란 화살표) 방향과
-                // 프리팹의 Z축 방향이 완벽하게 일치된 상태로 생성돼.
+                // 전방(Forward) 축 정렬 및 스폰
                 NetworkObject spawnedRadio = Runner.Spawn(
                     radioPrefab,
                     selectedPoint.position,
-                    selectedPoint.rotation, // ⬅️ 여기가 방향을 맞물리게 하는 핵심 부품!
+                    selectedPoint.rotation,
                     PlayerRef.None // 특정 플레이어 소유가 아닌 월드 오브젝트
                 );
 
                 // 스폰된 radio에 zone 주입
                 if (spawnedRadio.TryGetComponent<Radio>(out var radio))
+                {
                     radio.SetZone(building.zone);
+                }
 
-                Debug.Log($"<color=yellow>[라디오 배치 완료]</color> {building.zone} - {floor.floorName}에 배치됨.");
+                Debug.Log($"<color=yellow>[라디오 배치 완료]</color> {building.zone} - {floor.floorName}에 배치됨. (적용 시드: {seed})");
             }
         }
     }
