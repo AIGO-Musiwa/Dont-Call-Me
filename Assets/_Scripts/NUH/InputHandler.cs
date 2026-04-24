@@ -53,6 +53,8 @@ public class InputHandler : MonoBehaviour
     [SerializeField] private InputActionReference interactAction; // 상호작용 입력 액션
     [SerializeField] private InputActionReference walkieAction;   // 무전기 입력 액션
 
+    private float _mouseSensitivity = 1.0f; //마우스 감도
+
     private Vector2 _moveInput;            // 현재 프레임 이동 입력
     private Vector2 _lookInputAccumulated; // Fusion 틱 동안 누적된 시선 입력
     private float _zoomInput;              // 현재 프레임 줌 입력
@@ -121,11 +123,22 @@ public class InputHandler : MonoBehaviour
         walkieAction.action.canceled -= OnWalkieCanceled;
     }
 
+    // SettingsUI에서 이 함수를 불러 감도를 덮어씌울 거임
+    public void SetMouseSensitivity(float newSensitivity)
+    {
+        _mouseSensitivity = newSensitivity;
+    }
+    private void Start()
+    {
+        // 처음 시작할 때도 저장된 값을 불러오도록
+        _mouseSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", 1.0f);
+    }
+
     private void Update()
     {
         _moveInput = moveAction.action.ReadValue<Vector2>(); // 현재 이동 입력 갱신
 
-        Vector2 currentFrameLook = lookAction.action.ReadValue<Vector2>(); // 현재 프레임 마우스 델타 읽기
+        Vector2 currentFrameLook = lookAction.action.ReadValue<Vector2>() * _mouseSensitivity; // 현재 프레임 마우스 델타 읽기
         FrameLookDelta = currentFrameLook; // 로컬 즉시 회전용 공개값 갱신
         _lookInputAccumulated += currentFrameLook; // Fusion 틱 전달용 누적
 
@@ -205,4 +218,5 @@ public class InputHandler : MonoBehaviour
         buttons.Set(InputButtons.Walkie, _walkiePressed);           // 무전기 유지 상태 기록
         return buttons;
     }
+
 }
