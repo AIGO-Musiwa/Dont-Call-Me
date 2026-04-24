@@ -162,8 +162,10 @@ public class GameSessionManager : NetworkBehaviour
         var logger = GameEventLogger.Instance;
         if (logger != null)
         {
-            payload.PuzzlesSolved = logger.PuzzlesSolved;
-            payload.RadioUsed = logger.RadioUsed;
+            payload.PuzzlesSolvedZoneA = logger.PuzzlesSolvedZoneA;
+            payload.PuzzlesSolvedZoneB = logger.PuzzlesSolvedZoneB;
+            payload.RadioUsedZoneA = logger.RadioUsedZoneA;
+            payload.RadioUsedZoneB = logger.RadioUsedZoneB;
 
             foreach (var entry in logger.NetLog)
                 payload.TimelineLog.Add(entry);
@@ -178,13 +180,15 @@ public class GameSessionManager : NetworkBehaviour
             var data = Runner.GetPlayerObject(player)?.GetComponent<PlayerData>();
             if (data == null) continue;
 
-            var pc = data.GetPlayerController();
+            PlayerState finalState = data.FinalPlayerState == PlayerState.Normal
+                ? PlayerState.Dead
+                : data.FinalPlayerState;
 
             payload.PlayerResults.Add(new PlayerResultData
             {
                 Nickname = data.Nickname.ToString(),
                 SlotIndex = data.SlotIndex,
-                FinalState = data.FinalPlayerState,
+                FinalState = finalState,
                 IsLocalPlayer = data.SlotIndex == localSlot
             });
         }

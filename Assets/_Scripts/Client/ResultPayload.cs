@@ -13,8 +13,10 @@ public class PendingResult
     public float Duration { get; set; }
 
     // ── 통계 ──────────────────────────────────────────────
-    public int PuzzlesSolved { get; set; }
-    public int RadioUsed { get; set; }
+    public int PuzzlesSolvedZoneA { get; set; }
+    public int PuzzlesSolvedZoneB { get; set; }
+    public int RadioUsedZoneA { get; set; }
+    public int RadioUsedZoneB { get; set; }
 
     // ── 타임라인 ──────────────────────────────────────────
     public List<GameEventEntry> TimelineLog { get; set; } = new();
