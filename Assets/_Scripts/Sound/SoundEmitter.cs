@@ -56,18 +56,6 @@ public static class SoundEmitter
         EmitToEventBus(SoundChannel.Walkie, voicedB, sourcePosition, 0f, sourceZone);
     }
 
-    // 라디오 유인음 발행
-    public static void EmitRadio(Vector3 radioPosition, Zone sourceZone)
-    {
-        EmitWalkieDirect(47f, radioPosition, sourceZone);
-    }
-
-    // 퍼즐 실패 패널티음 발행
-    public static void EmitPuzzleFail(Vector3 puzzlePosition, Zone sourceZone)
-    {
-        EmitWalkieDirect(49f, puzzlePosition, sourceZone);
-    }
-
     public static void EmitToEventBus(SoundChannel channel, float voicedB, Vector3 sourcePosition, float ObstaclePenalty, Zone sourceZone)
     {
         SoundEventBus.Emit(new SoundEvent

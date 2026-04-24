@@ -13,7 +13,7 @@ public class FloorData
 [System.Serializable]
 public class BuildingData
 {
-    public string buildingName; // 예: "A동", "B동"
+    public Zone zone;
     public List<FloorData> floors;
 }
 
@@ -61,7 +61,11 @@ public class RadioSpawnManager : NetworkBehaviour
                     PlayerRef.None // 특정 플레이어 소유가 아닌 월드 오브젝트
                 );
 
-                Debug.Log($"<color=yellow>[라디오 배치 완료]</color> {building.buildingName} - {floor.floorName}에 배치됨.");
+                // 스폰된 radio에 zone 주입
+                if (spawnedRadio.TryGetComponent<Radio>(out var radio))
+                    radio.SetZone(building.zone);
+
+                Debug.Log($"<color=yellow>[라디오 배치 완료]</color> {building.zone} - {floor.floorName}에 배치됨.");
             }
         }
     }

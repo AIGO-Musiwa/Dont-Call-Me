@@ -9,6 +9,7 @@ using UnityEngine;
 /// - 해당 Zone에서 Stage1 퍼즐이 전부 solved 되면 StageManager에 보고
 /// - StageManager가 Stage2 해금을 승인하면 해당 Zone의 Stage2 화면만 켠다
 /// - ZoneA / ZoneB의 Stage2 퍼즐 solved 개수를 집계한다
+/// - ZoneA / ZoneB의 Stage3 퍼즐 solved를 감지하고 StageManager에 보고한다
 /// 
 /// 주의
 /// - 맵 변화는 하지 않는다
@@ -37,11 +38,19 @@ public class PuzzleProgressManager : MonoBehaviour
     private readonly HashSet<PuzzleInteractableBase> _countedZoneAStage2Solved = new(); // ZoneA Stage2 solved 중복 집계 방지
     private readonly HashSet<PuzzleInteractableBase> _countedZoneBStage2Solved = new(); // ZoneB Stage2 solved 중복 집계 방지
 
+    // [추가] Zone별 Stage3 퍼즐 1개 참조
+    private PuzzleInteractableBase _zoneAStage3Puzzle; // ZoneA Stage3 퍼즐 본체
+    private PuzzleInteractableBase _zoneBStage3Puzzle; // ZoneB Stage3 퍼즐 본체
+
     private bool _isRegistered;                    // 이번 판 등록 완료 여부
     private bool _isZoneAStage2Unlocked;           // ZoneA Stage2 화면 해금 여부
     private bool _isZoneBStage2Unlocked;           // ZoneB Stage2 화면 해금 여부
     private bool _hasReportedZoneAStage1Complete;  // ZoneA Stage1 완료 보고 여부
     private bool _hasReportedZoneBStage1Complete;  // ZoneB Stage1 완료 보고 여부
+
+    // [추가] Zone별 Stage3 완료 보고 중복 방지
+    private bool _hasReportedZoneAStage3Complete;  // ZoneA Stage3 완료 보고 여부
+    private bool _hasReportedZoneBStage3Complete;  // ZoneB Stage3 완료 보고 여부
 
     private int _zoneAStage2SolvedCount;           // ZoneA Stage2 solved 개수
     private int _zoneBStage2SolvedCount;           // ZoneB Stage2 solved 개수
@@ -65,8 +74,8 @@ public class PuzzleProgressManager : MonoBehaviour
     {
         ResetProgress(); // 이전 판 정보 정리
 
-        RegisterStage1Puzzles(_zoneAStage1Puzzles, zoneAStage1Puzzles); // ZoneA Stage1 퍼즐 등록
-        RegisterStage1Puzzles(_zoneBStage1Puzzles, zoneBStage1Puzzles); // ZoneB Stage1 퍼즐 등록
+        RegisterPuzzles(_zoneAStage1Puzzles, zoneAStage1Puzzles); // ZoneA Stage1 퍼즐 등록
+        RegisterPuzzles(_zoneBStage1Puzzles, zoneBStage1Puzzles); // ZoneB Stage1 퍼즐 등록
 
         RegisterStage2Screens(_zoneAStage2Screens, zoneAStage2Screens); // ZoneA Stage2 화면 등록
         RegisterStage2Screens(_zoneBStage2Screens, zoneBStage2Screens); // ZoneB Stage2 화면 등록
@@ -76,19 +85,23 @@ public class PuzzleProgressManager : MonoBehaviour
 
         SubscribePuzzleEvents(); // solved 이벤트 구독 시작
 
-        _isRegistered = true;                    // 등록 완료 표시
-        _isZoneAStage2Unlocked = false;         // ZoneA Stage2 해금 초기화
-        _isZoneBStage2Unlocked = false;         // ZoneB Stage2 해금 초기화
-        _hasReportedZoneAStage1Complete = false; // ZoneA 보고 플래그 초기화
-        _hasReportedZoneBStage1Complete = false; // ZoneB 보고 플래그 초기화
-        _zoneAStage2SolvedCount = 0;            // ZoneA Stage2 solved count 초기화
-        _zoneBStage2SolvedCount = 0;            // ZoneB Stage2 solved count 초기화
+        _isRegistered = true;                     // 등록 완료 표시
+        _isZoneAStage2Unlocked = false;          // ZoneA Stage2 해금 초기화
+        _isZoneBStage2Unlocked = false;          // ZoneB Stage2 해금 초기화
+        _hasReportedZoneAStage1Complete = false; // ZoneA Stage1 보고 플래그 초기화
+        _hasReportedZoneBStage1Complete = false; // ZoneB Stage1 보고 플래그 초기화
+        _hasReportedZoneAStage3Complete = false; // ZoneA Stage3 보고 플래그 초기화
+        _hasReportedZoneBStage3Complete = false; // ZoneB Stage3 보고 플래그 초기화
+        _zoneAStage2SolvedCount = 0;             // ZoneA Stage2 solved count 초기화
+        _zoneBStage2SolvedCount = 0;             // ZoneB Stage2 solved count 초기화
 
         Log($"InitializeRound 완료 | ZoneA Stage1={_zoneAStage1Puzzles.Count}, ZoneB Stage1={_zoneBStage1Puzzles.Count}, ZoneA Stage2Screen={_zoneAStage2Screens.Count}, ZoneB Stage2Screen={_zoneBStage2Screens.Count}");
 
         CheckZoneStage1SolvedAndNotifyIfNeeded(Zone.ZoneA); // 등록 직후 보험 검사
         CheckZoneStage1SolvedAndNotifyIfNeeded(Zone.ZoneB); // 등록 직후 보험 검사
         RecalculateStage2SolvedCounts(); // 등록 직후 Stage2 보험 검사
+        CheckZoneStage3SolvedAndNotifyIfNeeded(Zone.ZoneA); // 등록 직후 Stage3 보험 검사
+        CheckZoneStage3SolvedAndNotifyIfNeeded(Zone.ZoneB); // 등록 직후 Stage3 보험 검사
     }
 
     /// <summary>
@@ -105,8 +118,8 @@ public class PuzzleProgressManager : MonoBehaviour
         _zoneAStage2Puzzles.Clear(); // 기존 ZoneA Stage2 목록 초기화
         _zoneBStage2Puzzles.Clear(); // 기존 ZoneB Stage2 목록 초기화
 
-        RegisterStage1Puzzles(_zoneAStage2Puzzles, zoneAStage2Puzzles); // ZoneA Stage2 퍼즐 등록
-        RegisterStage1Puzzles(_zoneBStage2Puzzles, zoneBStage2Puzzles); // ZoneB Stage2 퍼즐 등록
+        RegisterPuzzles(_zoneAStage2Puzzles, zoneAStage2Puzzles); // ZoneA Stage2 퍼즐 등록
+        RegisterPuzzles(_zoneBStage2Puzzles, zoneBStage2Puzzles); // ZoneB Stage2 퍼즐 등록
 
         SubscribePuzzleList(_zoneAStage2Puzzles); // ZoneA Stage2 이벤트 구독
         SubscribePuzzleList(_zoneBStage2Puzzles); // ZoneB Stage2 이벤트 구독
@@ -117,11 +130,52 @@ public class PuzzleProgressManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Zone별 Stage3 퍼즐을 등록한다.
+    /// Stage3는 Zone당 1개 고정 퍼즐을 기준으로 solved를 감지한다.
+    /// </summary>
+    public void RegisterStage3Puzzles(
+        PuzzleInteractableBase zoneAStage3Puzzle,
+        PuzzleInteractableBase zoneBStage3Puzzle)
+    {
+        if (_zoneAStage3Puzzle != null)
+            _zoneAStage3Puzzle.Solved -= HandlePuzzleSolved; // 기존 ZoneA Stage3 이벤트 해제
+
+        if (_zoneBStage3Puzzle != null)
+            _zoneBStage3Puzzle.Solved -= HandlePuzzleSolved; // 기존 ZoneB Stage3 이벤트 해제
+
+        _zoneAStage3Puzzle = zoneAStage3Puzzle; // 새 ZoneA Stage3 퍼즐 등록
+        _zoneBStage3Puzzle = zoneBStage3Puzzle; // 새 ZoneB Stage3 퍼즐 등록
+
+        if (_zoneAStage3Puzzle != null)
+        {
+            _zoneAStage3Puzzle.Solved -= HandlePuzzleSolved;
+            _zoneAStage3Puzzle.Solved += HandlePuzzleSolved;
+        }
+
+        if (_zoneBStage3Puzzle != null)
+        {
+            _zoneBStage3Puzzle.Solved -= HandlePuzzleSolved;
+            _zoneBStage3Puzzle.Solved += HandlePuzzleSolved;
+        }
+
+        CheckZoneStage3SolvedAndNotifyIfNeeded(Zone.ZoneA); // 등록 직후 보험 검사
+        CheckZoneStage3SolvedAndNotifyIfNeeded(Zone.ZoneB); // 등록 직후 보험 검사
+
+        Log("Stage3 퍼즐 등록 완료");
+    }
+
+    /// <summary>
     /// 현재 등록된 진행도 정보를 전부 초기화한다.
     /// </summary>
     public void ResetProgress()
     {
         UnsubscribePuzzleEvents(); // 기존 이벤트 구독 해제
+
+        if (_zoneAStage3Puzzle != null)
+            _zoneAStage3Puzzle.Solved -= HandlePuzzleSolved; // ZoneA Stage3 이벤트 해제
+
+        if (_zoneBStage3Puzzle != null)
+            _zoneBStage3Puzzle.Solved -= HandlePuzzleSolved; // ZoneB Stage3 이벤트 해제
 
         _zoneAStage1Puzzles.Clear(); // ZoneA Stage1 퍼즐 목록 초기화
         _zoneBStage1Puzzles.Clear(); // ZoneB Stage1 퍼즐 목록 초기화
@@ -134,11 +188,16 @@ public class PuzzleProgressManager : MonoBehaviour
         _countedZoneAStage2Solved.Clear(); // ZoneA solved 중복 집계 기록 초기화
         _countedZoneBStage2Solved.Clear(); // ZoneB solved 중복 집계 기록 초기화
 
+        _zoneAStage3Puzzle = null; // ZoneA Stage3 참조 초기화
+        _zoneBStage3Puzzle = null; // ZoneB Stage3 참조 초기화
+
         _isRegistered = false;                    // 등록 상태 초기화
         _isZoneAStage2Unlocked = false;          // ZoneA Stage2 해금 상태 초기화
         _isZoneBStage2Unlocked = false;          // ZoneB Stage2 해금 상태 초기화
-        _hasReportedZoneAStage1Complete = false; // ZoneA 보고 상태 초기화
-        _hasReportedZoneBStage1Complete = false; // ZoneB 보고 상태 초기화
+        _hasReportedZoneAStage1Complete = false; // ZoneA Stage1 보고 상태 초기화
+        _hasReportedZoneBStage1Complete = false; // ZoneB Stage1 보고 상태 초기화
+        _hasReportedZoneAStage3Complete = false; // ZoneA Stage3 보고 상태 초기화
+        _hasReportedZoneBStage3Complete = false; // ZoneB Stage3 보고 상태 초기화
         _zoneAStage2SolvedCount = 0;             // ZoneA Stage2 solved count 초기화
         _zoneBStage2SolvedCount = 0;             // ZoneB Stage2 solved count 초기화
     }
@@ -180,7 +239,7 @@ public class PuzzleProgressManager : MonoBehaviour
     /// </summary>
     public bool IsZoneStage2FullySolved(Zone zone)
     {
-        List<PuzzleInteractableBase> targetList = zone == Zone.ZoneA ? _zoneAStage2Puzzles : _zoneBStage2Puzzles; // Zone별 Stage2 목록 선택
+        List<PuzzleInteractableBase> targetList = zone == Zone.ZoneA ? _zoneAStage2Puzzles : _zoneBStage2Puzzles;
         return AreAllSolved(targetList);
     }
 
@@ -198,8 +257,8 @@ public class PuzzleProgressManager : MonoBehaviour
             if (_isZoneAStage2Unlocked)
                 return;
 
-            _isZoneAStage2Unlocked = true; // ZoneA 해금 상태 기록
-            SetZoneStage2ScreensActive(Zone.ZoneA, true); // ZoneA Stage2 화면 ON
+            _isZoneAStage2Unlocked = true;
+            SetZoneStage2ScreensActive(Zone.ZoneA, true);
 
             Log("ZoneA Stage2 화면 ON");
             return;
@@ -208,8 +267,8 @@ public class PuzzleProgressManager : MonoBehaviour
         if (_isZoneBStage2Unlocked)
             return;
 
-        _isZoneBStage2Unlocked = true; // ZoneB 해금 상태 기록
-        SetZoneStage2ScreensActive(Zone.ZoneB, true); // ZoneB Stage2 화면 ON
+        _isZoneBStage2Unlocked = true;
+        SetZoneStage2ScreensActive(Zone.ZoneB, true);
 
         Log("ZoneB Stage2 화면 ON");
     }
@@ -224,9 +283,9 @@ public class PuzzleProgressManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 특정 리스트에 Stage1 또는 Stage2 퍼즐을 등록한다.
+    /// 특정 리스트에 퍼즐들을 등록한다.
     /// </summary>
-    private void RegisterStage1Puzzles(List<PuzzleInteractableBase> target, List<PuzzleInteractableBase> source)
+    private void RegisterPuzzles(List<PuzzleInteractableBase> target, List<PuzzleInteractableBase> source)
     {
         if (source == null)
             return;
@@ -314,7 +373,7 @@ public class PuzzleProgressManager : MonoBehaviour
 
     /// <summary>
     /// 퍼즐 하나가 solved 되었을 때 호출된다.
-    /// 어느 Zone 소속 퍼즐인지 판별해서 해당 Zone 완료 여부만 검사한다.
+    /// 어느 Zone / 어느 Stage 소속 퍼즐인지 판별해서 처리한다.
     /// </summary>
     private void HandlePuzzleSolved(PuzzleInteractableBase solvedPuzzle)
     {
@@ -325,29 +384,44 @@ public class PuzzleProgressManager : MonoBehaviour
 
         if (_zoneAStage1Puzzles.Contains(solvedPuzzle))
         {
-            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneA);
+            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneA); 
             CheckZoneStage1SolvedAndNotifyIfNeeded(Zone.ZoneA);
             return;
         }
 
         if (_zoneBStage1Puzzles.Contains(solvedPuzzle))
         {
-            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneB);
+            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneB); 
             CheckZoneStage1SolvedAndNotifyIfNeeded(Zone.ZoneB);
             return;
         }
 
         if (_zoneAStage2Puzzles.Contains(solvedPuzzle))
         {
-            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneA);
+            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneA); 
             CountStage2SolvedIfNeeded(Zone.ZoneA, solvedPuzzle);
             return;
         }
 
         if (_zoneBStage2Puzzles.Contains(solvedPuzzle))
         {
-            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneB);
+            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneB); 
             CountStage2SolvedIfNeeded(Zone.ZoneB, solvedPuzzle);
+            return;
+        }
+
+        // [추가] Stage3도 Stage1/2처럼 동일하게 처리
+        if (_zoneAStage3Puzzle == solvedPuzzle)
+        {
+            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneA); 
+            CheckZoneStage3SolvedAndNotifyIfNeeded(Zone.ZoneA);
+            return;
+        }
+
+        if (_zoneBStage3Puzzle == solvedPuzzle)
+        {
+            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneB); 
+            CheckZoneStage3SolvedAndNotifyIfNeeded(Zone.ZoneB);
             return;
         }
     }
@@ -378,6 +452,34 @@ public class PuzzleProgressManager : MonoBehaviour
 
         _hasReportedZoneBStage1Complete = true;
         NotifyZoneStage1Completed(Zone.ZoneB);
+    }
+
+    /// <summary>
+    /// 특정 Zone의 Stage3 퍼즐이 solved 되었으면 StageManager에 완료 보고를 보낸다.
+    /// </summary>
+    private void CheckZoneStage3SolvedAndNotifyIfNeeded(Zone zone)
+    {
+        if (zone == Zone.ZoneA)
+        {
+            if (_hasReportedZoneAStage3Complete)
+                return;
+
+            if (_zoneAStage3Puzzle == null || !_zoneAStage3Puzzle.IsNetworkReady || !_zoneAStage3Puzzle.IsSolved)
+                return;
+
+            _hasReportedZoneAStage3Complete = true;
+            NotifyZoneStage3Completed(Zone.ZoneA);
+            return;
+        }
+
+        if (_hasReportedZoneBStage3Complete)
+            return;
+
+        if (_zoneBStage3Puzzle == null || !_zoneBStage3Puzzle.IsNetworkReady || !_zoneBStage3Puzzle.IsSolved)
+            return;
+
+        _hasReportedZoneBStage3Complete = true;
+        NotifyZoneStage3Completed(Zone.ZoneB);
     }
 
     /// <summary>
@@ -494,6 +596,21 @@ public class PuzzleProgressManager : MonoBehaviour
 
         Log($"{zone} Stage1 완료 보고");
         stageManager.ReportZoneStage1Completed(zone);
+    }
+
+    /// <summary>
+    /// 특정 Zone Stage3 완료를 StageManager에 보고하는 연결 지점.
+    /// </summary>
+    private void NotifyZoneStage3Completed(Zone zone)
+    {
+        if (stageManager == null)
+        {
+            LogWarning($"StageManager 참조가 없어 {zone} Stage3 완료를 보고할 수 없습니다.");
+            return;
+        }
+
+        Log($"{zone} Stage3 완료 보고");
+        stageManager.ReportZoneStage3Completed(zone);
     }
 
     /// <summary>
