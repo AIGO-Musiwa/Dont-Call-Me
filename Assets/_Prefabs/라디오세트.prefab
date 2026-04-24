@@ -111,6 +111,9 @@ MonoBehaviour:
   maxRepairTime: 10
   lureDuration: 20
   safetyLockTime: 1.5
+  repairSounddB: 0
+  radioLureSounddB: 100
+  radioSoundInterval: 0.5
   _CurrentState: 0
   _RepairProgress: 0
 --- !u!114 &3471356287084576588
@@ -386,6 +389,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleAudioTrigger
   soundCartridge: {fileID: 11400000, guid: 153a38ed9e8d15749807b089c5444dc6, type: 2}
+  minDistance: 2
+  maxDistance: 4
 --- !u!65 &6456771007060828792
 BoxCollider:
   m_ObjectHideFlags: 0
