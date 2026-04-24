@@ -11,6 +11,7 @@ using UnityEngine;
 /// - 목표 위치 도달 시 퍼즐 클리어 처리한다.
 /// - 실패 시 퍼즐 상태를 시작 위치로 초기화한다.
 /// - solved 상태가 네트워크로 바뀌면 모든 클라이언트에서 화면 전환을 반영한다.
+/// - 성공 시 Stage3HintRoot에 배정된 3단계 힌트를 표시할 수 있다.
 /// </summary>
 public class MazePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 {
@@ -19,10 +20,13 @@ public class MazePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
     [Header("설정")]
     [SerializeField] private bool showStage3HintImmediately = true; // 성공 직후 바로 3단계 힌트 화면으로 넘길지 여부
-    [SerializeField] private bool enableDebugLog = true;            // 디버그 로그 출력 여부
+    [SerializeField] private bool enableDebugLog = true; // 디버그 로그 출력 여부
 
     private MazeAnswerGenerator.MazeAnswerData _answerData; // seed 기반으로 재구성한 미로 데이터
-    private bool _hasAnswerSeed;                            // answer seed 적용 완료 여부
+    private bool _hasAnswerSeed; // answer seed 적용 완료 여부
+
+    private FinalCodeHintData _stage3HintData; // 이 퍼즐이 표시할 3단계 힌트 데이터
+    private bool _hasStage3HintData; // 3단계 힌트 데이터 적용 여부
 
     [Networked, OnChangedRender(nameof(OnCurrentCellChanged))]
     private int NetCurrentRow { get; set; } // 현재 Piece가 있는 행 인덱스
@@ -32,56 +36,69 @@ public class MazePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
     public override void Spawned()
     {
-        base.Spawned(); // 부모 기본 Spawned 로직 실행
+        base.Spawned();
 
-        RefreshView();  // 현재 네트워크 상태 기준으로 뷰 갱신
+        RefreshView();
 
         if (IsSolved)
-            ApplySolvedPresentation(); // 이미 solved 상태로 스폰되었으면 성공 화면 반영
+            ApplySolvedPresentation();
     }
 
     /// <summary>
     /// answer seed를 받아 미로 데이터를 재구성한다.
-    /// 시작 위치/목표 위치를 뷰에 반영하고 현재 위치를 초기화한다.
     /// </summary>
     public void ApplyAnswerSeed(int seed)
     {
-        _answerData = MazeAnswerGenerator.Generate(seed); // seed 기반 미로 데이터 생성
-        _hasAnswerSeed = true;                            // 시드 적용 완료 표시
+        _answerData = MazeAnswerGenerator.Generate(seed);
+        _hasAnswerSeed = true;
 
         if (HasStateAuthority)
         {
-            NetCurrentRow = _answerData.StartCell.Row; // 현재 행을 시작 위치로 초기화
-            NetCurrentCol = _answerData.StartCell.Col; // 현재 열을 시작 위치로 초기화
+            NetCurrentRow = _answerData.StartCell.Row;
+            NetCurrentCol = _answerData.StartCell.Col;
         }
 
         if (mazeView != null)
         {
-            mazeView.ResetToDefault(); // 뷰를 기본 상태로 초기화
-            mazeView.ApplyInitialState(_answerData.StartCell, _answerData.GoalCell); // 시작/목표 위치 반영
+            mazeView.ResetToDefault();
+            mazeView.ApplyInitialState(_answerData.StartCell, _answerData.GoalCell);
         }
 
-        RefreshView(); // 현재 위치 기준 Piece 표시 갱신
+        RefreshView();
 
         if (IsSolved)
-            ApplySolvedPresentation(); // seed 적용 시 이미 solved 상태면 성공 화면 다시 반영
+            ApplySolvedPresentation();
 
         Log($"answer seed 적용 완료 | start={_answerData.StartCell} | goal={_answerData.GoalCell}");
     }
 
     /// <summary>
+    /// 이 퍼즐이 성공 후 표시할 3단계 힌트 데이터를 세팅한다.
+    /// </summary>
+    public void SetStage3HintData(FinalCodeHintData hintData)
+    {
+        _stage3HintData = hintData;
+        _hasStage3HintData = hintData != null;
+
+        if (mazeView != null && _hasStage3HintData)
+            mazeView.ApplyStage3Hint(_stage3HintData);
+
+        if (IsSolved)
+            ApplySolvedPresentation();
+    }
+
+    /// <summary>
     /// 현재 퍼즐이 방향 입력을 받을 수 있는지 반환한다.
-    /// 버튼 interactable이 이 값을 참고한다.
     /// </summary>
     public bool CanAcceptMoveInput()
     {
         if (!_hasAnswerSeed)
-            return false; // seed가 없으면 입력 불가
+            return false;
 
         if (IsSolved)
-            return false; // 클리어 후 입력 불가
+            return false;
 
-        return true; // 그 외에는 입력 가능
+        return true;
     }
 
     /// <summary>
@@ -90,52 +107,51 @@ public class MazePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     public void TryMove(MazeMoveDirection direction)
     {
         if (!HasStateAuthority)
-            return; // 상태 권한이 있는 쪽만 실제 이동 처리
+            return;
 
         if (!CanAcceptMoveInput())
-            return; // 입력 가능 상태가 아니면 무시
+            return;
 
-        MazeCellCoord current = new MazeCellCoord(NetCurrentRow, NetCurrentCol); // 현재 위치 좌표
-        MazeCellCoord next = GetNextCell(current, direction);                     // 방향 기준 다음 좌표 계산
+        MazeCellCoord current = new MazeCellCoord(NetCurrentRow, NetCurrentCol);
+        MazeCellCoord next = GetNextCell(current, direction);
 
         if (!IsInside(next))
         {
             Log($"이동 실패 | 범위 밖 | current={current} | direction={direction}");
-            return; // 맵 범위 밖이면 이동 불가
+            return;
         }
 
         if (!CanMove(current, next))
         {
             Log($"이동 실패 | 벽 막힘 | current={current} | next={next}");
-            HandleFailedMove(); // 벽에 막혀 있으면 실패 처리
+            HandleFailedMove();
             return;
         }
 
-        NetCurrentRow = next.Row; // 현재 행 갱신
-        NetCurrentCol = next.Col; // 현재 열 갱신
+        NetCurrentRow = next.Row;
+        NetCurrentCol = next.Col;
 
-        RefreshView(); // 이동 후 Piece 표시 갱신
+        RefreshView();
 
         Log($"이동 성공 | current={current} -> next={next}");
 
-        CheckSolved(); // 목표 도달 여부 검사
+        CheckSolved();
     }
 
     /// <summary>
     /// 실패 시 퍼즐 상태를 시작 위치로 초기화한다.
-    /// Reset 버튼 없이 실패할 때만 리셋하는 규칙을 따른다.
     /// </summary>
     private void HandleFailedMove()
     {
-        MarkFailed(); // 퍼즐 실패 이벤트 기록
+        MarkFailed();
 
         if (_answerData == null)
-            return; // 방어 코드
+            return;
 
-        NetCurrentRow = _answerData.StartCell.Row; // 현재 행을 시작 위치로 되돌림
-        NetCurrentCol = _answerData.StartCell.Col; // 현재 열을 시작 위치로 되돌림
+        NetCurrentRow = _answerData.StartCell.Row;
+        NetCurrentCol = _answerData.StartCell.Col;
 
-        RefreshView(); // 초기 위치로 뷰 갱신
+        RefreshView();
 
         Log("실패 처리 | 시작 위치로 리셋");
     }
@@ -146,16 +162,14 @@ public class MazePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private void CheckSolved()
     {
         if (_answerData == null)
-            return; // 미로 데이터 없으면 검사 불가
+            return;
 
-        MazeCellCoord current = new MazeCellCoord(NetCurrentRow, NetCurrentCol); // 현재 위치 좌표
+        MazeCellCoord current = new MazeCellCoord(NetCurrentRow, NetCurrentCol);
 
         if (current != _answerData.GoalCell)
-            return; // 목표 위치가 아니면 종료
+            return;
 
-        MarkSolved(); // 퍼즐 성공 상태를 네트워크에 반영
-
-        // 권한 쪽은 즉시 연출 반영
+        MarkSolved();
         ApplySolvedPresentation();
 
         Log("퍼즐 성공 | 목표 위치 도달");
@@ -167,27 +181,29 @@ public class MazePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private void ApplySolvedPresentation()
     {
         if (mazeView == null)
-            return; // 뷰 없으면 종료
+            return;
+
+        if (_hasStage3HintData)
+            mazeView.ApplyStage3Hint(_stage3HintData);
 
         if (showStage3HintImmediately)
         {
-            mazeView.ShowStage3HintState(); // 바로 3단계 힌트 화면으로 전환
+            mazeView.ShowStage3HintState();
             return;
         }
 
-        mazeView.ShowSolvedState(); // 성공 표시 화면으로 전환
+        mazeView.ShowSolvedState();
     }
 
     /// <summary>
     /// solved 상태가 네트워크로 변경되었을 때 모든 클라이언트에서 호출된다.
-    /// Host/Client 관계없이 성공 화면 전환을 동일하게 반영한다.
     /// </summary>
     protected override void HandleSolvedStateChanged()
     {
         if (!IsSolved)
-            return; // solved가 아닌 상태 변화는 무시
+            return;
 
-        ApplySolvedPresentation(); // 성공 화면 반영
+        ApplySolvedPresentation();
     }
 
     /// <summary>
@@ -195,7 +211,7 @@ public class MazePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// </summary>
     private void OnCurrentCellChanged()
     {
-        RefreshView(); // 현재 위치 기준 뷰 갱신
+        RefreshView();
     }
 
     /// <summary>
@@ -204,71 +220,78 @@ public class MazePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private void RefreshView()
     {
         if (mazeView == null)
-            return; // 뷰 없으면 종료
+            return;
 
         if (!_hasAnswerSeed || _answerData == null)
-            return; // 시드 미적용 상태면 종료
+            return;
 
-        mazeView.MovePieceTo(new MazeCellCoord(NetCurrentRow, NetCurrentCol)); // 현재 위치로 Piece 이동
+        mazeView.MovePieceTo(new MazeCellCoord(NetCurrentRow, NetCurrentCol));
     }
 
     /// <summary>
-    /// 현재 셀과 다음 셀 사이에 벽이 없는지 검사한다.
+    /// 현재 칸에서 다음 칸으로 실제 이동 가능한지 검사한다.
+    /// MazeAnswerData 안의 벽 배열을 직접 확인한다.
     /// </summary>
     private bool CanMove(MazeCellCoord current, MazeCellCoord next)
     {
         if (_answerData == null)
-            return false; // 미로 데이터 없으면 이동 불가
+            return false; // 정답 데이터 없으면 이동 불가
 
+        // 인접 칸이 아니면 이동 불가
+        int rowDiff = Mathf.Abs(current.Row - next.Row);
+        int colDiff = Mathf.Abs(current.Col - next.Col);
+
+        if (rowDiff + colDiff != 1)
+            return false;
+
+        // 좌우 이동인 경우: VerticalWalls 검사
         if (current.Row == next.Row)
         {
-            int row = current.Row;                           // 같은 행
-            int wallCol = Mathf.Max(current.Col, next.Col); // 두 셀 사이 세로 벽 인덱스
-            return !_answerData.VerticalWalls[row, wallCol]; // 세로 벽이 열려 있어야 이동 가능
+            int wallRow = current.Row; // 같은 행
+            int wallCol = Mathf.Max(current.Col, next.Col); // 두 칸 사이 세로 벽 인덱스
+
+            // 벽이 닫혀 있으면 이동 불가, 열려 있으면 이동 가능
+            return !_answerData.VerticalWalls[wallRow, wallCol];
         }
 
+        // 상하 이동인 경우: HorizontalWalls 검사
         if (current.Col == next.Col)
         {
-            int col = current.Col;                          // 같은 열
-            int wallRow = Mathf.Max(current.Row, next.Row); // 두 셀 사이 가로 벽 인덱스
-            return !_answerData.HorizontalWalls[wallRow, col]; // 가로 벽이 열려 있어야 이동 가능
+            int wallCol = current.Col; // 같은 열
+            int wallRow = Mathf.Max(current.Row, next.Row); // 두 칸 사이 가로 벽 인덱스
+
+            // 벽이 닫혀 있으면 이동 불가, 열려 있으면 이동 가능
+            return !_answerData.HorizontalWalls[wallRow, wallCol];
         }
 
-        return false; // 대각 이동 같은 비정상 입력은 이동 불가
+        return false; // 그 외 비정상 케이스 방어
     }
 
     /// <summary>
-    /// 현재 좌표와 이동 방향을 기준으로 다음 셀 좌표를 계산한다.
+    /// 현재 칸에서 방향 기준 다음 칸을 계산한다.
     /// </summary>
     private MazeCellCoord GetNextCell(MazeCellCoord current, MazeMoveDirection direction)
     {
         return direction switch
         {
-            MazeMoveDirection.Up => new MazeCellCoord(current.Row - 1, current.Col),    // 위쪽 칸
-            MazeMoveDirection.Down => new MazeCellCoord(current.Row + 1, current.Col),  // 아래쪽 칸
-            MazeMoveDirection.Left => new MazeCellCoord(current.Row, current.Col - 1),  // 왼쪽 칸
-            MazeMoveDirection.Right => new MazeCellCoord(current.Row, current.Col + 1), // 오른쪽 칸
-            _ => current // 방어용: 알 수 없는 방향이면 현재 위치 유지
+            MazeMoveDirection.Up => new MazeCellCoord(current.Row - 1, current.Col),
+            MazeMoveDirection.Down => new MazeCellCoord(current.Row + 1, current.Col),
+            MazeMoveDirection.Left => new MazeCellCoord(current.Row, current.Col - 1),
+            MazeMoveDirection.Right => new MazeCellCoord(current.Row, current.Col + 1),
+            _ => current
         };
     }
 
     /// <summary>
-    /// 좌표가 5x5 범위 안에 있는지 검사한다.
+    /// 해당 셀이 5x5 범위 안인지 검사한다.
     /// </summary>
-    private bool IsInside(MazeCellCoord coord)
+    private bool IsInside(MazeCellCoord cell)
     {
-        if (_answerData == null)
-            return false; // 미로 데이터 없으면 false
-
-        return coord.Row >= 0 &&
-               coord.Row < _answerData.GridSize &&
-               coord.Col >= 0 &&
-               coord.Col < _answerData.GridSize; // 0 <= row,col < gridSize
+        return cell.Row >= 0 && cell.Row < 5 && cell.Col >= 0 && cell.Col < 5;
     }
 
     /// <summary>
     /// 루트 퍼즐 직접 상호작용은 사용하지 않는다.
-    /// 버튼 상호작용으로만 이동을 받는다.
     /// </summary>
     protected override void ServerInteract(PlayerController actor)
     {
@@ -281,8 +304,8 @@ public class MazePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private void Log(string message)
     {
         if (!enableDebugLog)
-            return; // 로그 꺼져 있으면 종료
+            return;
 
-        Debug.Log($"[MazePuzzle] {message}", this); // 퍼즐 디버그 로그 출력
+        Debug.Log($"[MazePuzzle] {message}", this);
     }
 }

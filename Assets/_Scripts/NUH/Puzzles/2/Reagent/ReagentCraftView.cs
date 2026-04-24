@@ -10,6 +10,7 @@ using UnityEngine;
 /// - 현재 편집 슬롯의 좌/우 화살표 오브젝트 표시
 /// - 프로그레스 바 10칸 SpriteRenderer 색상 표시
 /// - 기본 화면 / 성공 화면 / 3단계 힌트 화면 전환
+/// - Stage3HintRoot에 3단계 힌트를 표시한다.
 /// </summary>
 public class ReagentCraftView : MonoBehaviour
 {
@@ -48,6 +49,9 @@ public class ReagentCraftView : MonoBehaviour
     [SerializeField] private GameObject solvedRoot; // 성공 화면 루트
     [SerializeField] private GameObject stage3HintRoot; // 3단계 힌트 화면 루트
 
+    [Header("3단계 힌트 표시기")]
+    [SerializeField] private FinalCodeHintDisplay stage3HintDisplay; // Stage3HintRoot 내부 최종 힌트 표시기
+
     [Header("디버그")]
     [SerializeField] private bool enableDebugLog = true; // 디버그 로그 출력 여부
 
@@ -58,28 +62,27 @@ public class ReagentCraftView : MonoBehaviour
     {
         for (int i = 0; i < slotBackgroundRenderers.Count; i++)
         {
-            SpriteRenderer slotRenderer = slotBackgroundRenderers[i]; // 현재 슬롯 배경 렌더러 참조
+            SpriteRenderer slotRenderer = slotBackgroundRenderers[i];
             if (slotRenderer == null)
-                continue; // 참조 없으면 스킵
+                continue;
 
-            slotRenderer.sprite = slotBackgroundSprite; // 슬롯 배경 스프라이트 적용
-            slotRenderer.color = slotBackgroundColor; // 슬롯 배경 색상 적용
+            slotRenderer.sprite = slotBackgroundSprite;
+            slotRenderer.color = slotBackgroundColor;
         }
     }
 
     /// <summary>
     /// 슬롯 3칸의 현재 시약 상태를 화면에 반영한다.
-    /// 슬롯 배경은 유지하고, 그 위 시약 스프라이트만 갱신한다.
     /// </summary>
     public void ApplyRecipeSlotStates(ReagentType[] slotValues)
     {
         if (slotValues == null)
-            return; // 슬롯 데이터가 없으면 종료
+            return;
 
-        int count = Mathf.Min(reagentSlotRenderers.Count, slotValues.Length); // 실제 반영 가능한 개수 계산
+        int count = Mathf.Min(reagentSlotRenderers.Count, slotValues.Length);
 
         for (int i = 0; i < count; i++)
-            SetSlotSprite(i, slotValues[i]); // 각 슬롯 시약 스프라이트 갱신
+            SetSlotSprite(i, slotValues[i]);
     }
 
     /// <summary>
@@ -87,16 +90,16 @@ public class ReagentCraftView : MonoBehaviour
     /// </summary>
     public void SetEditingSlotIndicator(int slotIndex)
     {
-        ClearEditingSlotIndicator(); // 기존 화살표 표시를 먼저 초기화
+        ClearEditingSlotIndicator();
 
         if (slotIndex < 0)
-            return; // 유효하지 않은 인덱스면 종료
+            return;
 
         if (slotIndex < leftArrowIndicators.Count && leftArrowIndicators[slotIndex] != null)
-            leftArrowIndicators[slotIndex].SetActive(true); // 해당 슬롯 왼쪽 화살표 표시
+            leftArrowIndicators[slotIndex].SetActive(true);
 
         if (slotIndex < rightArrowIndicators.Count && rightArrowIndicators[slotIndex] != null)
-            rightArrowIndicators[slotIndex].SetActive(true); // 해당 슬롯 오른쪽 화살표 표시
+            rightArrowIndicators[slotIndex].SetActive(true);
     }
 
     /// <summary>
@@ -107,13 +110,13 @@ public class ReagentCraftView : MonoBehaviour
         for (int i = 0; i < leftArrowIndicators.Count; i++)
         {
             if (leftArrowIndicators[i] != null)
-                leftArrowIndicators[i].SetActive(false); // 왼쪽 화살표 비활성화
+                leftArrowIndicators[i].SetActive(false);
         }
 
         for (int i = 0; i < rightArrowIndicators.Count; i++)
         {
             if (rightArrowIndicators[i] != null)
-                rightArrowIndicators[i].SetActive(false); // 오른쪽 화살표 비활성화
+                rightArrowIndicators[i].SetActive(false);
         }
     }
 
@@ -123,14 +126,14 @@ public class ReagentCraftView : MonoBehaviour
     public void SetSlotSprite(int slotIndex, ReagentType reagentType)
     {
         if (slotIndex < 0 || slotIndex >= reagentSlotRenderers.Count)
-            return; // 슬롯 범위 밖이면 종료
+            return;
 
-        SpriteRenderer slotRenderer = reagentSlotRenderers[slotIndex]; // 대상 슬롯 시약 렌더러 참조
+        SpriteRenderer slotRenderer = reagentSlotRenderers[slotIndex];
         if (slotRenderer == null)
-            return; // 참조 없으면 종료
+            return;
 
-        slotRenderer.sprite = GetReagentSprite(reagentType); // 시약 타입에 맞는 스프라이트 적용
-        slotRenderer.color = Color.white; // 시약 스프라이트는 기본 흰색 표시
+        slotRenderer.sprite = GetReagentSprite(reagentType);
+        slotRenderer.color = Color.white;
     }
 
     /// <summary>
@@ -140,109 +143,118 @@ public class ReagentCraftView : MonoBehaviour
     {
         for (int i = 0; i < progressBarRenderers.Count; i++)
         {
-            SpriteRenderer progressRenderer = progressBarRenderers[i]; // 현재 프로그레스 렌더러 참조
+            SpriteRenderer progressRenderer = progressBarRenderers[i];
             if (progressRenderer == null)
-                continue; // 참조 없으면 스킵
+                continue;
 
-            progressRenderer.color = progressInactiveColor; // 기본 어두운 녹색 적용
+            progressRenderer.color = progressInactiveColor;
         }
     }
 
     /// <summary>
     /// 0부터 progressIndex까지의 프로그레스 칸을 활성 색으로 바꾼다.
-    /// progressIndex는 0 기반 인덱스를 기준으로 사용한다.
     /// </summary>
     public void SetProgressActiveUpTo(int progressIndex)
     {
-        ResetProgressBar(); // 먼저 전부 기본색으로 초기화
+        ResetProgressBar();
 
         for (int i = 0; i <= progressIndex && i < progressBarRenderers.Count; i++)
         {
-            SpriteRenderer progressRenderer = progressBarRenderers[i]; // 현재 프로그레스 렌더러 참조
+            SpriteRenderer progressRenderer = progressBarRenderers[i];
             if (progressRenderer == null)
-                continue; // 참조 없으면 스킵
+                continue;
 
-            progressRenderer.color = progressActiveColor; // 진행된 칸은 밝은 연두색 적용
+            progressRenderer.color = progressActiveColor;
         }
     }
 
     /// <summary>
-    /// 기본 제조 화면 상태로 되돌린다.
+    /// 3단계 힌트 데이터를 표시기에 반영한다.
+    /// </summary>
+    public void ApplyStage3Hint(FinalCodeHintData hintData)
+    {
+        if (stage3HintDisplay == null)
+            return;
+
+        stage3HintDisplay.ApplyHint(hintData);
+    }
+
+    /// <summary>
+    /// 성공 상태 표시.
+    /// </summary>
+    public void ShowSolvedState()
+    {
+        if (defaultRoot != null)
+            defaultRoot.SetActive(false);
+
+        if (solvedRoot != null)
+            solvedRoot.SetActive(true);
+
+        if (stage3HintRoot != null)
+            stage3HintRoot.SetActive(false);
+
+        Log("성공 상태 표시");
+    }
+
+    /// <summary>
+    /// 성공 후 3단계 힌트 표시 상태로 전환.
+    /// </summary>
+    public void ShowStage3HintState()
+    {
+        if (defaultRoot != null)
+            defaultRoot.SetActive(false);
+
+        if (solvedRoot != null)
+            solvedRoot.SetActive(false);
+
+        if (stage3HintRoot != null)
+            stage3HintRoot.SetActive(true);
+
+        Log("3단계 힌트 표시 상태로 전환");
+    }
+
+    /// <summary>
+    /// 기본 화면 루트 상태로 초기화한다.
     /// </summary>
     public void ResetToDefault()
     {
+        ApplySlotBackgrounds();
+        ClearEditingSlotIndicator();
+        ResetProgressBar();
+
         if (defaultRoot != null)
-            defaultRoot.SetActive(true); // 기본 제조 화면 표시
+            defaultRoot.SetActive(true);
 
         if (solvedRoot != null)
-            solvedRoot.SetActive(false); // 성공 화면 숨김
+            solvedRoot.SetActive(false);
 
         if (stage3HintRoot != null)
-            stage3HintRoot.SetActive(false); // 3단계 힌트 화면 숨김
+            stage3HintRoot.SetActive(false);
 
-        ApplySlotBackgrounds(); // 슬롯 배경 기본 상태 적용
-        ClearEditingSlotIndicator(); // 화살표 UI 초기화
-        ResetProgressBar(); // 프로그레스 바 초기화
+        if (stage3HintDisplay != null)
+            stage3HintDisplay.ResetDisplay();
+
+        for (int i = 0; i < reagentSlotRenderers.Count; i++)
+            SetSlotSprite(i, ReagentType.None);
 
         Log("기본 상태로 초기화");
     }
 
     /// <summary>
-    /// 성공 화면으로 전환한다.
-    /// </summary>
-    public void ShowSolvedState()
-    {
-        if (defaultRoot != null)
-            defaultRoot.SetActive(false); // 기본 제조 화면 숨김
-
-        if (solvedRoot != null)
-            solvedRoot.SetActive(true); // 성공 화면 표시
-
-        if (stage3HintRoot != null)
-            stage3HintRoot.SetActive(false); // 3단계 힌트 화면 숨김
-
-        Log("성공 화면 표시");
-    }
-
-    /// <summary>
-    /// 성공 후 3단계 힌트 화면으로 전환한다.
-    /// </summary>
-    public void ShowStage3HintState()
-    {
-        if (defaultRoot != null)
-            defaultRoot.SetActive(false); // 기본 제조 화면 숨김
-
-        if (solvedRoot != null)
-            solvedRoot.SetActive(false); // 성공 화면 숨김
-
-        if (stage3HintRoot != null)
-            stage3HintRoot.SetActive(true); // 3단계 힌트 화면 표시
-
-        Log("3단계 힌트 화면 표시");
-    }
-
-    /// <summary>
-    /// 시약 타입에 대응하는 스프라이트를 반환한다.
+    /// 시약 타입에 맞는 스프라이트를 반환한다.
     /// </summary>
     private Sprite GetReagentSprite(ReagentType reagentType)
     {
-        switch (reagentType)
+        return reagentType switch
         {
-            case ReagentType.ReagentA:
-                return reagentASprite; // 시약 A 스프라이트 반환
-            case ReagentType.ReagentB:
-                return reagentBSprite; // 시약 B 스프라이트 반환
-            case ReagentType.ReagentC:
-                return reagentCSprite; // 시약 C 스프라이트 반환
-            case ReagentType.ReagentD:
-                return reagentDSprite; // 시약 D 스프라이트 반환
-            case ReagentType.ReagentE:
-                return reagentESprite; // 시약 E 스프라이트 반환
-            case ReagentType.ReagentF:
-                return reagentFSprite; // 시약 F 스프라이트 반환
-            default:
-                return emptyReagentSprite; // 비어 있는 상태 스프라이트 반환
-        }
+            ReagentType.ReagentA => reagentASprite,
+            ReagentType.ReagentB => reagentBSprite,
+            ReagentType.ReagentC => reagentCSprite,
+            ReagentType.ReagentD => reagentDSprite,
+            ReagentType.ReagentE => reagentESprite,
+            ReagentType.ReagentF => reagentFSprite,
+            _ => emptyReagentSprite
+        };
     }
 
     /// <summary>
@@ -251,8 +263,8 @@ public class ReagentCraftView : MonoBehaviour
     private void Log(string message)
     {
         if (!enableDebugLog)
-            return; // 로그 비활성 상태면 종료
+            return;
 
-        Debug.Log($"[ReagentCraftView] {message}", this); // 디버그 로그 출력
+        Debug.Log($"[ReagentCraftView] {message}", this);
     }
 }
