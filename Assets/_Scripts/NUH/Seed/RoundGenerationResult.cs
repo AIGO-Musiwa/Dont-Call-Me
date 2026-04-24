@@ -44,8 +44,11 @@ public class RoundGenerationResult
         public PlayerRole Role;
     }
 
-    public int RoundSeed;
+    public int RoundSeed; // 이번 라운드 원본 시드
 
-    public readonly List<PuzzleSpawnPlan> PuzzlePlans = new();
-    public readonly List<PlayerAssignmentPlan> PlayerAssignments = new();
+    public readonly List<PuzzleSpawnPlan> PuzzlePlans = new(); // 퍼즐 스폰 계획 목록
+    public readonly List<PlayerAssignmentPlan> PlayerAssignments = new(); // 플레이어 배정 결과 목록
+
+    public FinalCodeAnswerGenerator.FinalCodeAnswerData ZoneAFinalCodeData; // A존 최종 코드 퍼즐 정답/힌트 데이터
+    public FinalCodeAnswerGenerator.FinalCodeAnswerData ZoneBFinalCodeData; // B존 최종 코드 퍼즐 정답/힌트 데이터
 }

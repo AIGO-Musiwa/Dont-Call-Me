@@ -30,6 +30,7 @@ public static class RoundGenerator
 
         List<PuzzleDefinition> stage1Pool = GetStableDefinitions(database, PuzzleStage.Stage1); // 1단계 퍼즐 후보 풀
         List<PuzzleDefinition> stage2Pool = GetStableDefinitions(database, PuzzleStage.Stage2); // 2단계 퍼즐 후보 풀
+        List<PuzzleDefinition> stage3Pool = GetStableDefinitions(database, PuzzleStage.Stage3); // 3단계 퍼즐 후보 풀
 
         List<PuzzleDefinition> aStage1 = rng.PickUnique(stage1Pool, stage1SelectCount); // A존 1단계 퍼즐 선택
         List<PuzzleDefinition> bStage1 = rng.PickUnique(stage1Pool, stage1SelectCount); // B존 1단계 퍼즐 선택
@@ -40,6 +41,12 @@ public static class RoundGenerator
         AddZonePlans(result, rng, zoneB.Zone, PuzzleStage.Stage1, bStage1, zoneB.Stage1PuzzleSlots.Count, zoneA.Stage1HintSlots.Count); // B존 1단계 배치 계획 생성
         AddZonePlans(result, rng, zoneA.Zone, PuzzleStage.Stage2, aStage2, zoneA.Stage2PuzzleSlots.Count, zoneB.Stage2HintSlots.Count); // A존 2단계 배치 계획 생성
         AddZonePlans(result, rng, zoneB.Zone, PuzzleStage.Stage2, bStage2, zoneB.Stage2PuzzleSlots.Count, zoneA.Stage2HintSlots.Count); // B존 2단계 배치 계획 생성
+
+        AddStage3FinalCodePlan(result, zoneA.Zone, stage3Pool, zoneA.Stage3PuzzleSlots.Count); // A존 최종 퍼즐 배치 계획 생성
+        AddStage3FinalCodePlan(result, zoneB.Zone, stage3Pool, zoneB.Stage3PuzzleSlots.Count); // B존 최종 퍼즐 배치 계획 생성
+
+        result.ZoneAFinalCodeData = FinalCodeAnswerGenerator.Generate(BuildFinalCodeSeed(roundSeed, Zone.ZoneA)); // A존 최종 코드 데이터 생성
+        result.ZoneBFinalCodeData = FinalCodeAnswerGenerator.Generate(BuildFinalCodeSeed(roundSeed, Zone.ZoneB)); // B존 최종 코드 데이터 생성
 
         return result; // 완성된 퍼즐/힌트 배치 결과 반환
     }
@@ -133,11 +140,11 @@ public static class RoundGenerator
 
             RoundGenerationResult.PuzzleSpawnPlan puzzlePlan = new RoundGenerationResult.PuzzleSpawnPlan
             {
-                Definition = def,                                 // 어떤 퍼즐 정의인지
-                Zone = zone,                                      // 어느 존에 배치되는지
-                Stage = stage,                                    // 몇 단계 퍼즐인지
+                Definition = def,                                  // 어떤 퍼즐 정의인지
+                Zone = zone,                                       // 어느 존에 배치되는지
+                Stage = stage,                                     // 몇 단계 퍼즐인지
                 PuzzleSlotIndex = puzzleSlotIndices[puzzleCursor], // 사용할 퍼즐 슬롯 인덱스
-                AnswerSeed = answerSeed                           // 퍼즐 정답 시드
+                AnswerSeed = answerSeed                            // 퍼즐 정답 시드
             };
 
             puzzleCursor++; // 다음 퍼즐 슬롯으로 이동
@@ -163,6 +170,56 @@ public static class RoundGenerator
 
             result.PuzzlePlans.Add(puzzlePlan); // 계산된 퍼즐 계획 결과에 추가
         }
+    }
+
+    /// <summary>
+    /// 존별 최종 3단계 퍼즐 1개의 스폰 계획을 추가한다.
+    /// Stage3 힌트는 월드에 스폰하지 않으므로 HintPlans는 비워둔다.
+    /// </summary>
+    private static void AddStage3FinalCodePlan(
+        RoundGenerationResult result,
+        Zone zone,
+        List<PuzzleDefinition> stage3Definitions,
+        int stage3PuzzleSlotCount)
+    {
+        if (stage3Definitions == null || stage3Definitions.Count == 0)
+            return; // 3단계 퍼즐 정의가 없으면 종료
+
+        if (stage3PuzzleSlotCount <= 0)
+            return; // 3단계 퍼즐 슬롯이 없으면 종료
+
+        PuzzleDefinition stage3Definition = stage3Definitions[0]; // 현재는 존당 1개의 최종 퍼즐만 사용
+        if (stage3Definition == null)
+            return;
+
+        int answerSeed = BuildAnswerSeed(result.RoundSeed, zone, PuzzleStage.Stage3, 0); // 최종 퍼즐 전용 정답 시드 생성
+
+        RoundGenerationResult.PuzzleSpawnPlan puzzlePlan = new RoundGenerationResult.PuzzleSpawnPlan
+        {
+            Definition = stage3Definition, // 최종 퍼즐 정의
+            Zone = zone,                   // 배치 존
+            Stage = PuzzleStage.Stage3,    // 3단계 퍼즐
+            PuzzleSlotIndex = 0,           // 존별 Stage3 슬롯은 1개만 사용
+            AnswerSeed = answerSeed        // 최종 퍼즐 시드
+        };
+
+        result.PuzzlePlans.Add(puzzlePlan); // Stage3 퍼즐 본체 계획 추가
+    }
+
+    /// <summary>
+    /// 존별 FinalCode 힌트/정답 생성용 파생 시드 생성
+    /// </summary>
+    private static int BuildFinalCodeSeed(int roundSeed, Zone zone)
+    {
+        int seed = roundSeed;              // 기본 라운드 시드 시작
+        seed = (seed * 397) ^ (int)zone;   // 존 정보 섞기
+        seed = (seed * 397) ^ 9001;        // FinalCode 전용 구분 salt
+        seed = (seed * 397) ^ AnswerSeedSalt; // 정답 생성 salt 섞기
+
+        if (seed == 0)
+            seed = 1; // 0 방지
+
+        return seed;
     }
 
     /// <summary>

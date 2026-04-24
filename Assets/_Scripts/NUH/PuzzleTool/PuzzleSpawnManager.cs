@@ -10,6 +10,7 @@ using UnityEngine;
 /// - 퍼즐/힌트 랜덤 배치
 /// - 스폰된 퍼즐을 Zone / Stage 기준으로 분류
 /// - PuzzleProgressManager에 이번 판 진행도 등록 데이터를 전달
+/// - 3단계 힌트는 월드에 스폰하지 않고 2단계 퍼즐 모니터에 배정한다.
 /// </summary>
 public class PuzzleSpawnManager : NetworkBehaviour
 {
@@ -36,8 +37,23 @@ public class PuzzleSpawnManager : NetworkBehaviour
 
     private readonly List<PuzzleInteractableBase> _zoneAStage1Puzzles = new(); // A존 1단계 진행도 대상 퍼즐 목록
     private readonly List<PuzzleInteractableBase> _zoneBStage1Puzzles = new(); // B존 1단계 진행도 대상 퍼즐 목록
-    private readonly List<GameObject> _zoneAStage2Screens = new();             // A존 2단계 스크린 루트 목록
-    private readonly List<GameObject> _zoneBStage2Screens = new();             // B존 2단계 스크린 루트 목록
+
+    // 2단계 퍼즐 본체 목록
+    // 이유:
+    // - FinalCode 힌트 3개를 각 Zone의 Stage2 퍼즐 3개에 배정하려면
+    //   Stage2 퍼즐 본체 참조를 따로 들고 있어야 함
+    private readonly List<PuzzleInteractableBase> _zoneAStage2Puzzles = new(); // A존 2단계 퍼즐 본체 목록
+    private readonly List<PuzzleInteractableBase> _zoneBStage2Puzzles = new(); // B존 2단계 퍼즐 본체 목록
+
+    private readonly List<GameObject> _zoneAStage2Screens = new(); // A존 2단계 스크린 루트 목록
+    private readonly List<GameObject> _zoneBStage2Screens = new(); // B존 2단계 스크린 루트 목록
+
+    // [추가] Zone별 Stage3 퍼즐 본체 참조
+    // 이유:
+    // - PuzzleProgressManager가 Stage3 solved를 감지하려면
+    //   FinalCodePuzzle 본체를 등록받아야 함
+    private PuzzleInteractableBase _zoneAStage3Puzzle; // A존 Stage3 퍼즐 본체
+    private PuzzleInteractableBase _zoneBStage3Puzzle; // B존 Stage3 퍼즐 본체
 
     private bool _hasSpawnedRound; // 이번 라운드 스폰 완료 여부
 
@@ -115,16 +131,14 @@ public class PuzzleSpawnManager : NetworkBehaviour
             if (plan == null || plan.Definition == null)
                 continue; // 잘못된 계획은 스킵
 
-            ZonePuzzleSlotSet puzzleZoneSet = GetZoneSlotSet(plan.Zone);      // 퍼즐 본체가 들어갈 존 슬롯셋
-            ZonePuzzleSlotSet hintZoneSet = GetHintZoneSlotSet(plan.Zone);    // 힌트가 들어갈 반대편 존 슬롯셋
+            ZonePuzzleSlotSet puzzleZoneSet = GetZoneSlotSet(plan.Zone);   // 퍼즐 본체가 들어갈 존 슬롯셋
+            ZonePuzzleSlotSet hintZoneSet = GetHintZoneSlotSet(plan.Zone); // 힌트가 들어갈 반대편 존 슬롯셋
 
             if (puzzleZoneSet == null || hintZoneSet == null)
                 continue;
 
             List<PuzzlePlacementSlot> puzzleSlots = GetPuzzleSlotsByStage(puzzleZoneSet, plan.Stage); // 해당 단계 퍼즐 슬롯 목록
-            List<HintPlacementSlot> hintSlots = GetHintSlotsByStage(hintZoneSet, plan.Stage);         // 해당 단계 힌트 슬롯 목록
-
-            if (puzzleSlots == null || hintSlots == null)
+            if (puzzleSlots == null)
                 continue;
 
             if (plan.PuzzleSlotIndex < 0 || plan.PuzzleSlotIndex >= puzzleSlots.Count)
@@ -142,11 +156,29 @@ public class PuzzleSpawnManager : NetworkBehaviour
 
             if (spawnedPuzzle != null)
             {
-                ApplyAnswerSeedToSpawnedObject(spawnedPuzzle, plan.AnswerSeed);    // 정답 시드 적용
-                RegisterSpawnedPuzzle(spawnedPuzzle.gameObject, plan.Zone, plan.Stage); // 진행도/스크린 등록
+                ApplyAnswerSeedToSpawnedObject(spawnedPuzzle, plan.AnswerSeed); // 정답 시드 적용
+
+                // FinalCodePuzzle이면 스폰된 Zone을 자동 주입
+                // 이유:
+                // - FinalCodePuzzle은 인스펙터에서 puzzleZone을 직접 설정하지 않음
+                // - SpawnManager가 plan.Zone 값을 보고 자동으로 넣어줘야 함
+                ApplySpawnZoneToFinalCodePuzzle(spawnedPuzzle, plan.Zone);
+
+                RegisterSpawnedPuzzle(spawnedPuzzle.gameObject, plan.Zone, plan.Stage); // 진행도/스크린/Stage2/Stage3 목록 등록
 
                 Log($"{plan.Zone} 퍼즐 배치 : {plan.Definition.PuzzleId} -> {puzzleSlot.SlotId} | Stage={plan.Stage} | AnswerSeed={plan.AnswerSeed}");
             }
+
+            // 3단계 힌트는 월드에 스폰하지 않음
+            // 이유:
+            // - 3단계 힌트는 Stage3HintSlots에 배치하는 구조가 아니라
+            // - 2단계 퍼즐 모니터(stage3HintRoot)에 표시하는 구조이기 때문
+            if (plan.Stage == PuzzleStage.Stage3)
+                continue;
+
+            List<HintPlacementSlot> hintSlots = GetHintSlotsByStage(hintZoneSet, plan.Stage); // 해당 단계 힌트 슬롯 목록
+            if (hintSlots == null)
+                continue;
 
             // 연결된 힌트 여러 개를 각각 스폰
             for (int hintIndex = 0; hintIndex < plan.HintPlans.Count; hintIndex++)
@@ -184,9 +216,43 @@ public class PuzzleSpawnManager : NetworkBehaviour
             _zoneAStage2Screens,
             _zoneBStage2Screens); // 이번 라운드 진행도 정보 등록
 
+        // Stage2 퍼즐 본체 목록 등록
+        // 이유:
+        // - FinalCode 힌트 3개를 배정하려면 Stage2 퍼즐 본체를 PuzzleProgressManager도 알고 있어야 함
+        puzzleProgressManager.RegisterStage2Puzzles(
+            _zoneAStage2Puzzles,
+            _zoneBStage2Puzzles);
+
+        // [추가] Stage3 퍼즐 본체 등록
+        // 이유:
+        // - PuzzleProgressManager가 FinalCode solved를 감지하고
+        //   StageManager.ReportZoneStage3Completed(zone)로 넘기려면
+        //   Zone별 Stage3 퍼즐 참조를 알고 있어야 함
+        puzzleProgressManager.RegisterStage3Puzzles(
+            _zoneAStage3Puzzle,
+            _zoneBStage3Puzzle);
+
+        // FinalCode 힌트 3개를 Zone별 Stage2 퍼즐 3개에 배정
+        AssignStage3HintsToStage2Puzzles(result);
+
         _hasSpawnedRound = true; // 스폰 완료 표시
 
         Log($"퍼즐 랜덤 배치 완료 | ZoneA Stage1={_zoneAStage1Puzzles.Count} | ZoneB Stage1={_zoneBStage1Puzzles.Count} | ZoneA Stage2Screen={_zoneAStage2Screens.Count} | ZoneB Stage2Screen={_zoneBStage2Screens.Count}");
+    }
+
+    /// <summary>
+    /// 스폰된 퍼즐이 FinalCodePuzzle이면 Zone 값을 자동 주입한다.
+    /// </summary>
+    private void ApplySpawnZoneToFinalCodePuzzle(NetworkObject spawnedPuzzle, Zone zone)
+    {
+        if (spawnedPuzzle == null)
+            return;
+
+        FinalCodePuzzle finalCodePuzzle = spawnedPuzzle.GetComponent<FinalCodePuzzle>(); // FinalCodePuzzle 찾기
+        if (finalCodePuzzle == null)
+            return; // FinalCodePuzzle이 아니면 종료
+
+        finalCodePuzzle.SetSpawnZone(zone); // plan.Zone 값을 퍼즐 본체에 주입
     }
 
     private NetworkObject SpawnNetworkPrefabAt(
@@ -245,12 +311,37 @@ public class PuzzleSpawnManager : NetworkBehaviour
             return;
         }
 
-        if (stage == PuzzleStage.Stage2 && entry.Stage2ScreenRoot != null)
+        // Stage2는 화면 루트만이 아니라 퍼즐 본체도 같이 등록
+        if (stage == PuzzleStage.Stage2)
+        {
+            if (entry.ProgressTarget != null)
+            {
+                if (zone == Zone.ZoneA)
+                    _zoneAStage2Puzzles.Add(entry.ProgressTarget); // A존 2단계 퍼즐 본체 등록
+                else
+                    _zoneBStage2Puzzles.Add(entry.ProgressTarget); // B존 2단계 퍼즐 본체 등록
+            }
+
+            if (entry.Stage2ScreenRoot != null)
+            {
+                if (zone == Zone.ZoneA)
+                    _zoneAStage2Screens.Add(entry.Stage2ScreenRoot); // A존 2단계 스크린 등록
+                else
+                    _zoneBStage2Screens.Add(entry.Stage2ScreenRoot); // B존 2단계 스크린 등록
+            }
+
+            return;
+        }
+
+        // [추가] Stage3 퍼즐 본체도 Zone별로 저장
+        // 이유:
+        // - 이후 PuzzleProgressManager.RegisterStage3Puzzles(...)에 넘겨야 함
+        if (stage == PuzzleStage.Stage3 && entry.ProgressTarget != null)
         {
             if (zone == Zone.ZoneA)
-                _zoneAStage2Screens.Add(entry.Stage2ScreenRoot); // A존 2단계 스크린 등록
+                _zoneAStage3Puzzle = entry.ProgressTarget; // A존 Stage3 퍼즐 등록
             else
-                _zoneBStage2Screens.Add(entry.Stage2ScreenRoot); // B존 2단계 스크린 등록
+                _zoneBStage3Puzzle = entry.ProgressTarget; // B존 Stage3 퍼즐 등록
         }
     }
 
@@ -268,6 +359,68 @@ public class PuzzleSpawnManager : NetworkBehaviour
         hint.SetObservedPuzzle(puzzle); // 힌트가 관찰할 퍼즐 연결
 
         Log($"LightPattern 퍼즐-힌트 연결 완료 | Puzzle={spawnedPuzzle.name} | Hint={spawnedHint.name}");
+    }
+
+    /// <summary>
+    /// Zone별로 생성된 FinalCode 힌트 3개를 Zone별 Stage2 퍼즐 3개에 배정한다.
+    /// </summary>
+    private void AssignStage3HintsToStage2Puzzles(RoundGenerationResult result)
+    {
+        if (result == null)
+            return;
+
+        AssignZoneStage3Hints(
+            _zoneAStage2Puzzles,
+            result.ZoneAFinalCodeData != null ? result.ZoneAFinalCodeData.ZoneAHints : null,
+            Zone.ZoneA); // A존 힌트 배정
+
+        AssignZoneStage3Hints(
+            _zoneBStage2Puzzles,
+            result.ZoneBFinalCodeData != null ? result.ZoneBFinalCodeData.ZoneBHints : null,
+            Zone.ZoneB); // B존 힌트 배정
+    }
+
+    /// <summary>
+    /// 특정 Zone의 Stage2 퍼즐 목록에 해당 Zone FinalCode 힌트를 순서대로 배정한다.
+    /// </summary>
+    private void AssignZoneStage3Hints(List<PuzzleInteractableBase> stage2Puzzles, List<FinalCodeHintData> hints, Zone zone)
+    {
+        if (stage2Puzzles == null || hints == null)
+            return;
+
+        int count = Mathf.Min(stage2Puzzles.Count, hints.Count); // 실제 배정 가능한 개수
+
+        for (int i = 0; i < count; i++)
+        {
+            PuzzleInteractableBase puzzle = stage2Puzzles[i];
+            FinalCodeHintData hint = hints[i];
+
+            if (puzzle == null || hint == null)
+                continue;
+
+            if (puzzle is MazePuzzle mazePuzzle)
+            {
+                mazePuzzle.SetStage3HintData(hint);
+                Log($"{zone} Stage3 힌트 배정 | MazePuzzle -> {hint.GetDebugString()}");
+                continue;
+            }
+
+            if (puzzle is NumericCodePuzzle numericCodePuzzle)
+            {
+                numericCodePuzzle.SetStage3HintData(hint);
+                Log($"{zone} Stage3 힌트 배정 | NumericCodePuzzle -> {hint.GetDebugString()}");
+                continue;
+            }
+
+            if (puzzle is ReagentCraftPuzzle reagentCraftPuzzle)
+            {
+                reagentCraftPuzzle.SetStage3HintData(hint);
+                Log($"{zone} Stage3 힌트 배정 | ReagentCraftPuzzle -> {hint.GetDebugString()}");
+                continue;
+            }
+
+            LogWarning($"{zone} Stage2 퍼즐 힌트 배정 실패 | 지원하지 않는 퍼즐 타입 : {puzzle.name}");
+        }
     }
 
     private ZonePuzzleSlotSet GetZoneSlotSet(Zone zone)
@@ -308,7 +461,7 @@ public class PuzzleSpawnManager : NetworkBehaviour
         {
             PuzzleStage.Stage1 => zoneSlotSet.Stage1HintSlots, // 1단계 힌트 슬롯 목록 반환
             PuzzleStage.Stage2 => zoneSlotSet.Stage2HintSlots, // 2단계 힌트 슬롯 목록 반환
-            PuzzleStage.Stage3 => zoneSlotSet.Stage3HintSlots, // 3단계 힌트 슬롯 목록 반환
+            PuzzleStage.Stage3 => zoneSlotSet.Stage3HintSlots, // 3단계 힌트 슬롯 목록 반환 (현재 미사용)
             _ => null
         };
     }
@@ -328,8 +481,12 @@ public class PuzzleSpawnManager : NetworkBehaviour
         _spawnedObjects.Clear();      // 스폰 목록 초기화
         _zoneAStage1Puzzles.Clear();  // A존 진행도 목록 초기화
         _zoneBStage1Puzzles.Clear();  // B존 진행도 목록 초기화
+        _zoneAStage2Puzzles.Clear();  // A존 Stage2 퍼즐 목록 초기화
+        _zoneBStage2Puzzles.Clear();  // B존 Stage2 퍼즐 목록 초기화
         _zoneAStage2Screens.Clear();  // A존 스크린 목록 초기화
         _zoneBStage2Screens.Clear();  // B존 스크린 목록 초기화
+        _zoneAStage3Puzzle = null;    // A존 Stage3 퍼즐 초기화
+        _zoneBStage3Puzzle = null;    // B존 Stage3 퍼즐 초기화
 
         _hasSpawnedRound = false;     // 스폰 완료 플래그 초기화
     }
