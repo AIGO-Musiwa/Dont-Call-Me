@@ -123,6 +123,23 @@ public class GameLauncher : MonoBehaviour
         if (scene.buildIndex == SceneNames.LOBBY_INDEX)
         {
             IsReturningToLobby = true;
+
+            // 로비 복귀 시 방 잠금 해제
+            if (Runner != null && Runner.IsServer && Runner.SessionInfo != null)
+            {
+                Runner.SessionInfo.IsOpen = true;
+                Debug.Log("[GameLauncher] 로비 복귀 → 방 다시 열림");
+            }
+        }
+        else if (scene.buildIndex == SceneNames.GAME_INDEX)
+        {
+            IsReturningToLobby = false;
+
+            if (Runner != null && Runner.IsServer && Runner.SessionInfo != null)
+            {
+                Runner.SessionInfo.IsOpen = false;
+                Debug.Log("[GameLauncher] 게임 시작 → 방 잠금");
+            }
         }
         else
         {
@@ -293,6 +310,7 @@ public class GameLauncher : MonoBehaviour
     {   
         ShutdownReason.GameNotFound => "존재하지 않는 방 코드입니다.",
         ShutdownReason.GameIsFull => "방이 가득 찼습니다.",
+        ShutdownReason.GameClosed => "이미 게임이 시작된 방입니다.",
         _ => $"방 참가 실패({reason})"
     };
 
