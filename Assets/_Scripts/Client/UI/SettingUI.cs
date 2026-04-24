@@ -9,13 +9,10 @@ public class SettingsUI : MonoBehaviour
     [SerializeField] private Slider sensitivitySlider;
     [SerializeField] private TextMeshProUGUI sensitivityText;
 
-    // PlayerPrefs에 저장할 때 사용할 키워드
-    private const string SENSITIVITY_KEY = "MouseSensitivity";
-
     private void Start()
     {
         // 1. 게임을 켤 때 저장된 감도 값이 있는지 확인, 없으면 기본값 1.0f
-        float savedSensitivity = PlayerPrefs.GetFloat(SENSITIVITY_KEY, 1.0f);
+        float savedSensitivity = PlayerPrefs.GetFloat(Constants.SENSITIVITY_KEY, 1.0f);
 
         // 2. 불러온 값을 슬라이더의 현재 값에 반영
         if (sensitivitySlider != null)
@@ -34,7 +31,7 @@ public class SettingsUI : MonoBehaviour
     private void OnSensitivityChanged(float newValue)
     {
         // 바뀐 값 PlayerPrefs에 저장
-        PlayerPrefs.SetFloat(SENSITIVITY_KEY, newValue);
+        PlayerPrefs.SetFloat(Constants.SENSITIVITY_KEY, newValue);
         PlayerPrefs.Save(); // 저장 완료!
 
         // 실제 게임 내 감도 적용

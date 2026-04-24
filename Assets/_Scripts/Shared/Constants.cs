@@ -26,6 +26,11 @@ public static class Constants
 
     // ── 무전기 ────────────────────────────────────────────
     public const float WALKIE_RANGE = 8f;       // 무전기 소리 범위
+
+
+    // ── Setting 키워드 ────────────────────────────────────
+    // PlayerPrefs에 저장할 때 사용할 키워드
+    public const string SENSITIVITY_KEY = "MouseSensitivity";
 }
 
 // ── 씬 이름 (Build Settings의 씬 이름과 반드시 일치) ────
