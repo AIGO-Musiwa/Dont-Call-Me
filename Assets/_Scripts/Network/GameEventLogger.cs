@@ -1,13 +1,14 @@
 using Fusion;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GameEventLogger : NetworkBehaviour
 {
     public static GameEventLogger Instance { get; private set; }
 
-    [Networked] public int PuzzlesSolved { get; set; }
-    [Networked] public int RadioUsed { get; set; }
+    [Networked] public int PuzzlesSolvedZoneA { get; set; }
+    [Networked] public int PuzzlesSolvedZoneB { get; set; }
+    [Networked] public int RadioUsedZoneA { get; set; }
+    [Networked] public int RadioUsedZoneB { get; set; }
 
     [Networked, Capacity(30)]
     public NetworkLinkedList<GameEventEntry> NetLog { get; }
@@ -34,17 +35,19 @@ public class GameEventLogger : NetworkBehaviour
     public void LogEscaped(string nickname, int slotIndex) => AddLog(GameEventType.Escaped, nickname, slotIndex);
 
     // 푼 퍼즐 개수++
-    public void AddPuzzleSolved()
+    public void AddPuzzleSolved(Zone zone)
     {
         if (!Runner.IsServer) return;
-        PuzzlesSolved++;
+        if (zone == Zone.ZoneA) PuzzlesSolvedZoneA++;
+        else PuzzlesSolvedZoneB++;
     }
 
     // 라디오 사용 횟수++
-    public void AddRadioUsed()
+    public void AddRadioUsed(Zone zone)
     {
         if (!Runner.IsServer) return;
-        RadioUsed++;
+        if (zone == Zone.ZoneA) RadioUsedZoneA++;
+        else RadioUsedZoneB++;
     }
 
     // ── 내부 ─────────────────────────────────────────────────────────

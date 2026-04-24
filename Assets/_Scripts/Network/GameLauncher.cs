@@ -22,7 +22,7 @@ public class GameLauncher : MonoBehaviour
     public string RoomCode { get; private set; }
     public string LocalNickname { get; private set; }
     public bool IsReturningToLobby { get; private set; }
-    public bool checkecheck { get; set; }
+    public string PendingErrorMessage { get; set; } = string.Empty;     // Title 씬으로 전환 후 표시할 에러 메세지 
 
     // ── 이벤트 (Lobby 씬 내 UI에서 구독) ─────────────────
     public event Action<string> OnJoinFailed;                           // 방 참가/생성 실패 시 (TitleManager에서 구독)

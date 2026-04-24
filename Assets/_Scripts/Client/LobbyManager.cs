@@ -102,7 +102,8 @@ public class LobbyManager : MonoBehaviour
     
     private void HandleHostDisconnected()
     {
-        _launcher.checkecheck = true;
+        if (GameLauncher.Instance != null)
+            GameLauncher.Instance.PendingErrorMessage = "호스트 연결이 끊겼습니다.";
         SceneManager.LoadScene(SceneNames.TITLE_INDEX);
     }
 
