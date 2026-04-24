@@ -162,8 +162,10 @@ public class GameSessionManager : NetworkBehaviour
         var logger = GameEventLogger.Instance;
         if (logger != null)
         {
-            payload.PuzzlesSolved = logger.PuzzlesSolved;
-            payload.RadioUsed = logger.RadioUsed;
+            payload.PuzzlesSolvedZoneA = logger.PuzzlesSolvedZoneA;
+            payload.PuzzlesSolvedZoneB = logger.PuzzlesSolvedZoneB;
+            payload.RadioUsedZoneA = logger.RadioUsedZoneA;
+            payload.RadioUsedZoneB = logger.RadioUsedZoneB;
 
             foreach (var entry in logger.NetLog)
                 payload.TimelineLog.Add(entry);
@@ -178,13 +180,15 @@ public class GameSessionManager : NetworkBehaviour
             var data = Runner.GetPlayerObject(player)?.GetComponent<PlayerData>();
             if (data == null) continue;
 
-            var pc = data.GetPlayerController();
+            PlayerState finalState = data.FinalPlayerState == PlayerState.Normal
+                ? PlayerState.Dead
+                : data.FinalPlayerState;
 
             payload.PlayerResults.Add(new PlayerResultData
             {
                 Nickname = data.Nickname.ToString(),
                 SlotIndex = data.SlotIndex,
-                FinalState = data.FinalPlayerState,
+                FinalState = finalState,
                 IsLocalPlayer = data.SlotIndex == localSlot
             });
         }
@@ -196,10 +200,20 @@ public class GameSessionManager : NetworkBehaviour
 
     #region 이벤트 처리
 
+    // 플레이어 게임 나가기
+    public async void LeaveGame()
+    {
+        if (GameLauncher.Instance != null)
+            await GameLauncher.Instance.LeaveRoom();
+        SceneManager.LoadScene(SceneNames.TITLE_INDEX);
+    }
+
     // 호스트 이탈 -> 타이틀
     private void HandleHostDisconnected()
     {
         Debug.LogWarning("[GameSessionManager] 호스트 이탈 → 타이틀 이동");
+        if (GameLauncher.Instance != null)
+            GameLauncher.Instance.PendingErrorMessage = "호스트 연결이 끊겼습니다.";
         SceneManager.LoadScene(SceneNames.TITLE_INDEX);
     }
 

@@ -96,8 +96,8 @@ public class ResultUI : MonoBehaviour
         int totalPlayers = Mathf.Max(1, payload.PlayerResults.Count);
         survivorCountText.text = $"생존자 {survivors}/{totalPlayers}";
         playTimeText.text = FormatTime(payload.Duration);
-        puzzlesSolvedText.text = $"7개 | {payload.PuzzlesSolved}개";
-        radioUsedText.text = $"3회 | {payload.RadioUsed}회";
+        puzzlesSolvedText.text = $"{payload.PuzzlesSolvedZoneA}개 | {payload.PuzzlesSolvedZoneB}개";
+        radioUsedText.text = $"{payload.RadioUsedZoneA}회 | {payload.RadioUsedZoneB}회";
 
         // 타임라인
         BuildTimeline(payload.TimelineLog);

@@ -37593,6 +37593,94 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1487677426}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &308532059
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 308532062}
+  - component: {fileID: 308532061}
+  - component: {fileID: 308532060}
+  m_Layer: 0
+  m_Name: RadioSpawnManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &308532060
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 308532059}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 971565593
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 308532061}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &308532061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 308532059}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23ed385dc228b1643beb6f9b14fa5bd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RadioSpawnManager
+  radioPrefab: {fileID: 3471356287084576588, guid: 93ed4a81f897c31428252b21e6088051, type: 3}
+  buildings:
+  - zone: 0
+    floors:
+    - floorName: 1
+      spawnPoints:
+      - {fileID: 1768952089}
+    - floorName: 2
+      spawnPoints:
+      - {fileID: 1668143611}
+    - floorName: 3
+      spawnPoints:
+      - {fileID: 967215286}
+  - zone: 1
+    floors:
+    - floorName: 1
+      spawnPoints:
+      - {fileID: 1072121821}
+    - floorName: 2
+      spawnPoints:
+      - {fileID: 696563287}
+    - floorName: 3
+      spawnPoints:
+      - {fileID: 499268378}
+--- !u!4 &308532062
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 308532059}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -10.8286, y: 6.5, z: 38.82199}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!43 &311207511
 Mesh:
   m_ObjectHideFlags: 0
@@ -205003,8 +205091,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d394d18f90a28944881140b3eb06742f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameEventLogger
-  _PuzzlesSolved: 0
-  _RadioUsed: 0
+  _PuzzlesSolvedZoneA: 0
+  _PuzzlesSolvedZoneB: 0
+  _RadioUsedZoneA: 0
+  _RadioUsedZoneB: 0
 --- !u!4 &1728080498
 Transform:
   m_ObjectHideFlags: 0
@@ -263765,3 +263855,4 @@ SceneRoots:
   - {fileID: 1728080498}
   - {fileID: 1756897403}
   - {fileID: 187833841}
+  - {fileID: 308532062}

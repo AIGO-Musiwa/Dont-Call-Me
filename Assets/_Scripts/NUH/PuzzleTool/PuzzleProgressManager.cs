@@ -325,24 +325,31 @@ public class PuzzleProgressManager : MonoBehaviour
 
         if (_zoneAStage1Puzzles.Contains(solvedPuzzle))
         {
+            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneA);
             CheckZoneStage1SolvedAndNotifyIfNeeded(Zone.ZoneA);
             return;
         }
 
         if (_zoneBStage1Puzzles.Contains(solvedPuzzle))
         {
+            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneB);
             CheckZoneStage1SolvedAndNotifyIfNeeded(Zone.ZoneB);
             return;
         }
 
         if (_zoneAStage2Puzzles.Contains(solvedPuzzle))
         {
+            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneA);
             CountStage2SolvedIfNeeded(Zone.ZoneA, solvedPuzzle);
             return;
         }
 
         if (_zoneBStage2Puzzles.Contains(solvedPuzzle))
+        {
+            GameEventLogger.Instance?.AddPuzzleSolved(Zone.ZoneB);
             CountStage2SolvedIfNeeded(Zone.ZoneB, solvedPuzzle);
+            return;
+        }
     }
 
     /// <summary>
