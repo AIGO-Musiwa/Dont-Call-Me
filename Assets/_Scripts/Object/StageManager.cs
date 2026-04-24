@@ -8,6 +8,7 @@ using UnityEngine;
 /// - PuzzleProgressManager의 Stage1 완료 보고를 받는다.
 /// - 해당 Zone의 Stage2 해금을 승인한다.
 /// - 해당 Zone의 Stage3 진입 문을 연다.
+/// - Zone별 Stage3 완료 보고를 받아 3막(Act3) 진입 여부를 판단한다.
 /// - 3막(Act3) 발동, 셔터/조명/사이렌 같은 전역 맵 변화를 담당한다.
 /// - Zone별 Stage2 진행도를 읽어서 키카드 보상 판정을 제공한다.
 /// </summary>
@@ -45,6 +46,10 @@ public class StageManager : NetworkBehaviour
     [Networked] private NetworkBool NetZoneAStage1Completed { get; set; } // ZoneA Stage1 완료 승인 여부
     [Networked] private NetworkBool NetZoneBStage1Completed { get; set; } // ZoneB Stage1 완료 승인 여부
 
+    // [추가] Zone별 Stage3 완료 상태
+    [Networked] private NetworkBool NetZoneAStage3Completed { get; set; } // ZoneA Stage3 완료 여부
+    [Networked] private NetworkBool NetZoneBStage3Completed { get; set; } // ZoneB Stage3 완료 여부
+
     public override void Spawned()
     {
         if (Instance == null)
@@ -55,6 +60,8 @@ public class StageManager : NetworkBehaviour
             IsAct3Active = false; // 게임 시작 시 3막 비활성화
             NetZoneAStage1Completed = false; // ZoneA Stage1 완료 플래그 초기화
             NetZoneBStage1Completed = false; // ZoneB Stage1 완료 플래그 초기화
+            NetZoneAStage3Completed = false; // ZoneA Stage3 완료 플래그 초기화
+            NetZoneBStage3Completed = false; // ZoneB Stage3 완료 플래그 초기화
 
             SetAllStairBlocksActive(false); // 시작 시 계단 차단벽 전부 비활성화
             SetStage3DoorOpen(Zone.ZoneA, false); // ZoneA 3단계 진입 문 닫기
@@ -156,6 +163,46 @@ public class StageManager : NetworkBehaviour
     public bool ShouldSpawnMasterKeycardForZone(Zone zone)
     {
         return IsZoneStage2FullySolved(zone);
+    }
+
+    #endregion
+
+    #region Stage3 완료 보고 / Act3 진입
+
+    /// <summary>
+    /// 특정 Zone의 Stage3 최종 퍼즐이 해결되었음을 PuzzleProgressManager가 보고할 때 호출한다.
+    /// 
+    /// 현재 규칙
+    /// - 어느 한 Zone이라도 Stage3 완료 보고가 들어오면 Act3를 발동한다.
+    /// - 이미 보고된 Zone이면 중복 처리하지 않는다.
+    /// - 이미 Act3 상태면 재발동하지 않는다.
+    /// </summary>
+    public void ReportZoneStage3Completed(Zone zone)
+    {
+        if (!HasStateAuthority)
+            return;
+
+        if (zone == Zone.ZoneA)
+        {
+            if (NetZoneAStage3Completed)
+                return;
+
+            NetZoneAStage3Completed = true; // ZoneA Stage3 완료 기록
+            Log("ZoneA Stage3 완료 보고 수신");
+        }
+        else
+        {
+            if (NetZoneBStage3Completed)
+                return;
+
+            NetZoneBStage3Completed = true; // ZoneB Stage3 완료 기록
+            Log("ZoneB Stage3 완료 보고 수신");
+        }
+
+        // 현재 규칙:
+        // Stage3 최종 퍼즐을 어느 한 Zone이라도 해결하면 즉시 3막 진입
+        if (!IsAct3Active)
+            TriggerAct3();
     }
 
     #endregion

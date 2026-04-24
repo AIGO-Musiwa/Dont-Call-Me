@@ -38,7 +38,7 @@ public class PuzzleSpawnManager : NetworkBehaviour
     private readonly List<PuzzleInteractableBase> _zoneAStage1Puzzles = new(); // A존 1단계 진행도 대상 퍼즐 목록
     private readonly List<PuzzleInteractableBase> _zoneBStage1Puzzles = new(); // B존 1단계 진행도 대상 퍼즐 목록
 
-    // [추가] 2단계 퍼즐 본체 목록
+    // 2단계 퍼즐 본체 목록
     // 이유:
     // - FinalCode 힌트 3개를 각 Zone의 Stage2 퍼즐 3개에 배정하려면
     //   Stage2 퍼즐 본체 참조를 따로 들고 있어야 함
@@ -47,6 +47,13 @@ public class PuzzleSpawnManager : NetworkBehaviour
 
     private readonly List<GameObject> _zoneAStage2Screens = new(); // A존 2단계 스크린 루트 목록
     private readonly List<GameObject> _zoneBStage2Screens = new(); // B존 2단계 스크린 루트 목록
+
+    // [추가] Zone별 Stage3 퍼즐 본체 참조
+    // 이유:
+    // - PuzzleProgressManager가 Stage3 solved를 감지하려면
+    //   FinalCodePuzzle 본체를 등록받아야 함
+    private PuzzleInteractableBase _zoneAStage3Puzzle; // A존 Stage3 퍼즐 본체
+    private PuzzleInteractableBase _zoneBStage3Puzzle; // B존 Stage3 퍼즐 본체
 
     private bool _hasSpawnedRound; // 이번 라운드 스폰 완료 여부
 
@@ -151,18 +158,18 @@ public class PuzzleSpawnManager : NetworkBehaviour
             {
                 ApplyAnswerSeedToSpawnedObject(spawnedPuzzle, plan.AnswerSeed); // 정답 시드 적용
 
-                // [추가] FinalCodePuzzle이면 스폰된 Zone을 자동 주입
+                // FinalCodePuzzle이면 스폰된 Zone을 자동 주입
                 // 이유:
-                // - FinalCodePuzzle은 이제 인스펙터에서 puzzleZone을 직접 설정하지 않음
+                // - FinalCodePuzzle은 인스펙터에서 puzzleZone을 직접 설정하지 않음
                 // - SpawnManager가 plan.Zone 값을 보고 자동으로 넣어줘야 함
                 ApplySpawnZoneToFinalCodePuzzle(spawnedPuzzle, plan.Zone);
 
-                RegisterSpawnedPuzzle(spawnedPuzzle.gameObject, plan.Zone, plan.Stage); // 진행도/스크린/Stage2 목록 등록
+                RegisterSpawnedPuzzle(spawnedPuzzle.gameObject, plan.Zone, plan.Stage); // 진행도/스크린/Stage2/Stage3 목록 등록
 
                 Log($"{plan.Zone} 퍼즐 배치 : {plan.Definition.PuzzleId} -> {puzzleSlot.SlotId} | Stage={plan.Stage} | AnswerSeed={plan.AnswerSeed}");
             }
 
-            // [추가] 3단계 힌트는 월드에 스폰하지 않음
+            // 3단계 힌트는 월드에 스폰하지 않음
             // 이유:
             // - 3단계 힌트는 Stage3HintSlots에 배치하는 구조가 아니라
             // - 2단계 퍼즐 모니터(stage3HintRoot)에 표시하는 구조이기 때문
@@ -209,14 +216,23 @@ public class PuzzleSpawnManager : NetworkBehaviour
             _zoneAStage2Screens,
             _zoneBStage2Screens); // 이번 라운드 진행도 정보 등록
 
-        // [추가] Stage2 퍼즐 본체 목록 등록
+        // Stage2 퍼즐 본체 목록 등록
         // 이유:
         // - FinalCode 힌트 3개를 배정하려면 Stage2 퍼즐 본체를 PuzzleProgressManager도 알고 있어야 함
         puzzleProgressManager.RegisterStage2Puzzles(
             _zoneAStage2Puzzles,
             _zoneBStage2Puzzles);
 
-        // [추가] FinalCode 힌트 3개를 Zone별 Stage2 퍼즐 3개에 배정
+        // [추가] Stage3 퍼즐 본체 등록
+        // 이유:
+        // - PuzzleProgressManager가 FinalCode solved를 감지하고
+        //   StageManager.ReportZoneStage3Completed(zone)로 넘기려면
+        //   Zone별 Stage3 퍼즐 참조를 알고 있어야 함
+        puzzleProgressManager.RegisterStage3Puzzles(
+            _zoneAStage3Puzzle,
+            _zoneBStage3Puzzle);
+
+        // FinalCode 힌트 3개를 Zone별 Stage2 퍼즐 3개에 배정
         AssignStage3HintsToStage2Puzzles(result);
 
         _hasSpawnedRound = true; // 스폰 완료 표시
@@ -295,7 +311,7 @@ public class PuzzleSpawnManager : NetworkBehaviour
             return;
         }
 
-        // [수정] Stage2는 화면 루트만이 아니라 퍼즐 본체도 같이 등록
+        // Stage2는 화면 루트만이 아니라 퍼즐 본체도 같이 등록
         if (stage == PuzzleStage.Stage2)
         {
             if (entry.ProgressTarget != null)
@@ -313,6 +329,19 @@ public class PuzzleSpawnManager : NetworkBehaviour
                 else
                     _zoneBStage2Screens.Add(entry.Stage2ScreenRoot); // B존 2단계 스크린 등록
             }
+
+            return;
+        }
+
+        // [추가] Stage3 퍼즐 본체도 Zone별로 저장
+        // 이유:
+        // - 이후 PuzzleProgressManager.RegisterStage3Puzzles(...)에 넘겨야 함
+        if (stage == PuzzleStage.Stage3 && entry.ProgressTarget != null)
+        {
+            if (zone == Zone.ZoneA)
+                _zoneAStage3Puzzle = entry.ProgressTarget; // A존 Stage3 퍼즐 등록
+            else
+                _zoneBStage3Puzzle = entry.ProgressTarget; // B존 Stage3 퍼즐 등록
         }
     }
 
@@ -456,6 +485,8 @@ public class PuzzleSpawnManager : NetworkBehaviour
         _zoneBStage2Puzzles.Clear();  // B존 Stage2 퍼즐 목록 초기화
         _zoneAStage2Screens.Clear();  // A존 스크린 목록 초기화
         _zoneBStage2Screens.Clear();  // B존 스크린 목록 초기화
+        _zoneAStage3Puzzle = null;    // A존 Stage3 퍼즐 초기화
+        _zoneBStage3Puzzle = null;    // B존 Stage3 퍼즐 초기화
 
         _hasSpawnedRound = false;     // 스폰 완료 플래그 초기화
     }
