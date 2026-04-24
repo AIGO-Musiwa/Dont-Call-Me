@@ -2,6 +2,8 @@ using Fusion;
 using Photon.Voice;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 public class TitleManager : MonoBehaviour
@@ -25,6 +27,11 @@ public class TitleManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI errorText;
 
     private GameLauncher _launcher;
+
+    // IME 누출 방지용 스냅샷
+    private string nicknameSnapshot;
+    private string roomCodeSnapshot;
+    private bool pendingImeGuard;
 
     private void Start()
     {
@@ -50,6 +57,12 @@ public class TitleManager : MonoBehaviour
             ShowError(_launcher.PendingErrorMessage);
             _launcher.PendingErrorMessage = null;
         }
+
+        // roomCode 입력 필터 등록 (영어 + 6글자)
+        roomCodeInput.onValidateInput += ValidateRoomCodeInput;
+        roomCodeInput.characterLimit = Constants.ROOM_CODE_LENGTH;
+
+        FocusNickname();
     }
 
     private void OnDestroy()
@@ -59,7 +72,83 @@ public class TitleManager : MonoBehaviour
         // 이벤트 구독 해제
         _launcher.OnJoinFailed -= HandleConnectionFailed;
         _launcher.OnPlayerJoinedEvent -= HandlePlayerJoined;
+
+        roomCodeInput.onValidateInput -= ValidateRoomCodeInput;
     }
+
+    private void Update()
+    {
+        HandleTabNavigation();
+    }
+
+    private void LateUpdate()
+    {
+        CheckImeGuard();
+    }
+
+    #region InputField Tab 순환처리
+
+    private void HandleTabNavigation()
+    {
+        if (!Keyboard.current.tabKey.wasPressedThisFrame) return;
+
+        if (nicknameInput.isFocused)
+            FocusRoomCode();
+        else if (roomCodeInput.isFocused)
+            FocusNickname();
+        else
+            FocusNickname();
+    }
+
+    private void FocusNickname()
+    {
+        nicknameInput.ActivateInputField();
+        nicknameInput.Select();
+    }
+
+    private void FocusRoomCode()
+    {
+        // 포커스 전환 직전 두 필드를 모두 스냅샷으로 저장
+        nicknameSnapshot = nicknameInput.text;
+        roomCodeSnapshot = roomCodeInput.text;
+        pendingImeGuard = true;
+
+        roomCodeInput.ActivateInputField();
+        roomCodeInput.Select();
+    }
+
+    private void CheckImeGuard()
+    {
+        if (!pendingImeGuard) return;
+        pendingImeGuard = false;
+
+        if (roomCodeInput.text != roomCodeSnapshot)
+        {
+            nicknameInput.text = nicknameSnapshot;  // 닉네임 복원
+            roomCodeInput.text = roomCodeSnapshot;  // 코드 스냅샷으로 복원 (누출 문자 제거)
+        }
+    }
+
+    #endregion
+
+    #region roomCode 입력 필터
+
+    private char ValidateRoomCodeInput(string text, int charIndex, char addedChar)
+    {
+        // 영문자는 대문자로 강제 변환
+        if (addedChar >= 'a' && addedChar <= 'z')
+            return (char)(addedChar - 32);
+
+        // 대문자 영문 또는 숫자만 허용
+        if ((addedChar >= 'A' && addedChar <= 'Z') ||
+            (addedChar >= '0' && addedChar <= '9'))
+            return addedChar;
+
+        // 그 외 차단
+        return '\0';
+    }
+
+    #endregion
 
     #region 버튼 콜백 (Inspector에서 연결)
 
