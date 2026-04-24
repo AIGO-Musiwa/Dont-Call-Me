@@ -1,9 +1,11 @@
 using Fusion;
+using NUnit.Framework.Constraints;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -20,6 +22,10 @@ public class LobbyManager : MonoBehaviour
     [Header("방정보")]
     [SerializeField] private TextMeshProUGUI roomCodeText;
 
+    [Header("방 코드 복사")]
+    [SerializeField] private Button copyRoomCodeButton;
+    [SerializeField] private TextMeshProUGUI copyFeedbackText;  // "복사됨" 표시용
+
     [Header("플레이어 슬롯 (4개)")]
     [SerializeField] private PlayerSlotUI[] playerSlots;
 
@@ -33,6 +39,8 @@ public class LobbyManager : MonoBehaviour
     private readonly PlayerData[] _slots = new PlayerData[4];
 
     private readonly Dictionary<PlayerRef, int> _playerRefToSlot = new();
+
+    private Coroutine copyFeedbackCoroutine;        // 복사 피드백 코루틴 핸들
 
     private void Start()
     {
@@ -55,6 +63,13 @@ public class LobbyManager : MonoBehaviour
         if (_launcher.Runner != null)
             ShowLobby(_launcher.Runner);
 
+        if (copyRoomCodeButton != null)
+            copyRoomCodeButton.onClick.AddListener(OnCopyRoomCodeClicked);
+
+        // 복사 피드백 텍스트 초기화
+        if (copyFeedbackText != null)
+            copyFeedbackText.gameObject.SetActive(false);
+
         // 슬롯 재스캔
         StartCoroutine(RebuildSlotsAndShowOverlay());
 
@@ -67,6 +82,9 @@ public class LobbyManager : MonoBehaviour
         _launcher.OnPlayerJoinedEvent -= HandlePlayerJoined;
         _launcher.OnPlayerLeftEvent   -= HandlePlayerLeft;
         _launcher.OnHostDisconnected  -= HandleHostDisconnected;
+
+        if (copyRoomCodeButton != null)
+            copyRoomCodeButton.onClick.RemoveListener(OnCopyRoomCodeClicked);
     }
 
     private void Update()
@@ -76,6 +94,28 @@ public class LobbyManager : MonoBehaviour
 
         if (_launcher?.Runner != null && _launcher.Runner.IsServer)
             UpdateStartButton();
+
+        // 준비/시작 단축키
+        HadnleShortcutKey();
+    }
+
+    // 단축키 
+    private void HadnleShortcutKey()
+    {
+        if (!Keyboard.current.f5Key.wasPressedThisFrame) return;
+        if (_launcher?.Runner == null) return;
+
+        if (_launcher.Runner.IsServer)
+        {
+            // 호스트: 시작 버튼이 활성화된 상태일 때만 시작
+            if (startButton != null && startButton.interactable)
+                OnStartClicked();
+        }
+        else
+        {
+            // 클라이언트: 준비 토글
+            OnReadyClicked();
+        }
     }
 
     #region 이벤트 처리
@@ -132,6 +172,7 @@ public class LobbyManager : MonoBehaviour
 
     #region 버튼 콜백
 
+    // 레디 버튼
     public void OnReadyClicked()
     {
         _isReady = !_isReady;
@@ -141,18 +182,45 @@ public class LobbyManager : MonoBehaviour
             ?.GetComponent<PlayerData>();
         myData?.Rpc_SetReady(_isReady);
     }
-
+    
+    // 시작 버튼
     public void OnStartClicked()
     {
         _launcher.Runner.LoadScene(SceneRef.FromIndex(SceneNames.GAME_INDEX));
     }
 
+    // 나가기 버튼
     public async void OnExitClicked()
     {
         await _launcher.LeaveRoom();
         _isReady = false;
         SceneManager.LoadScene(SceneNames.TITLE_INDEX);
 
+    }
+
+    // 복사 버튾ㄱ
+    public void OnCopyRoomCodeClicked()
+    {
+        if (string.IsNullOrEmpty(_launcher?.RoomCode)) return;
+
+        GUIUtility.systemCopyBuffer = _launcher.RoomCode;
+        Debug.Log($"[LobbyManager] 방 코드 복사됨: {_launcher.RoomCode}");
+
+        // 피드백 텍스트가 있으면 잠깐 표시
+        if (copyFeedbackText != null)
+        {
+            if (copyFeedbackCoroutine != null)
+                StopCoroutine(copyFeedbackCoroutine);
+            copyFeedbackCoroutine = StartCoroutine(ShowCopyFeedback());
+        }
+    }
+
+    private IEnumerator ShowCopyFeedback()
+    {
+        copyFeedbackText.gameObject.SetActive(true);
+        yield return new WaitForSeconds(1.5f);
+        copyFeedbackText.gameObject.SetActive(false);
+        copyFeedbackCoroutine = null;
     }
     #endregion
 
