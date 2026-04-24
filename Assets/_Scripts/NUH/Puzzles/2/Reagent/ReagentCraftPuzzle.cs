@@ -10,6 +10,7 @@ using UnityEngine;
 /// - 다른 플레이어도 현재 슬롯/편집 칸/제조 진행 상태를 볼 수 있어야 한다.
 /// - 다른 플레이어도 버튼 상호작용 시 서버 권한에서 실제 입력이 먹어야 한다.
 /// - 그래서 "보여줘야 하는 상태"는 전부 Networked로 들고 간다.
+/// - 성공 시 Stage3HintRoot에 배정된 3단계 힌트를 표시할 수 있다.
 /// </summary>
 public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 {
@@ -43,6 +44,9 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private bool _lastRenderedSolved = false; // Render 중 성공 상태 캐시
     private int _lastRenderedViewHash = int.MinValue; // Render 중 불필요한 전체 갱신 방지용 캐시
 
+    private FinalCodeHintData _stage3HintData; // 이 퍼즐이 표시할 3단계 힌트 데이터
+    private bool _hasStage3HintData; // 3단계 힌트 데이터 적용 여부
+
     [Networked] private NetworkBool NetSeedApplied { get; set; } // 시드 적용 완료 여부
     [Networked] private int NetEditingSlotIndex { get; set; } // 현재 편집 중인 슬롯 인덱스, 완료면 recipeSlotCount
     [Networked] private int NetCurrentProgressIndex { get; set; } // 현재 진행 중인 프로그레스 칸 번호(1~10), 미시작은 0
@@ -63,20 +67,20 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         base.Spawned();
 
         if (analyzer != null)
-            analyzer.BindOwnerPuzzle(this); // 판별기에 현재 퍼즐 본체를 연결
+            analyzer.BindOwnerPuzzle(this);
 
-        RefreshAllView(); // 현재 네트워크 상태 기준으로 화면 갱신
+        RefreshAllView();
 
         if (IsSolved)
-            ApplySolvedPresentation(); // 이미 성공 상태면 성공 화면 반영
+            ApplySolvedPresentation();
     }
 
     public override void Render()
     {
         base.Render();
 
-        bool solvedNow = IsSolved; // 현재 solved 상태 캐시
-        int currentHash = BuildViewStateHash(); // 현재 뷰 상태 해시 계산
+        bool solvedNow = IsSolved;
+        int currentHash = BuildViewStateHash();
 
         if (_lastRenderedSolved != solvedNow || _lastRenderedViewHash != currentHash)
         {
@@ -85,59 +89,60 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             else
                 RefreshAllView();
 
-            _lastRenderedSolved = solvedNow; // 캐시 갱신
-            _lastRenderedViewHash = currentHash; // 캐시 갱신
+            _lastRenderedSolved = solvedNow;
+            _lastRenderedViewHash = currentHash;
         }
     }
 
     /// <summary>
     /// answer seed를 받아 정답 데이터와 퍼즐 상태를 초기화한다.
-    /// 
-    /// 주의
-    /// - answerData는 로컬 생성 데이터라 서버/클라 모두 동일 seed로 동일 결과를 만든다.
-    /// - 실제 공유해야 하는 진행 상태는 Networked로 별도 동기화한다.
     /// </summary>
     public void ApplyAnswerSeed(int seed)
     {
-        _answerData = ReagentAnswerGenerator.Generate(seed); // seed 기반 정답 데이터 생성
-        _hasAnswerSeedLocal = true; // 로컬 시드 적용 완료
+        _answerData = ReagentAnswerGenerator.Generate(seed);
+        _hasAnswerSeedLocal = true;
 
         if (HasStateAuthority)
         {
-            NetSeedApplied = true; // 네트워크에도 시드 적용 완료 표시
-            ResetPuzzleState(); // 서버 권한 기준 퍼즐 상태 초기화
+            NetSeedApplied = true;
+            ResetPuzzleState();
         }
         else
         {
-            RefreshAllView(); // 클라이언트는 로컬 answerData 반영용 화면만 갱신
+            RefreshAllView();
         }
 
         Log($"정답 시드 적용 완료 | seed={seed}");
     }
 
     /// <summary>
+    /// 이 퍼즐이 성공 후 표시할 3단계 힌트 데이터를 세팅한다.
+    /// </summary>
+    public void SetStage3HintData(FinalCodeHintData hintData)
+    {
+        _stage3HintData = hintData;
+        _hasStage3HintData = hintData != null;
+
+        if (craftView != null && _hasStage3HintData)
+            craftView.ApplyStage3Hint(_stage3HintData);
+
+        if (IsSolved)
+            ApplySolvedPresentation();
+    }
+
+    /// <summary>
     /// 퍼즐 전체 상태를 초기화한다.
-    /// 
-    /// 주의
-    /// - 상태 권한에서만 호출하는 것이 맞다.
-    /// - 화면은 Networked 상태를 통해 모든 클라이언트가 동일하게 본다.
     /// </summary>
     public void ResetPuzzleState()
     {
         if (!HasStateAuthority)
             return;
 
-        ResetRecipeSelectionState(); // 시약 선택 상태 초기화
-        ResetCraftState(); // 제조 진행 상태 초기화
-        RefreshAllView(); // 서버 로컬 화면 갱신
+        ResetRecipeSelectionState();
+        ResetCraftState();
+        RefreshAllView();
     }
 
-    /// <summary>
-    /// 시약 선택 상태를 초기화한다.
-    /// - 모든 슬롯을 None으로 비운다.
-    /// - 첫 번째 슬롯만 기본 후보 ReagentA를 넣는다.
-    /// - 나머지 슬롯은 아직 편집 전이므로 비어 있는 상태를 유지한다.
-    /// </summary>
     private void ResetRecipeSelectionState()
     {
         SetNetSlotValue(0, ReagentType.None);
@@ -148,34 +153,28 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         SetNetSlotLocked(1, false);
         SetNetSlotLocked(2, false);
 
-        NetEditingSlotIndex = 0; // 첫 번째 슬롯부터 편집 시작
-        SetNetSlotValue(0, ReagentType.ReagentA); // 첫 슬롯만 기본 후보 표시
+        NetEditingSlotIndex = 0;
+        SetNetSlotValue(0, ReagentType.ReagentA);
     }
 
-    /// <summary>
-    /// 제조 진행 상태를 초기화한다.
-    /// </summary>
     private void ResetCraftState()
     {
         if (_craftRoutine != null)
         {
-            StopCoroutine(_craftRoutine); // 진행 중인 제조 코루틴 중단
-            _craftRoutine = null; // 코루틴 참조 초기화
+            StopCoroutine(_craftRoutine);
+            _craftRoutine = null;
         }
 
-        NetIsCrafting = false; // 제조 중 상태 해제
-        NetIsCraftStartPending = false; // 시작 대기 상태 해제
-        NetCurrentProgressIndex = 0; // 현재 프로그레스 칸 초기화
-        NetHasSpawnedCraftedItem = false; // 결과 시약 없음 상태로 초기화
+        NetIsCrafting = false;
+        NetIsCraftStartPending = false;
+        NetCurrentProgressIndex = 0;
+        NetHasSpawnedCraftedItem = false;
 
-        _playerActionInputs.Clear(); // 서버 권한 기준 플레이어 입력 기록 초기화
-        _inputUsedProgressIndices.Clear(); // 사용한 칸 기록 초기화
-        _wasCraftInterruptedByCorrectAnalyze = false; // 정답 판별 중단 플래그 초기화
+        _playerActionInputs.Clear();
+        _inputUsedProgressIndices.Clear();
+        _wasCraftInterruptedByCorrectAnalyze = false;
     }
 
-    /// <summary>
-    /// 현재 슬롯을 좌측 방향으로 순환 변경한다.
-    /// </summary>
     public void MoveCurrentSlotSelectionLeft()
     {
         if (!HasStateAuthority)
@@ -184,16 +183,13 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         if (!CanEditCurrentSlot())
             return;
 
-        int slotIndex = NetEditingSlotIndex; // 현재 편집 슬롯 인덱스
-        ReagentType current = GetNetSlotValue(slotIndex); // 현재 슬롯 시약
-        SetNetSlotValue(slotIndex, GetPreviousReagentType(current)); // 이전 시약으로 순환 변경
+        int slotIndex = NetEditingSlotIndex;
+        ReagentType current = GetNetSlotValue(slotIndex);
+        SetNetSlotValue(slotIndex, GetPreviousReagentType(current));
 
         Log($"현재 슬롯 좌측 변경 | slot={slotIndex} | value={GetNetSlotValue(slotIndex)}");
     }
 
-    /// <summary>
-    /// 현재 슬롯을 우측 방향으로 순환 변경한다.
-    /// </summary>
     public void MoveCurrentSlotSelectionRight()
     {
         if (!HasStateAuthority)
@@ -202,16 +198,13 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         if (!CanEditCurrentSlot())
             return;
 
-        int slotIndex = NetEditingSlotIndex; // 현재 편집 슬롯 인덱스
-        ReagentType current = GetNetSlotValue(slotIndex); // 현재 슬롯 시약
-        SetNetSlotValue(slotIndex, GetNextReagentType(current)); // 다음 시약으로 순환 변경
+        int slotIndex = NetEditingSlotIndex;
+        ReagentType current = GetNetSlotValue(slotIndex);
+        SetNetSlotValue(slotIndex, GetNextReagentType(current));
 
         Log($"현재 슬롯 우측 변경 | slot={slotIndex} | value={GetNetSlotValue(slotIndex)}");
     }
 
-    /// <summary>
-    /// 현재 슬롯 시약을 확정하고 다음 슬롯으로 이동한다.
-    /// </summary>
     public void ConfirmCurrentSlotSelection()
     {
         if (!HasStateAuthority)
@@ -220,27 +213,23 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         if (!CanEditCurrentSlot())
             return;
 
-        SetNetSlotLocked(NetEditingSlotIndex, true); // 현재 슬롯 확정 처리
+        SetNetSlotLocked(NetEditingSlotIndex, true);
 
         if (NetEditingSlotIndex < recipeSlotCount - 1)
         {
-            NetEditingSlotIndex++; // 다음 슬롯으로 이동
+            NetEditingSlotIndex++;
 
             if (GetNetSlotValue(NetEditingSlotIndex) == ReagentType.None)
-                SetNetSlotValue(NetEditingSlotIndex, ReagentType.ReagentA); // 다음 슬롯이 비어 있으면 기본 후보 표시
+                SetNetSlotValue(NetEditingSlotIndex, ReagentType.ReagentA);
         }
         else
         {
-            NetEditingSlotIndex = recipeSlotCount; // 모든 슬롯 확정 완료 상태
+            NetEditingSlotIndex = recipeSlotCount;
         }
 
         Log($"현재 슬롯 확정 | nextSlot={NetEditingSlotIndex}");
     }
 
-    /// <summary>
-    /// 현재 슬롯 편집이 가능한지 검사한다.
-    /// 클라이언트도 이 값을 읽어 프롬프트/상호작용 가능 판정을 한다.
-    /// </summary>
     public bool CanEditCurrentSlot()
     {
         if (!NetSeedApplied && !_hasAnswerSeedLocal)
@@ -258,9 +247,6 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         return true;
     }
 
-    /// <summary>
-    /// 제조 시작이 가능한지 검사한다.
-    /// </summary>
     public bool CanStartCraft()
     {
         if (!NetSeedApplied && !_hasAnswerSeedLocal)
@@ -281,9 +267,6 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         return true;
     }
 
-    /// <summary>
-    /// 제조 시작을 시도한다.
-    /// </summary>
     public void TryStartCraft()
     {
         if (!HasStateAuthority)
@@ -292,57 +275,45 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         if (!CanStartCraft())
             return;
 
-        ResetCraftState(); // 이전 제조 상태 정리
-        _craftRoutine = StartCoroutine(CoStartCraftProcess()); // 제조 코루틴 시작
+        ResetCraftState();
+        _craftRoutine = StartCoroutine(CoStartCraftProcess());
 
         Log("제조 시작 요청");
     }
 
-    /// <summary>
-    /// 제조 시작 전 대기 후 프로그레스 진행을 시작한다.
-    /// </summary>
     private IEnumerator CoStartCraftProcess()
     {
-        NetIsCraftStartPending = true; // 제조 시작 대기 상태 활성화
-        yield return new WaitForSeconds(craftStartDelay); // 제조 시작 전 1초 대기
-        NetIsCraftStartPending = false; // 제조 시작 대기 상태 해제
+        NetIsCraftStartPending = true;
+        yield return new WaitForSeconds(craftStartDelay);
+        NetIsCraftStartPending = false;
 
-        NetIsCrafting = true; // 제조 진행 시작
+        NetIsCrafting = true;
 
         for (int step = 1; step <= progressStepCount; step++)
         {
             if (_wasCraftInterruptedByCorrectAnalyze)
                 yield break;
 
-            NetCurrentProgressIndex = step; // 현재 진행 칸 갱신
-            yield return new WaitForSeconds(progressStepInterval); // 한 칸 진행 시간 대기
+            NetCurrentProgressIndex = step;
+            yield return new WaitForSeconds(progressStepInterval);
         }
 
-        NetIsCrafting = false; // 제조 진행 종료
-        _craftRoutine = null; // 코루틴 참조 정리
+        NetIsCrafting = false;
+        _craftRoutine = null;
 
-        CompleteCrafting(); // 최종 결과 계산 및 결과 시약 생성
+        CompleteCrafting();
     }
 
-    /// <summary>
-    /// 현재 칸에서 가열 입력을 시도한다.
-    /// </summary>
     public void TryRecordHeatInput()
     {
         TryRecordActionInput(ReagentActionType.Heat);
     }
 
-    /// <summary>
-    /// 현재 칸에서 냉각 입력을 시도한다.
-    /// </summary>
     public void TryRecordCoolInput()
     {
         TryRecordActionInput(ReagentActionType.Cool);
     }
 
-    /// <summary>
-    /// 현재 프로그레스 칸에 행동 입력을 기록한다.
-    /// </summary>
     private void TryRecordActionInput(ReagentActionType actionType)
     {
         if (!HasStateAuthority)
@@ -360,15 +331,12 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             ActionType = actionType
         };
 
-        _playerActionInputs.Add(step); // 플레이어 입력 목록에 추가
-        _inputUsedProgressIndices.Add(NetCurrentProgressIndex); // 사용한 칸 기록
+        _playerActionInputs.Add(step);
+        _inputUsedProgressIndices.Add(NetCurrentProgressIndex);
 
         Log($"행동 입력 기록 | step={NetCurrentProgressIndex} | action={actionType}");
     }
 
-    /// <summary>
-    /// 현재 가열/냉각 입력이 가능한지 검사한다.
-    /// </summary>
     public bool CanRecordActionInput()
     {
         if (!NetIsCrafting)
@@ -386,23 +354,17 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         return true;
     }
 
-    /// <summary>
-    /// 제조 완료 시 정답/오답을 계산하고 결과 시약을 생성한다.
-    /// </summary>
     private void CompleteCrafting()
     {
-        bool isCorrectRecipe = IsRecipeCorrect(); // 시약 순서가 정답인지 검사
-        bool isCorrectActions = AreActionInputsCorrect(); // 행동 입력이 정답인지 검사
-        bool isCorrectResult = isCorrectRecipe && isCorrectActions; // 두 조건 모두 맞아야 정답 시약
+        bool isCorrectRecipe = IsRecipeCorrect();
+        bool isCorrectActions = AreActionInputsCorrect();
+        bool isCorrectResult = isCorrectRecipe && isCorrectActions;
 
-        SpawnCraftResultItem(isCorrectResult); // 결과 시약 생성
+        SpawnCraftResultItem(isCorrectResult);
 
         Log($"제조 완료 | recipe={isCorrectRecipe} | action={isCorrectActions} | result={isCorrectResult}");
     }
 
-    /// <summary>
-    /// 선택된 3칸 시약이 정답 순서와 일치하는지 검사한다.
-    /// </summary>
     private bool IsRecipeCorrect()
     {
         if (_answerData == null || _answerData.RecipeSequence.Count < recipeSlotCount)
@@ -417,9 +379,6 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         return true;
     }
 
-    /// <summary>
-    /// 플레이어가 입력한 가열/냉각 기록이 정답 행동과 일치하는지 검사한다.
-    /// </summary>
     private bool AreActionInputsCorrect()
     {
         if (_answerData == null)
@@ -443,9 +402,6 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         return true;
     }
 
-    /// <summary>
-    /// 결과 시약을 출력 위치에 생성한다.
-    /// </summary>
     private void SpawnCraftResultItem(bool isCorrect)
     {
         if (Runner == null)
@@ -465,7 +421,7 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             prefab,
             craftedItemSpawnPoint.position,
             craftedItemSpawnPoint.rotation,
-            null); // 결과 시약 네트워크 스폰
+            null);
 
         if (spawned == null)
             return;
@@ -477,16 +433,12 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
                 ? _answerData.RecipeSequence[recipeSlotCount - 1]
                 : GetNetSlotValue(recipeSlotCount - 1);
 
-            craftedItem.InitializeFromCraftResult(this, visualType, isCorrect); // 결과 시약 정보 초기화
-            _spawnedCraftedItem = craftedItem; // 서버 권한 로컬 참조 저장
-            NetHasSpawnedCraftedItem = true; // 네트워크에 결과 시약 존재 표시
+            craftedItem.InitializeFromCraftResult(this, visualType, isCorrect);
+            _spawnedCraftedItem = craftedItem;
+            NetHasSpawnedCraftedItem = true;
         }
     }
 
-    /// <summary>
-    /// 현재 퍼즐이 생성한 결과 시약이 플레이어에게 회수되었을 때 호출된다.
-    /// 결과 시약 자체는 유지하고, 퍼즐 장치 상태만 초기화한다.
-    /// </summary>
     public void HandleCraftedItemPickedUp(CraftedReagentItem item, PlayerController actor)
     {
         if (!HasStateAuthority)
@@ -498,17 +450,13 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         if (_spawnedCraftedItem != item)
             return;
 
-        _spawnedCraftedItem = null; // 장치가 보유한 결과 시약 참조 해제
-        NetHasSpawnedCraftedItem = false; // 결과 시약 없음 상태 반영
-        ResetPuzzleState(); // 퍼즐 장치만 초기화
+        _spawnedCraftedItem = null;
+        NetHasSpawnedCraftedItem = false;
+        ResetPuzzleState();
 
         Log($"결과 시약 회수됨 | actor={(actor != null ? actor.name : "null")}");
     }
 
-    /// <summary>
-    /// 판별기에 정답 시약이 들어가 성공 처리되었을 때 호출된다.
-    /// 제조 중이었다면 즉시 중단하고 퍼즐을 성공 처리한다.
-    /// </summary>
     public void HandleAnalyzerAcceptedCorrectReagent(CraftedReagentItem item)
     {
         if (!HasStateAuthority)
@@ -518,18 +466,14 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             return;
 
         if (NetIsCrafting || NetIsCraftStartPending)
-            StopCraftingForCorrectAnalyze(); // 제조 중이면 즉시 제조 중단
+            StopCraftingForCorrectAnalyze();
 
-        MarkSolved(); // 퍼즐 성공 상태 반영
-        ApplySolvedPresentation(); // 권한 쪽 즉시 성공 화면 반영
+        MarkSolved();
+        ApplySolvedPresentation();
 
         Log("정답 시약 판별 성공");
     }
 
-    /// <summary>
-    /// 판별기에 오답 시약이 들어가 실패 처리되었을 때 호출된다.
-    /// 제조 중이어도 현재 제조는 계속 진행된다.
-    /// </summary>
     public void HandleAnalyzerAcceptedWrongReagent(CraftedReagentItem item)
     {
         if (!HasStateAuthority)
@@ -538,27 +482,21 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         Log("오답 시약 판별 실패");
     }
 
-    /// <summary>
-    /// 정답 시약 판별 성공으로 현재 제조를 즉시 중단한다.
-    /// </summary>
     private void StopCraftingForCorrectAnalyze()
     {
-        _wasCraftInterruptedByCorrectAnalyze = true; // 정답 판별 중단 플래그 활성화
+        _wasCraftInterruptedByCorrectAnalyze = true;
 
         if (_craftRoutine != null)
         {
-            StopCoroutine(_craftRoutine); // 제조 코루틴 중단
-            _craftRoutine = null; // 코루틴 참조 초기화
+            StopCoroutine(_craftRoutine);
+            _craftRoutine = null;
         }
 
-        NetIsCrafting = false; // 제조 진행 상태 해제
-        NetIsCraftStartPending = false; // 시작 대기 상태 해제
-        NetCurrentProgressIndex = 0; // 현재 프로그레스 칸 초기화
+        NetIsCrafting = false;
+        NetIsCraftStartPending = false;
+        NetCurrentProgressIndex = 0;
     }
 
-    /// <summary>
-    /// 시약 3칸이 모두 확정되었는지 반환한다.
-    /// </summary>
     private bool IsAllRecipeSlotsConfirmed()
     {
         for (int i = 0; i < recipeSlotCount; i++)
@@ -570,34 +508,25 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         return true;
     }
 
-    /// <summary>
-    /// 현재 퍼즐 화면 전체를 갱신한다.
-    /// 모든 클라이언트가 Networked 상태를 기준으로 같은 화면을 보게 만든다.
-    /// </summary>
     private void RefreshAllView()
     {
         if (craftView == null)
             return;
 
-        craftView.ResetToDefault(); // 기본 화면 루트/슬롯 배경/프로그레스 초기화
-        craftView.ApplyRecipeSlotStates(BuildCurrentSlotArray()); // 슬롯 시약 상태 반영
+        craftView.ResetToDefault();
+        craftView.ApplyRecipeSlotStates(BuildCurrentSlotArray());
 
         if (NetEditingSlotIndex >= 0 && NetEditingSlotIndex < recipeSlotCount)
-            craftView.SetEditingSlotIndicator(NetEditingSlotIndex); // 현재 편집 슬롯 화살표 표시
+            craftView.SetEditingSlotIndicator(NetEditingSlotIndex);
         else
-            craftView.ClearEditingSlotIndicator(); // 편집 완료면 화살표 숨김
+            craftView.ClearEditingSlotIndicator();
 
         if (NetCurrentProgressIndex <= 0)
-            craftView.ResetProgressBar(); // 아직 제조 전이면 기본 상태
+            craftView.ResetProgressBar();
         else
-            craftView.SetProgressActiveUpTo(NetCurrentProgressIndex - 1); // 현재 진행 칸까지 활성색 표시
+            craftView.SetProgressActiveUpTo(NetCurrentProgressIndex - 1);
     }
 
-    /// <summary>
-    /// 현재 시약 타입에서 다음 시약 타입으로 순환 이동한다.
-    /// 마지막 시약에서 다시 우측 입력하면 처음 시약으로 돌아간다.
-    /// None 상태면 기본 시작값 A로 보정한다.
-    /// </summary>
     private ReagentType GetNextReagentType(ReagentType current)
     {
         return current switch
@@ -613,11 +542,6 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         };
     }
 
-    /// <summary>
-    /// 현재 시약 타입에서 이전 시약 타입으로 순환 이동한다.
-    /// 처음 시약에서 다시 좌측 입력하면 마지막 시약으로 돌아간다.
-    /// None 상태면 기본 시작값 F로 보정한다.
-    /// </summary>
     private ReagentType GetPreviousReagentType(ReagentType current)
     {
         return current switch
@@ -633,13 +557,13 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         };
     }
 
-    /// <summary>
-    /// 성공 후 화면 표시 상태를 적용한다.
-    /// </summary>
     private void ApplySolvedPresentation()
     {
         if (craftView == null)
             return;
+
+        if (_hasStage3HintData)
+            craftView.ApplyStage3Hint(_stage3HintData);
 
         if (showStage3HintImmediately)
         {
@@ -650,9 +574,6 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         craftView.ShowSolvedState();
     }
 
-    /// <summary>
-    /// solved 상태가 네트워크로 변경되었을 때 모든 클라이언트에서 호출된다.
-    /// </summary>
     protected override void HandleSolvedStateChanged()
     {
         if (!IsSolved)
@@ -661,18 +582,11 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         ApplySolvedPresentation();
     }
 
-    /// <summary>
-    /// 루트 퍼즐 직접 상호작용은 사용하지 않는다.
-    /// 버튼 상호작용으로만 입력을 받는다.
-    /// </summary>
     protected override void ServerInteract(PlayerController actor)
     {
         // 루트 직접 상호작용 없음
     }
 
-    /// <summary>
-    /// 현재 슬롯 상태 배열을 뷰에 넘기기 위한 임시 배열로 만든다.
-    /// </summary>
     private ReagentType[] BuildCurrentSlotArray()
     {
         return new[]
@@ -683,10 +597,6 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         };
     }
 
-    /// <summary>
-    /// 슬롯 시약 상태와 편집 인덱스, 잠금 상태를 묶어서 간단한 해시값으로 만든다.
-    /// Render에서 갱신 최소화용으로만 쓴다.
-    /// </summary>
     private int BuildViewStateHash()
     {
         unchecked
@@ -707,9 +617,6 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         }
     }
 
-    /// <summary>
-    /// 특정 슬롯의 네트워크 시약 값을 읽는다.
-    /// </summary>
     private ReagentType GetNetSlotValue(int slotIndex)
     {
         return slotIndex switch
@@ -721,9 +628,6 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         };
     }
 
-    /// <summary>
-    /// 특정 슬롯의 네트워크 시약 값을 쓴다.
-    /// </summary>
     private void SetNetSlotValue(int slotIndex, ReagentType value)
     {
         switch (slotIndex)
@@ -740,9 +644,6 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         }
     }
 
-    /// <summary>
-    /// 특정 슬롯의 네트워크 잠금 상태를 읽는다.
-    /// </summary>
     private bool GetNetSlotLocked(int slotIndex)
     {
         return slotIndex switch
@@ -754,9 +655,6 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         };
     }
 
-    /// <summary>
-    /// 특정 슬롯의 네트워크 잠금 상태를 쓴다.
-    /// </summary>
     private void SetNetSlotLocked(int slotIndex, bool value)
     {
         switch (slotIndex)
@@ -773,9 +671,6 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         }
     }
 
-    /// <summary>
-    /// 일반 디버그 로그 출력.
-    /// </summary>
     private void Log(string message)
     {
         if (!enableDebugLog)

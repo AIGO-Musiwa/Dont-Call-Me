@@ -11,6 +11,7 @@ using UnityEngine;
 /// - 숫자 입력 시 한 칸씩 왼쪽으로 밀리는 표현 반영
 /// - 오답 시 화면 빨간색 3회 점멸
 /// - 성공 후 화면 전환용 표시 제어
+/// - Stage3HintRoot에 3단계 힌트를 표시한다.
 /// </summary>
 public class NumericCodeView : MonoBehaviour
 {
@@ -19,23 +20,26 @@ public class NumericCodeView : MonoBehaviour
 
     [Header("화면 배경")]
     [SerializeField] private SpriteRenderer screenRenderer; // 화면 배경 SR
-    [SerializeField] private Color normalScreenColor = Color.white;
-    [SerializeField] private Color failScreenColor = Color.red;
+    [SerializeField] private Color normalScreenColor = Color.white; // 기본 화면 색
+    [SerializeField] private Color failScreenColor = Color.red; // 실패 점멸 색
 
     [Header("숫자 색")]
-    [SerializeField] private Color digitColor = Color.black;
+    [SerializeField] private Color digitColor = Color.black; // 숫자 색상
 
     [Header("실패 점멸")]
     [SerializeField] private float failFlashInterval = 0.15f; // 빨강/흰색 전환 간격
-    [SerializeField] private int failFlashCount = 3;          // 빨간 점멸 횟수
+    [SerializeField] private int failFlashCount = 3; // 빨간 점멸 횟수
 
     [Header("상태 루트")]
-    [SerializeField] private GameObject inputRoot;       // 입력 화면 루트
-    [SerializeField] private GameObject solvedRoot;      // 성공 표시 루트
-    [SerializeField] private GameObject stage3HintRoot;  // 성공 후 3단계 힌트 표시 루트
+    [SerializeField] private GameObject inputRoot; // 입력 화면 루트
+    [SerializeField] private GameObject solvedRoot; // 성공 표시 루트
+    [SerializeField] private GameObject stage3HintRoot; // 성공 후 3단계 힌트 표시 루트
+
+    [Header("3단계 힌트 표시기")]
+    [SerializeField] private FinalCodeHintDisplay stage3HintDisplay; // Stage3HintRoot 내부 최종 힌트 표시기
 
     [Header("디버그")]
-    [SerializeField] private bool enableDebugLog = true;
+    [SerializeField] private bool enableDebugLog = true; // 디버그 로그 출력 여부
 
     private Coroutine _failFlashRoutine; // 현재 실패 점멸 코루틴
 
@@ -46,7 +50,6 @@ public class NumericCodeView : MonoBehaviour
 
     /// <summary>
     /// 현재 입력 숫자들을 화면 하단 4칸에 반영한다.
-    /// 입력 수만큼 오른쪽부터 채워진 것처럼 보이도록 표시한다.
     /// </summary>
     public void ApplyInputDigits(IReadOnlyList<int> digits)
     {
@@ -60,10 +63,6 @@ public class NumericCodeView : MonoBehaviour
 
         int maxCount = Mathf.Min(digitTexts.Count, digits.Count);
 
-        // 예:
-        // 입력 [5]       -> _ _ _ 5
-        // 입력 [5,3]     -> _ _ 5 3
-        // 입력 [5,3,7,2] -> 5 3 7 2
         for (int i = 0; i < maxCount; i++)
         {
             int targetTextIndex = digitTexts.Count - maxCount + i;
@@ -80,6 +79,17 @@ public class NumericCodeView : MonoBehaviour
     }
 
     /// <summary>
+    /// 3단계 힌트 데이터를 표시기에 반영한다.
+    /// </summary>
+    public void ApplyStage3Hint(FinalCodeHintData hintData)
+    {
+        if (stage3HintDisplay == null)
+            return;
+
+        stage3HintDisplay.ApplyHint(hintData);
+    }
+
+    /// <summary>
     /// 오답 시 빨간색 3회 점멸 연출 시작.
     /// </summary>
     public void PlayFailFlash()
@@ -90,7 +100,6 @@ public class NumericCodeView : MonoBehaviour
 
     /// <summary>
     /// 성공 상태 표시.
-    /// 필요하면 solvedRoot를 켜고 inputRoot를 끈다.
     /// </summary>
     public void ShowSolvedState()
     {
@@ -102,6 +111,9 @@ public class NumericCodeView : MonoBehaviour
 
         if (solvedRoot != null)
             solvedRoot.SetActive(true);
+
+        if (stage3HintRoot != null)
+            stage3HintRoot.SetActive(false);
 
         Log("성공 상태 표시");
     }
@@ -128,7 +140,6 @@ public class NumericCodeView : MonoBehaviour
 
     /// <summary>
     /// 기본 상태로 초기화.
-    /// 흰색 화면, 입력 루트 On, 나머지 Off, 숫자 표시 비움.
     /// </summary>
     public void ResetToDefault()
     {
@@ -144,6 +155,9 @@ public class NumericCodeView : MonoBehaviour
 
         if (stage3HintRoot != null)
             stage3HintRoot.SetActive(false);
+
+        if (stage3HintDisplay != null)
+            stage3HintDisplay.ResetDisplay();
 
         Log("기본 상태로 초기화");
     }
@@ -176,7 +190,6 @@ public class NumericCodeView : MonoBehaviour
 
     /// <summary>
     /// 실패 점멸 코루틴.
-    /// 빨강 -> 흰색을 3회 반복한다.
     /// </summary>
     private IEnumerator CoFailFlash()
     {
@@ -193,7 +206,7 @@ public class NumericCodeView : MonoBehaviour
     }
 
     /// <summary>
-    /// 실행 중인 실패 점멸 코루틴 정리.
+    /// 현재 실패 점멸 코루틴이 돌고 있으면 중단한다.
     /// </summary>
     private void StopFailFlashIfRunning()
     {
