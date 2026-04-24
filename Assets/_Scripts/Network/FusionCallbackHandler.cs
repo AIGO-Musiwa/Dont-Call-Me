@@ -51,8 +51,13 @@ public class FusionCallbackHandler : INetworkRunnerCallbacks
     public void OnConnectRequest(NetworkRunner runner,
             NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
     {
-        // 현재는 모든 접속 요청 수락
-        // TODO: 게임 진행 중(GameState.Playing) 접속 거부 처리는 GameManager 구현 후 추가
+        // 게임 실행중 입장 거부
+        if (GameSessionManager.Instance != null)
+        {
+            request.Refuse();
+            Debug.Log("[FusionCallbackHandler] 게임 진행 중 - 접속 거부");
+            return;
+        }
         request.Accept();
     }
 
