@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 8392521974040166426}
   - component: {fileID: 2983645422821229213}
   - component: {fileID: 1061040307581151515}
+  - component: {fileID: 3656956827058511912}
   m_Layer: 6
   m_Name: walkie 1
   m_TagString: Untagged
@@ -135,19 +136,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73c4e429a58847c4bb752b6e8d1e6295, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WalkieTalkieItem
-  itemType: 0
+  itemType: 1
   isRoleItem: 0
   itemName: "\uC54C \uC218 \uC5C6\uB294 \uC544\uC774\uD15C"
   localViewPrefab: {fileID: 1756438538067288}
   viewRotationOffset: {x: 0, y: 150, z: 0}
   outlineComponent: {fileID: 0}
-  _NetItemType: 0
+  _NetItemType: 1
   _NetIsRoleItem:
     _value: 0
   _NetIsEquipped:
     _value: 0
   materialController: {fileID: 8460504366003122129}
   whiteNoiseSource: {fileID: 125236520022789986}
+  walkieVoiceMinDistance: 2
   _NetZone: 0
   _NetWalkieState: 0
 --- !u!114 &8460504366003122129
@@ -182,6 +184,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 6942906395794247724}
+  - {fileID: 3656956827058511912}
   ForceRemoteRenderTimeframe: 0
 --- !u!82 &125236520022789986
 AudioSource:
@@ -362,3 +365,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.33550438, y: 0.74138796, z: 0.21924332}
   m_Center: {x: -0.00000008940698, y: 0.11214362, z: -0.043346554}
+--- !u!114 &3656956827058511912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1756438538067288}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
