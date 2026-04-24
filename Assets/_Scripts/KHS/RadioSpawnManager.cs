@@ -18,9 +18,10 @@ public class BuildingData
 }
 
 /// <summary>
-/// 서버(StateAuthority)에서 정해진 시드값에 따라 건물/층별로 라디오를 1개씩 고정 난수 생성하는 매니저
+/// 서버(StateAuthority)에서 정해진 시드값에 따라 건물/층별로 라디오를 1개씩 고정 난수 생성하는 매니저.
+/// 시드 통제기(PuzzleSeedSync)가 없으면 자체 랜덤 시드로 비상 가동한다.
 /// </summary>
-public class RadioSpawnManager : NetworkBehaviour, IPuzzleSeedReceiver // 🛠️ 시드 수신기 인터페이스 장착
+public class RadioSpawnManager : NetworkBehaviour, IPuzzleSeedReceiver
 {
     [Header("생성 부품")]
     [SerializeField] private NetworkObject radioPrefab;
@@ -28,25 +29,38 @@ public class RadioSpawnManager : NetworkBehaviour, IPuzzleSeedReceiver // 🛠�
     [Header("배치도 데이터")]
     [SerializeField] private List<BuildingData> buildings;
 
-    private bool _isDeployed = false; // 🛠️ 중복 생성 방지용 안전 퓨즈
+    private bool _isDeployed = false; // 중복 생성 방지용 안전 퓨즈
 
     public override void Spawned()
     {
-        // 🛠️ 예전에는 여기서 바로 스폰했지만, 이제는 메인 시드가 들어올 때까지 대기(Standby) 상태 유지
+        if (HasStateAuthority)
+        {
+            // 🛠️ 1. 내 상위 부품 중에 시드 통제기(PuzzleSeedSync)가 있는지 스캔
+            PuzzleSeedSync masterSync = GetComponentInParent<PuzzleSeedSync>();
+
+            if (masterSync == null)
+            {
+                // 🛠️ 2. 통제기가 없다면? 자체적으로 무작위 시드를 뽑아서 즉시 비상 가동!
+                int fallbackSeed = Random.Range(1, 999999);
+                Debug.Log($"<color=orange>[라디오 공장]</color> 상위 시드 통제기를 찾을 수 없습니다. 자체 랜덤 시드({fallbackSeed})로 비상 가동합니다.");
+
+                ApplyAnswerSeed(fallbackSeed);
+            }
+            else
+            {
+                // 🛠️ 3. 통제기가 있다면 얌전히 시드 배달이 올 때까지 대기(Standby)
+                Debug.Log("<color=cyan>[라디오 공장]</color> 시드 통제기 확인 완료. 정답 시드 수신 대기 중...");
+            }
+        }
     }
 
     // ─── [시드 수신 단자 (IPuzzleSeedReceiver 규약)] ─────────────────────
 
-    /// <summary>
-    /// PuzzleSeedSync 모듈에서 시드를 분배할 때 호출됨.
-    /// </summary>
     public void ApplyAnswerSeed(int seed)
     {
-        // 1. 이미 배치가 끝났다면 중복 실행 방지
+        // 이미 배치가 끝났다면 중복 실행 방지
         if (_isDeployed) return;
 
-        // 2. 퓨전 엔진 규격: 실제 스폰(Runner.Spawn)은 서버에서만 수행해야 함!
-        // 서버가 스폰하면 클라이언트들에게는 자동으로 동기화됨.
         if (HasStateAuthority)
         {
             DeployRadios(seed);
@@ -55,7 +69,7 @@ public class RadioSpawnManager : NetworkBehaviour, IPuzzleSeedReceiver // 🛠�
 
     private void DeployRadios(int seed)
     {
-        // 🛠️ UnityEngine.Random 대신, 기공사의 정밀 부품인 SeedRandom 사용!
+        // UnityEngine.Random 대신, 기공사의 정밀 부품인 SeedRandom 사용!
         SeedRandom rng = new SeedRandom(seed);
 
         _isDeployed = true; // 스위치 차단
@@ -64,12 +78,10 @@ public class RadioSpawnManager : NetworkBehaviour, IPuzzleSeedReceiver // 🛠�
         {
             foreach (var floor in building.floors)
             {
-                // 스폰 포인트가 등록되지 않은 층은 패스
                 if (floor.spawnPoints == null || floor.spawnPoints.Count == 0)
                     continue;
 
-                // 🛠️ SeedRandom.NextInt를 사용하여 시드에 기반한 완벽하게 통제된 난수 추출
-                // NextInt는 maxInclusive가 아니라 maxExclusive처럼 동작하도록 설계되어 있으니 배열 길이를 그대로 넣음
+                // SeedRandom.NextInt를 사용하여 시드에 기반한 완벽하게 통제된 난수 추출
                 int randomIndex = rng.NextInt(0, floor.spawnPoints.Count);
                 Transform selectedPoint = floor.spawnPoints[randomIndex];
 
@@ -78,7 +90,7 @@ public class RadioSpawnManager : NetworkBehaviour, IPuzzleSeedReceiver // 🛠�
                     radioPrefab,
                     selectedPoint.position,
                     selectedPoint.rotation,
-                    PlayerRef.None // 특정 플레이어 소유가 아닌 월드 오브젝트
+                    PlayerRef.None
                 );
 
                 // 스폰된 radio에 zone 주입
@@ -89,6 +101,19 @@ public class RadioSpawnManager : NetworkBehaviour, IPuzzleSeedReceiver // 🛠�
 
                 Debug.Log($"<color=yellow>[라디오 배치 완료]</color> {building.zone} - {floor.floorName}에 배치됨. (적용 시드: {seed})");
             }
+        }
+    }
+
+    // ─── [수동 시동 스위치 (디버그용)] ───────────────────────────────────
+
+    [ContextMenu("Debug/Force Spawn Radios (Seed: 777)")]
+    private void DebugForceSpawn()
+    {
+        if (!Application.isPlaying) return;
+
+        if (HasStateAuthority)
+        {
+            ApplyAnswerSeed(777);
         }
     }
 }
