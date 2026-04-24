@@ -14,25 +14,32 @@ public class DebugSessionTester : MonoBehaviour
         var keyboard = Keyboard.current;
         if (keyboard == null) return;
 
-        // 해당 플레이어 탈출
+        // F1: 해당 플레이어 탈출
         if (keyboard.f1Key.wasPressedThisFrame)
             SetLocalPlayerState(runner, PlayerState.Escaped);
 
-        // 해당 플레이어 사망
+        // F2: 해당 플레이어 사망
         if (keyboard.f2Key.wasPressedThisFrame)
             SetLocalPlayerState(runner, PlayerState.Dead);
 
+        // F10: 나가기
+        if (keyboard.f10Key.wasPressedThisFrame)
+        {
+            Debug.Log("[DebugSessionTester] 나가기 테스트");
+            GameSessionManager.Instance?.LeaveGame();
+        }
+
         if (!runner.IsServer) return;
 
-        // 전체 사망
+        // F3: 전체 사망
         if (keyboard.f3Key.wasPressedThisFrame)
             SetAllPlayerState(runner, PlayerState.Dead);
 
-        // 전체 탈출
+        // F4: 전체 탈출
         if (keyboard.f4Key.wasPressedThisFrame)
             SetAllPlayerState(runner, PlayerState.Escaped);
 
-        // 한 구역 사망
+        // F5: 한 구역 사망
         if (keyboard.f5Key.wasPressedThisFrame)
             SetZonePlayerState(runner, Zone.ZoneA, PlayerState.Dead);
 
@@ -64,6 +71,7 @@ public class DebugSessionTester : MonoBehaviour
             GameEventLogger.Instance?.AddRadioUsed(Zone.ZoneB);
             Debug.Log($"[DebugSessionTester] ZoneB 라디오 사용 | B={GameEventLogger.Instance?.RadioUsedZoneB}");
         }
+
     }
 
     private void SetAllPlayerState(NetworkRunner runner, PlayerState state)

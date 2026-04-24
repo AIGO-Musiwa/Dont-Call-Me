@@ -41,10 +41,14 @@ public class TitleManager : MonoBehaviour
         _launcher.OnJoinFailed += HandleConnectionFailed;
         _launcher.OnPlayerJoinedEvent += HandlePlayerJoined;
 
-        if (_launcher.checkecheck)
+        // 타이틀 복귀 시 커서 복원
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        if (!string.IsNullOrEmpty(_launcher.PendingErrorMessage))
         {
-            _launcher.checkecheck = false;
-            ShowError("호스트 연결 끊김");
+            ShowError(_launcher.PendingErrorMessage);
+            _launcher.PendingErrorMessage = null;
         }
     }
 

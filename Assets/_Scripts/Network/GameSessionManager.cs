@@ -200,10 +200,20 @@ public class GameSessionManager : NetworkBehaviour
 
     #region 이벤트 처리
 
+    // 플레이어 게임 나가기
+    public async void LeaveGame()
+    {
+        if (GameLauncher.Instance != null)
+            await GameLauncher.Instance.LeaveRoom();
+        SceneManager.LoadScene(SceneNames.TITLE_INDEX);
+    }
+
     // 호스트 이탈 -> 타이틀
     private void HandleHostDisconnected()
     {
         Debug.LogWarning("[GameSessionManager] 호스트 이탈 → 타이틀 이동");
+        if (GameLauncher.Instance != null)
+            GameLauncher.Instance.PendingErrorMessage = "호스트 연결이 끊겼습니다.";
         SceneManager.LoadScene(SceneNames.TITLE_INDEX);
     }
 
