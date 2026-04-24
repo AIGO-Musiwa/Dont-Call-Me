@@ -12157,6 +12157,7 @@ GameObject:
   - component: {fileID: 2827555084013721802}
   - component: {fileID: 4041197556690789887}
   - component: {fileID: 1852371547099893512}
+  - component: {fileID: 1952033048205208892}
   m_Layer: 5
   m_Name: SettingPanel
   m_TagString: Untagged
@@ -12243,6 +12244,20 @@ MonoBehaviour:
   sfxSlider: {fileID: 5158847988413403629}
   micSlider: {fileID: 7709310016869259891}
   sensitivitySlider: {fileID: 4136452448957357473}
+--- !u!114 &1952033048205208892
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4747884781092677898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c3f20fe302b529429df6d7620605c05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SettingsUI
+  sensitivitySlider: {fileID: 4136452448957357473}
+  sensitivityText: {fileID: 1816540818063173626}
 --- !u!1 &4890079835907568922
 GameObject:
   m_ObjectHideFlags: 0
