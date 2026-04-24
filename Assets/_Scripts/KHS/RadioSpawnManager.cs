@@ -18,9 +18,10 @@ public class BuildingData
 }
 
 /// <summary>
-/// 서버(StateAuthority)에서 게임 시작 시 건물/층별로 라디오를 1개씩 랜덤 생성하는 매니저
+/// 서버(StateAuthority)에서 정해진 시드값에 따라 건물/층별로 라디오를 1개씩 고정 난수 생성하는 매니저.
+/// 시드 통제기(PuzzleSeedSync)가 없으면 자체 랜덤 시드로 비상 가동한다.
 /// </summary>
-public class RadioSpawnManager : NetworkBehaviour
+public class RadioSpawnManager : NetworkBehaviour, IPuzzleSeedReceiver
 {
     [Header("생성 부품")]
     [SerializeField] private NetworkObject radioPrefab;
@@ -28,45 +29,91 @@ public class RadioSpawnManager : NetworkBehaviour
     [Header("배치도 데이터")]
     [SerializeField] private List<BuildingData> buildings;
 
+    private bool _isDeployed = false; // 중복 생성 방지용 안전 퓨즈
+
     public override void Spawned()
     {
-        // 멀티플레이 환경이므로, 맵 생성의 권한을 가진 호스트(서버)만 스폰을 담당함
         if (HasStateAuthority)
         {
-            DeployRadios();
+            // 🛠️ 1. 내 상위 부품 중에 시드 통제기(PuzzleSeedSync)가 있는지 스캔
+            PuzzleSeedSync masterSync = GetComponentInParent<PuzzleSeedSync>();
+
+            if (masterSync == null)
+            {
+                // 🛠️ 2. 통제기가 없다면? 자체적으로 무작위 시드를 뽑아서 즉시 비상 가동!
+                int fallbackSeed = Random.Range(1, 999999);
+                Debug.Log($"<color=orange>[라디오 공장]</color> 상위 시드 통제기를 찾을 수 없습니다. 자체 랜덤 시드({fallbackSeed})로 비상 가동합니다.");
+
+                ApplyAnswerSeed(fallbackSeed);
+            }
+            else
+            {
+                // 🛠️ 3. 통제기가 있다면 얌전히 시드 배달이 올 때까지 대기(Standby)
+                Debug.Log("<color=cyan>[라디오 공장]</color> 시드 통제기 확인 완료. 정답 시드 수신 대기 중...");
+            }
         }
     }
 
-    private void DeployRadios()
+    // ─── [시드 수신 단자 (IPuzzleSeedReceiver 규약)] ─────────────────────
+
+    public void ApplyAnswerSeed(int seed)
     {
+        // 이미 배치가 끝났다면 중복 실행 방지
+        if (_isDeployed) return;
+
+        if (HasStateAuthority)
+        {
+            DeployRadios(seed);
+        }
+    }
+
+    private void DeployRadios(int seed)
+    {
+        // UnityEngine.Random 대신, 기공사의 정밀 부품인 SeedRandom 사용!
+        SeedRandom rng = new SeedRandom(seed);
+
+        _isDeployed = true; // 스위치 차단
+
         foreach (var building in buildings)
         {
             foreach (var floor in building.floors)
             {
-                // 스폰 포인트가 등록되지 않은 층은 패스
                 if (floor.spawnPoints == null || floor.spawnPoints.Count == 0)
                     continue;
 
-                // 1. 해당 층의 스폰 포인트 중 하나를 랜덤으로 뽑음 (가챠!)
-                int randomIndex = Random.Range(0, floor.spawnPoints.Count);
+                // SeedRandom.NextInt를 사용하여 시드에 기반한 완벽하게 통제된 난수 추출
+                int randomIndex = rng.NextInt(0, floor.spawnPoints.Count);
                 Transform selectedPoint = floor.spawnPoints[randomIndex];
 
-                // 2. 🛠️ 전방(Forward) 축 정렬 및 스폰
-                // selectedPoint.rotation을 넘겨주면, 빈 오브젝트의 Z축(파란 화살표) 방향과
-                // 프리팹의 Z축 방향이 완벽하게 일치된 상태로 생성돼.
+                // 전방(Forward) 축 정렬 및 스폰
                 NetworkObject spawnedRadio = Runner.Spawn(
                     radioPrefab,
                     selectedPoint.position,
-                    selectedPoint.rotation, // ⬅️ 여기가 방향을 맞물리게 하는 핵심 부품!
-                    PlayerRef.None // 특정 플레이어 소유가 아닌 월드 오브젝트
+                    selectedPoint.rotation,
+                    PlayerRef.None
                 );
 
                 // 스폰된 radio에 zone 주입
                 if (spawnedRadio.TryGetComponent<Radio>(out var radio))
+                {
                     radio.SetZone(building.zone);
+                }
 
-                Debug.Log($"<color=yellow>[라디오 배치 완료]</color> {building.zone} - {floor.floorName}에 배치됨.");
+                Debug.Log($"<color=yellow>[라디오 배치 완료]</color> {building.zone} - {floor.floorName}에 배치됨. (적용 시드: {seed})");
             }
+        }
+    }
+
+    // ─── [수동 시동 스위치 (디버그용)] ───────────────────────────────────
+
+    [ContextMenu("Debug/Force Spawn Radios (Seed: 777)")]
+    private void DebugForceSpawn()
+    {
+        if (!Application.isPlaying) return;
+
+        if (HasStateAuthority)
+        {
+            ApplyAnswerSeed(777);
         }
     }
 }
