@@ -11,15 +11,25 @@ public class CreatureSensor : MonoBehaviour
 
     [Header("소리 및 코스트 설정")]
     public float alertThresholdDB = 18f;
-    public float criticalThresholdDB = 28f;
+    public float criticalThresholdDB = 28f;    
+
+    [Header("사운드 차페 설정")]
+    public LayerMask soundObstacleMask;
+    [Tooltip("ObstacleData 컴포넌트가 없는 장애물의 기본 차폐 패널티")]
+    public float defaultObstaclePenalty = 15f;
 
     [Header("포획 판정 설정")]
     public float captureRange = 2.0f;
     public float captureAngle = 90.0f;
+    public float touchCaptureRange = 0.8f;      //몸통 박치기 판정 거리
 
     [Header("은신 발각 설정")]
     public float cabinetDetectRange = 1.5f;
     public float deskDetectRange = 1.2f;
+
+    [Header("디버그 및 기즈모")]
+    [Tooltip("기즈모 뷰에서 확인할 가상의 발소리 크기")]
+    public float debugSoundVolumeDB = 40f;
 
     public float CalculatePerceivedDb(float voicedB, float distance, float obstaclePenalty)
     {
@@ -28,6 +38,34 @@ public class CreatureSensor : MonoBehaviour
         float perceivedDb = voicedB - distanceDrop - obstaclePenalty;
 
         return perceivedDb;
+    }
+
+    public float CalculateDynamicSoundPenalty(Vector3 sourcePos)
+    {
+        Vector3 earPos = transform.position + Vector3.up * eyeHeight;
+        
+        //소리 발생 위치를 0.5m (무릎 높이) 정도 살짝 띄워서 공중에서 쏘도록 보정
+        Vector3 safeSourcePos = sourcePos + Vector3.up * 0.5f;
+        Vector3 dir = (earPos - sourcePos).normalized;
+        float dist = Vector3.Distance(sourcePos, earPos);
+
+        //RaycastAll을 사용하여 소리가 뚫고 지나온 "모든" 물체를 꿰뚫어 검사
+        RaycastHit[] hits = Physics.RaycastAll(sourcePos, dir, dist, soundObstacleMask, QueryTriggerInteraction.Collide);
+
+        float totalPenalty = 0f;
+
+        foreach (RaycastHit hit in hits)
+        {            
+            ObstacleData obstacleData = hit.collider.GetComponent<ObstacleData>();
+
+            //컴포넌트가 있다면 설정된 값을 누적 차감
+            if (obstacleData != null) totalPenalty += obstacleData.GetPenalty();
+
+            //컴포넌트가 없는 장애물은 기본 두꺼운 벽(-15dB)으로 취급
+            else totalPenalty += defaultObstaclePenalty;
+        }
+
+        return totalPenalty;
     }
 
     public bool CheckLineOfSight(Transform target)
@@ -69,7 +107,7 @@ public class CreatureSensor : MonoBehaviour
                     Vector3 dirtoTarget = (targetPlayer - eyePosition).normalized;
 
                     //레이캐스트가 장애물에 부딪히지 않으면 시야에 보인다고 판정
-                    if (!Physics.Raycast(eyePosition, dirtoTarget, distanceToTarget, obstaclMask)) return true;
+                    if (!Physics.Raycast(eyePosition, dirtoTarget, distanceToTarget, obstaclMask, QueryTriggerInteraction.Collide)) return true;
                 }
             }
         }
@@ -97,7 +135,17 @@ public class CreatureSensor : MonoBehaviour
             float angle = Vector3.Angle(transform.forward, directionToTarget);
 
             //타겟이 포획 각도 내에 들어오면 포획 조건 성립
-            if (angle <= captureAngle / 2f) return true;
+            if (angle <= captureAngle / 2f)
+            {
+                //크리쳐와 플레이어 가슴 높이를 기준으로 선을 그어 장애물이 있는지 확인
+                Vector3 rayOrigin = transform.position + Vector3.up * 1.0f;
+                Vector3 rayTarget = target.position + Vector3.up * 1.0f;
+                Vector3 rayDir = (rayTarget - rayOrigin).normalized;
+                float rayDist = Vector3.Distance(rayOrigin, rayTarget);
+
+                //obstaclMask에 닿는 것이 없을 때만 포획
+                if (!Physics.Raycast(rayOrigin, rayDir, rayDist, obstaclMask, QueryTriggerInteraction.Collide)) return true;
+            }
         }
         return false;
     }
@@ -143,9 +191,30 @@ public class CreatureSensor : MonoBehaviour
         Handles.color = new Color(1f, 0f, 0f, 0.2f);
         Handles.DrawSolidDisc(transform.position, Vector3.up, captureRange);
 
+        //강제 포획 범위 기즈모 (진빨 빨간색 원)
+        Handles.color = new Color(1f, 0f, 0f, 0.4f);
+        Handles.DrawSolidDisc(transform.position, Vector3.up, touchCaptureRange);
+
         //은신 발각 범위 기즈모 (반투명 보라색 원 - 캐비닛 기준)
         Handles.color = new Color(0.5f, 0f, 0.5f, 0.2f);
         Handles.DrawSolidDisc(transform.position, Vector3.up, cabinetDetectRange);
+
+        //데시벨 감지 반경 기즈모 (장애물 없는 평지 기준)
+        //감쇠 공식 역산: Drop = 20 * Log10(Dist) -> Dist = 10 ^ (Drop / 20)
+
+        float alertDrop = debugSoundVolumeDB - alertThresholdDB;
+        float alertDist = alertDrop > 0 ? Mathf.Pow(10, alertDrop / 20f) : 0f;
+
+        float criticalDrop = debugSoundVolumeDB - criticalThresholdDB;
+        float criticalDist = criticalDrop > 0 ? Mathf.Pow(10, criticalDrop / 20f) : 0f;
+
+        // 노란색 테두리 (Alert 감지 최대 반경)
+        Handles.color = Color.yellow;
+        Handles.DrawWireDisc(transform.position, Vector3.up, alertDist);
+
+        // 빨간색 테두리 (Critical 감지 최대 반경)
+        Handles.color = Color.red;
+        Handles.DrawWireDisc(transform.position, Vector3.up, criticalDist);
     }
 #endif
 }

@@ -22,6 +22,7 @@ public class GameLauncher : MonoBehaviour
     public string RoomCode { get; private set; }
     public string LocalNickname { get; private set; }
     public bool IsReturningToLobby { get; private set; }
+    public string PendingErrorMessage { get; set; } = string.Empty;     // Title 씬으로 전환 후 표시할 에러 메세지 
 
     // ── 이벤트 (Lobby 씬 내 UI에서 구독) ─────────────────
     public event Action<string> OnJoinFailed;                           // 방 참가/생성 실패 시 (TitleManager에서 구독)
@@ -52,8 +53,11 @@ public class GameLauncher : MonoBehaviour
 
     private void OnDestroy()
     {
-        Instance = null;
-        UnsubscribeCallbacks();
+        if (Instance == this)
+        {
+            Instance = null;
+            UnsubscribeCallbacks();
+        }
     }
 
     #endregion
@@ -84,6 +88,7 @@ public class GameLauncher : MonoBehaviour
         _intentionalShutdown = true;
         await Runner.Shutdown();
         Runner = null;
+        _playerSlots.Clear();
     }
 
     // 게임 종료 후 대기실로 복귀
@@ -118,6 +123,23 @@ public class GameLauncher : MonoBehaviour
         if (scene.buildIndex == SceneNames.LOBBY_INDEX)
         {
             IsReturningToLobby = true;
+
+            // 로비 복귀 시 방 잠금 해제
+            if (Runner != null && Runner.IsServer && Runner.SessionInfo != null)
+            {
+                Runner.SessionInfo.IsOpen = true;
+                Debug.Log("[GameLauncher] 로비 복귀 → 방 다시 열림");
+            }
+        }
+        else if (scene.buildIndex == SceneNames.GAME_INDEX)
+        {
+            IsReturningToLobby = false;
+
+            if (Runner != null && Runner.IsServer && Runner.SessionInfo != null)
+            {
+                Runner.SessionInfo.IsOpen = false;
+                Debug.Log("[GameLauncher] 게임 시작 → 방 잠금");
+            }
         }
         else
         {
@@ -245,6 +267,10 @@ public class GameLauncher : MonoBehaviour
     {
         if (runner.IsServer)
         {
+            var obj = runner.GetPlayerObject(player);
+            if (obj != null)
+                runner.Despawn(obj);
+
             _playerSlots.Remove(player);
         }
         OnPlayerLeftEvent?.Invoke(runner, player);
@@ -284,6 +310,7 @@ public class GameLauncher : MonoBehaviour
     {   
         ShutdownReason.GameNotFound => "존재하지 않는 방 코드입니다.",
         ShutdownReason.GameIsFull => "방이 가득 찼습니다.",
+        ShutdownReason.GameClosed => "이미 게임이 시작된 방입니다.",
         _ => $"방 참가 실패({reason})"
     };
 

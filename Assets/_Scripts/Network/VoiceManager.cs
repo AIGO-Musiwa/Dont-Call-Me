@@ -24,6 +24,13 @@ public class VoiceManager : MonoBehaviour
     // 현재 로컬 플레이어 구역
     private Zone localZone;
 
+    // 관전 중인 대상
+    private PlayerController spectatingTarget;
+    private byte[] pendingSpectatorGroups;
+    private bool hasPendingSpectatorGroups;
+
+    public PlayerController GetSpectatingTarget() => spectatingTarget;
+
     public Recorder LocalRecorder => recorder;
 
     #region Unity LifeCycle
@@ -37,6 +44,8 @@ public class VoiceManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        spectatingTarget = null;
     }
 
     private void OnDestroy()
@@ -69,14 +78,21 @@ public class VoiceManager : MonoBehaviour
     // Voice 룸 입장 대기 후 그룹 적용
     private void TryApplyPendingGroup()
     {
-        if (!hasPendingGroup) return;
         if (voiceConnection == null) FetchComponents();
         if (voiceConnection == null) return;
-
         if (voiceConnection.Client.State != ClientState.Joined) return;
 
-        ApplyGroup(new byte[] { pendingGroup });
-        hasPendingGroup = false;
+        if (hasPendingSpectatorGroups && pendingSpectatorGroups != null)
+        {
+            ApplyGroup(pendingSpectatorGroups);
+            hasPendingSpectatorGroups = false;
+            pendingSpectatorGroups = null;
+        }
+        else if (hasPendingGroup)
+        {
+            ApplyGroup(new byte[] { pendingGroup });
+            hasPendingGroup = false;
+        }
     }
 
     #endregion
@@ -110,6 +126,41 @@ public class VoiceManager : MonoBehaviour
         SetVoiceGroup(Constants.GROUP_LOBBY);
     }
 
+    // 관전 모드 - 사망/탈출한 플레이어끼리만 소통
+    public void SwitchToSpectatorMode(Zone targetZone)
+    {
+        if (recorder == null) FetchComponents();
+        if (recorder == null) return;
+
+        recorder.InterestGroup = Constants.GROUP_SPECTATOR;
+        UpdateSpectatorZone(targetZone);
+
+        Debug.Log($"[VoiceManager] 관전 모드 → {targetZone} 구독 + GROUP_SPECTATOR 송신");
+    }
+
+    // 관전 대상 구역 변경 시 구독 갱신
+    public void UpdateSpectatorZone(Zone targetZone)
+    {
+        byte targetGroup = targetZone == Zone.ZoneA ? Constants.GROUP_ZONE_A : Constants.GROUP_ZONE_B;
+        byte[] groups = new byte[] {targetGroup, Constants.GROUP_WALKIE, Constants.GROUP_SPECTATOR};
+
+        if (voiceConnection?.Client != null && voiceConnection.Client.State == ClientState.Joined)
+        {
+            ApplyGroup(groups);
+        }
+        else
+        {
+            pendingSpectatorGroups = groups;
+            hasPendingSpectatorGroups = true;
+        }
+    }
+
+    // 관전 대상 위치 저장
+    public void SetSpectatingTarget(PlayerController target)
+    {
+        spectatingTarget = target;
+    }
+
     // 인게임 모드 - 같은 구역 플레이어끼리만 소통
     public void SwitchToGameMode(Zone zone)
     {
@@ -121,14 +172,10 @@ public class VoiceManager : MonoBehaviour
     private void SetVoiceGroup(byte groupId)
     {
         if (recorder == null || voiceConnection == null)
-        {
             FetchComponents();
-        }
 
         if (recorder != null)
-        {
             recorder.InterestGroup = groupId;
-        }
 
         if (voiceConnection?.Client != null && voiceConnection.Client.State == ClientState.Joined)
         {
@@ -141,6 +188,8 @@ public class VoiceManager : MonoBehaviour
             Debug.Log($"[VoiceManager] Voice 룸 입장 대기 중. Group {groupId} 예약. 현재 상태: {voiceConnection?.Client?.State}");
         }
     }
+
+    #endregion
 
     #region 무전기 API
 
@@ -160,7 +209,7 @@ public class VoiceManager : MonoBehaviour
             recorder.InterestGroup = Constants.GROUP_WALKIE;
 
             // 같은 구역 팀원도 GROUP_WALKIE 구독 추가
-            ApplyGroup(new byte[] { myGroup, Constants.GROUP_WALKIE });
+            ApplyGroup(new byte[] { myGroup });
             Debug.Log("[VoiceManager] PTT ON → GROUP_WALKIE 송신 + 팀원 구독 추가");
         }
         else
@@ -183,9 +232,7 @@ public class VoiceManager : MonoBehaviour
         // 송신자 구역 무시
         if (localZone == senderZone) return;
 
-        byte myGroup = localZone == Zone.ZoneA
-            ? Constants.GROUP_ZONE_A
-            : Constants.GROUP_ZONE_B;
+        byte myGroup = GetMyZoneGroup();
 
         ApplyGroup(isOn
             ? new byte[] { myGroup, Constants.GROUP_WALKIE }
@@ -199,9 +246,7 @@ public class VoiceManager : MonoBehaviour
         if (recorder == null) FetchComponents();
         if (voiceConnection?.Client == null) return;
 
-        byte myGroup = localZone == Zone.ZoneA
-            ? Constants.GROUP_ZONE_A
-            : Constants.GROUP_ZONE_B;
+        byte myGroup = GetMyZoneGroup();
 
         ApplyGroup(isNear
             ? new byte[] { myGroup, Constants.GROUP_WALKIE }
@@ -216,15 +261,27 @@ public class VoiceManager : MonoBehaviour
         if (recorder == null) FetchComponents();
         if (voiceConnection?.Client == null) return;
 
-        byte myGroup = localZone == Zone.ZoneA
-            ? Constants.GROUP_ZONE_A
-            : Constants.GROUP_ZONE_B;
+        byte myGroup = GetMyZoneGroup();
 
         recorder.InterestGroup = isNear ? Constants.GROUP_WALKIE : myGroup;
 
-        ApplyGroup(isNear
-            ? new byte[] { myGroup, Constants.GROUP_WALKIE }
-            : new byte[] { myGroup });
+        ApplyGroup(new byte[] { myGroup, Constants.GROUP_WALKIE });
+
+        Debug.Log($"[VoiceManager] 송신자 구역 팀원 A범위 {(isNear ? "진입" : "이탈")} " +
+            $"→ Recorder {(isNear ? "GROUP_WALKIE" : $"{localZone} Group")}");
+    }
+
+    public void ResetSenderZoneTeammate()
+    {
+        if (recorder == null) FetchComponents();
+        if (voiceConnection?.Client == null) return;
+
+        byte myGroup = GetMyZoneGroup();
+
+        recorder.InterestGroup = myGroup;
+        ApplyGroup(new byte[] { myGroup });
+
+        Debug.Log($"[VoiceManager] 송신자 구역 팀원 PTT 종료 → {localZone} Group 완전 복귀");
     }
 
     #endregion
@@ -236,9 +293,14 @@ public class VoiceManager : MonoBehaviour
         Debug.Log($"[VoiceManager] Voice Group 적용 → [{string.Join(", ", groups)}]");
     }
 
-    #endregion
-
     #region 내부 유틸
+
+    private byte GetMyZoneGroup()
+    {
+        return localZone == Zone.ZoneA
+            ? Constants.GROUP_ZONE_A
+            : Constants.GROUP_ZONE_B;
+    }
 
     private void FetchComponents()
     {

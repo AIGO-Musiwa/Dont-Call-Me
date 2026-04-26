@@ -37,6 +37,15 @@ public enum CapturePhase
     Active,             // 실제 포획 당한 후 플레이 단계 (이때부터 1퍼씩 게이지 오름)
 }
 
+// 결과 확인용 플레이어 이벤트 종류
+public enum GameEventType
+{
+    Captured,
+    Rescued,
+    Dead,
+    Escaped
+}
+
 // ── 구역 ──────────────────────────────────────────────────
 
 public enum  Zone
@@ -92,7 +101,7 @@ public enum ItemType
     FrontDoorKey,       // 정문 열쇠
     MasterKey,          // 마스터 키
 
-    BasicCube,          // 테스트용 큐브
+    Reagent,            // 시약 퍼즐
 }
 
 // ── 무전기 ────────────────────────────────────────────────
@@ -104,6 +113,96 @@ public enum  WalkieState
     RX
 }
 
+// ── 라디오 ────────────────────────────────────────────────
+public enum RadioState
+{
+    Broken,
+    InProgress,
+    Ready,
+    Active,
+    Disabled
+}
+
+// ── 퍼즐 ──────────────────────────────────────────────────
+
+public enum LightPatternPanelVisualState : byte
+{
+    Off = 0,
+    InputYellow = 1,
+    FailRed = 2,
+    SolvedGreen = 3
+}
+
+public enum RotationDirection
+{
+    Left,
+    Right
+}
+
+public enum WireSocketColor
+{
+    Red = 0,
+    Orange = 1,
+    Yellow = 2,
+    Green = 3,
+    Blue = 4,
+    Navy = 5,
+    Purple = 6,
+    White = 7,
+    Black = 8
+}
+
+public enum NumericHintType
+{
+    Clock = 0,
+    Drawer = 1,
+    Book = 2,
+    Frame = 3
+}
+
+public enum NumericBookColor
+{
+    Red = 0,
+    Green = 1,
+    Blue = 2,
+    Yellow = 3
+}
+
+public enum MazeMoveDirection 
+{
+    Up,
+    Down,
+    Left,
+    Right
+}
+
+public enum ReagentType
+{
+    None = 0,
+    ReagentA = 1,
+    ReagentB = 2,
+    ReagentC = 3,
+    ReagentD = 4,
+    ReagentE = 5,
+    ReagentF = 6,
+}
+
+public enum ReagentActionType
+{
+    None = 0,
+    Heat = 1,
+    Cool = 2,
+}
+
+public enum ReagentButtonType
+{
+    Previous = 0,
+    Next = 1,
+    Confirm = 2,
+    StartCraft = 3,
+    Heat = 4,
+    Cool = 5,
+}
 // ── 탈출 ──────────────────────────────────────────────────
 
 // 탈출 위치

@@ -122,7 +122,7 @@ public class CharacterAudioModule : MonoBehaviour
         if (netObj == null || !netObj.HasInputAuthority) return;
         if (controller == null) return;
 
-        SoundEmitter.EmitFootstep(type, transform.position, controller.NetZone);
+        SoundEmitter.EmitFootstep(type, transform.position, controller.NetZone, controller);
     }
 
     // ─────────────────────────────────────────────────────────

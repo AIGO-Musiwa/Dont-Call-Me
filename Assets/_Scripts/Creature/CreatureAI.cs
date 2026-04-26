@@ -23,7 +23,8 @@ public class CreatureAI : NetworkBehaviour
     [HideInInspector] public float alertMoveSpeed;
     [HideInInspector] public float searchSpeed;
     [HideInInspector] public float chaseSpeed;
-
+    
+    
     [Header("상태 전환 타이머 설정")]
     public float searchDuration = 10.0f;
     public float lockOnBreakTime = 3.0f;
@@ -41,15 +42,23 @@ public class CreatureAI : NetworkBehaviour
     [Header("구출 보호 설정")]
     public float rescueProtectTime = 10.0f;
     public float rescueProtectTimer = 0f;
+    public bool isRescueZoneOccupied = false;
 
     private CreatureMotor motor;
     private CreatureSensor sensor;
     private CreatureWalkieTracker walkieTracker;
+    private NavMeshAgent agent;
 
     private Vector3 targetLocation;
     private float stateTimer = 0f;
     private float losLostTimer = 0f;
     private bool isCapturing = false;
+
+    //막힘 방지 타이머
+    private float stuckTimer = 0f;
+
+    //포획 중인 플레이어와 그 위치를 기억하기 위한 변수
+    private PlayerController currentCapturedPlayer;    
 
     //수색 상태 전용 변수
     private SearchPhase currentSearchPhase = SearchPhase.None;
@@ -67,6 +76,7 @@ public class CreatureAI : NetworkBehaviour
         motor = GetComponent<CreatureMotor>();
         sensor = GetComponent<CreatureSensor>();
         walkieTracker = GetComponent<CreatureWalkieTracker>();
+        agent = GetComponent<NavMeshAgent>();
 
         //모터 웨이포인트 초기화
         motor.Initialize();
@@ -149,12 +159,12 @@ public class CreatureAI : NetworkBehaviour
     private void UpdateSensingAndPriorities()
     {
         //10초 보호 기간 중에는 시야 및 주변 감지를 모두 무시
-        if (rescueProtectTimer > 0f) return;
+        if (rescueProtectTimer > 0f || isRescueZoneOccupied) return;
 
         //수색 전체 제한 시간이 지났으면 강제 종료 후 순찰로 복귀
         if (CheckAndHanledSearchTimeout()) return;
 
-        //플레이어를 발견했ㅇ거나 포획 조건을 만족했다면 리턴
+        //플레이어를 발견했거나 포획 조건을 만족했다면 리턴
         if (DetectAndHandlePlayer()) return;
 
         //추격 중 시야 상실 여부 관리
@@ -171,10 +181,16 @@ public class CreatureAI : NetworkBehaviour
         if (currentState == CreatureState.Capture) return;
 
         //10초 보호 기간 중에는 모든 소리 자극을 무시
-        if (rescueProtectTimer > 0f) return;
+        if (rescueProtectTimer > 0f || isRescueZoneOccupied) return;
+
+        // 소리 발생 구역이 다르면 무시
+        if (soundEvent.sourceZone != myZone) return;
 
         //크리처와 소리 발생원 간의 거리 계산
         float distance = Vector3.Distance(transform.position, soundEvent.sourcePosition);
+
+        //센서의 동적 차폐 시스템을 통해 벽/문을 통과하며 깎일 dB를 계산
+        float dynamicPenalty = sensor.CalculateDynamicSoundPenalty(soundEvent.sourcePosition);
 
         //실제 체감 dB 연산
         float perceivedDb = sensor.CalculatePerceivedDb(soundEvent.voicedB, distance, soundEvent.obstaclePenaltydB);
@@ -199,10 +215,15 @@ public class CreatureAI : NetworkBehaviour
             {
                 if (ShouldUpdateTarget(perceivedDb, soundEvent.channel, distance))
                 {
+                    //같은 자리에서 들리는 마이크/발소리 스팸으로 인한 타이머 초기화 방지
+                    if (Vector3.Distance(targetLocation, soundEvent.sourcePosition) > 2.0f) stateTimer = 0f;
+
                     targetLocation = soundEvent.sourcePosition;
                     currentTrackedDb = perceivedDb;
                     currentTrackedChannel = soundEvent.channel;
                     motor.MoveToDestination(targetLocation);
+                    stateTimer = 0f;
+                    stuckTimer = 0f;
                 }
             }
 
@@ -212,6 +233,7 @@ public class CreatureAI : NetworkBehaviour
                 currentState = CreatureState.Chaser;
                 currentSearchPhase = SearchPhase.None;
                 stateTimer = 0f;
+                stuckTimer = 0f;
 
                 motor.SetSpeed(chaseSpeed);
                 targetLocation = soundEvent.sourcePosition;
@@ -219,7 +241,7 @@ public class CreatureAI : NetworkBehaviour
                 currentTrackedChannel = soundEvent.channel;
                 motor.MoveToDestination(targetLocation);
                 walkieTracker.ResetCost();
-                Debug.Log("소리로 즉시 반응");
+                Debug.Log("소리로 즉시 반응: " + myZone );
             }
         }
 
@@ -232,6 +254,7 @@ public class CreatureAI : NetworkBehaviour
                 currentState = CreatureState.Chaser;
                 currentSearchPhase = SearchPhase.None;
                 stateTimer = 0f;
+                stuckTimer = 0f;
 
                 motor.SetSpeed(chaseSpeed);
                 targetLocation = soundEvent.sourcePosition;
@@ -239,6 +262,7 @@ public class CreatureAI : NetworkBehaviour
                 currentTrackedChannel = soundEvent.channel;
                 motor.MoveToDestination(targetLocation);
                 walkieTracker.ResetCost();
+                stateTimer = 0f;
                 Debug.Log("소리로 chaser로 변경");
             }
 
@@ -247,10 +271,14 @@ public class CreatureAI : NetworkBehaviour
             {                
                 if (ShouldUpdateTarget(perceivedDb, soundEvent.channel, distance))
                 {
+                    //같은 자리에서 들리는 마이크/발소리 스팸으로 인한 타이머 초기화 방지
+                    if (Vector3.Distance(targetLocation, soundEvent.sourcePosition) > 2.0f) stateTimer = 0f;
+
                     targetLocation = soundEvent.sourcePosition;
                     currentTrackedDb = perceivedDb;
                     currentTrackedChannel = soundEvent.channel;
                     motor.MoveToDestination(targetLocation);
+                    stuckTimer = 0f;
                     Debug.Log("소리로 AlertMove 유지");
                 }
             }
@@ -261,6 +289,7 @@ public class CreatureAI : NetworkBehaviour
                 currentState = CreatureState.AlerMove;
                 currentSearchPhase = SearchPhase.None;
                 stateTimer = 0f;
+                stuckTimer = 0f;
 
                 motor.SetSpeed(alertMoveSpeed);
                 targetLocation = soundEvent.sourcePosition;
@@ -312,10 +341,12 @@ public class CreatureAI : NetworkBehaviour
             currentState = CreatureState.AlerMove;
             currentSearchPhase = SearchPhase.None;
             stateTimer = 0f;
+            stuckTimer = 0f;
 
             //이동 속도를 경계 속도로 올리고, 타겟 위치를 무전기 위치로 설정하여 출발
             motor.SetSpeed(alertMoveSpeed);
             targetLocation = walkieLocation;
+            motor.MoveToDestination(targetLocation);
 
             //무전 코스트 누적으로 인한 이동이므로, 이후 소리 비교를 위해 최소 Alert 수준 dB 세팅
             currentTrackedDb = sensor.alertThresholdDB;
@@ -368,8 +399,37 @@ public class CreatureAI : NetworkBehaviour
                     return true;
                 }
 
+                //내가 지금 촞고 있는 타겟이라면, 강제 포획
+                if (currentState == CreatureState.Chaser && playerTarget == p.transform)
+                {
+                    Vector3 flatCreaturePos = new Vector3(transform.position.x, 0, transform.position.z);
+                    Vector3 flatTargetPos = new Vector3(p.transform.position.x, 0, p.transform.position.z);
+                    float dist = Vector3.Distance(flatCreaturePos, flatTargetPos);
+                    float yDiff = Mathf.Abs(transform.position.y - p.transform.position.y);
+
+                    //포획 가능 거리를 늘려 캐비닛 앞에서 비비는 즉시 포획 모션 발동
+                    if (dist <= 2.5f && yDiff <= 2.0f)
+                    {
+                        ExecuteCapture(p);
+                        return true;
+                    }
+                }
+
                 //시야 밖에서 안전하게 숨은 경우 시야 검사 무시
                 continue;
+            }
+
+            //상태나 시야각에 상관 없이 직접 닿았을 때 강제 포획
+            Vector3 myFlatPos = new Vector3(transform.position.x, 0, transform.position.z);
+            Vector3 targetFlatPos = new Vector3(p.transform.position.x, 0, p.transform.position.z);
+
+            float currentDist = Vector3.Distance(myFlatPos, targetFlatPos);
+            float currentYDiff = Mathf.Abs(transform.position.y - p.transform.position.y);
+
+            if (currentDist <= sensor.touchCaptureRange && currentYDiff <= 2.0f)
+            {
+                ExecuteCapture(p);
+                return true;
             }
 
             //추적 중 포획 거리 내에 들어왔는지 확인 (안 숨은 상태)
@@ -402,7 +462,9 @@ public class CreatureAI : NetworkBehaviour
                     motor.SetSpeed(chaseSpeed);
 
                     //무전 코스트 초기화
-                    walkieTracker.ResetCost();                    
+                    walkieTracker.ResetCost();
+
+                    stuckTimer = 0f;
                 }
 
                 //플레이어를 발견했으므로 탐색 중단하고 트루 반환
@@ -445,6 +507,7 @@ public class CreatureAI : NetworkBehaviour
             overallSearchTimer = 0f;
             searchCenter = targetLocation;
             stateTimer = 0f;
+            stuckTimer = 0f;
             currentTrackedDb = 0f;
 
             //타겟 초기화 및 제자리 대기
@@ -461,6 +524,7 @@ public class CreatureAI : NetworkBehaviour
         overallSearchTimer = 0f;
         currentState = CreatureState.Patrol;
         stateTimer = 0f;
+        stuckTimer = 0f;
 
         //순찰 로직이 제대로 작동하도록 이동 중지
         motor.StopMoving();
@@ -481,16 +545,25 @@ public class CreatureAI : NetworkBehaviour
     {
         //NavMesh의 경로 계산 딜레이로 인한 즉시 도착 판정 버그 방지
         stateTimer += Runner.DeltaTime;
-        
-        //대기 시간 이후 목적지 도달 여부 확인
-        if (stateTimer > 0.2f && motor.HasReachedDestination())
+
+        //도달 여부 확인
+        bool reachedNormally = motor.HasReachedDestination(1.0f);
+
+        //NavMesh 경로 연산 중이 아닌데 속도가 0에 가깝다면 막힌 것으로 판단하여 타이머 증가
+        bool isNotMoving = agent.velocity.sqrMagnitude < 0.1f && !agent.pathPending;
+        if (isNotMoving) stuckTimer += Runner.DeltaTime;
+        else stuckTimer = 0f;
+
+        //정상 도착했거나, 1.5초 이상 갇혀있을 때 수색 상태로 넘김
+        if (stateTimer > 0.2f && (reachedNormally || stuckTimer > 1.5f))
         {
             //최초 소리 근원지에 도착했다면 제자리에서 주변 수색 시작
             if (currentSearchPhase == SearchPhase.None)
             {                
                 currentState = CreatureState.Search;
                 currentTrackedDb = 0f;
-                stateTimer = 0f;                
+                stateTimer = 0f;
+                stuckTimer = 0f;
                 motor.StopMoving();
 
                 //수색 시작 지점 설정
@@ -504,6 +577,7 @@ public class CreatureAI : NetworkBehaviour
             {                
                 currentState = CreatureState.Search;
                 stateTimer = 0f;
+                stuckTimer = 0f;
                 motor.StopMoving();
 
                 //추가 주변 수색 상태로 전환
@@ -522,6 +596,7 @@ public class CreatureAI : NetworkBehaviour
         {
             currentState = CreatureState.AlerMove;
             stateTimer = 0f;
+            stuckTimer = 0f;
             currentSearchPhase = SearchPhase.MovingToRandomPoint;
             motor.SetSpeed(alertMoveSpeed);
 
@@ -563,17 +638,67 @@ public class CreatureAI : NetworkBehaviour
     {
         //모터를 통해 타겟 위치로 이동
         motor.MoveToDestination(targetLocation);
+
+        //소리를 쫓아온 경우 목적지에 도착하면 수색 상태로 전환
+        if (playerTarget == null)
+        {
+            stateTimer += Runner.DeltaTime;
+
+            //도달 여부 확인
+            bool reachedNormally = motor.HasReachedDestination(1.0f);
+
+            //NavMesh 경로 연산 중이 아닌데 속도가 0에 가깝다면 막힌 것으로 판단하여 타이머 증가
+            bool isNotMoving = agent.velocity.sqrMagnitude < 0.1f && !agent.pathPending;
+            if (isNotMoving) stuckTimer += Runner.DeltaTime;
+            else stuckTimer = 0f;
+
+            //정상 도착했거나, 1.5초 이상 갇혀있을 때 수색 상태로 넘김
+            if (stateTimer > 0.2f && (reachedNormally || stuckTimer > 1.5f))
+            {
+                currentState = CreatureState.Search;
+
+                //주변 수색 상태로 변경
+                currentSearchPhase = SearchPhase.InitialLookAround;
+                overallSearchTimer = 0f;
+                searchCenter = transform.position;
+                stateTimer = 0f;
+                stuckTimer = 0f;
+                currentTrackedDb = 0f;
+
+                motor.StopMoving();
+                Debug.Log("[CreatureAI] 문(NavMesh Obstacle)에 막혀 더 이상 접근 불가 -> 즉시 수색(Search)으로 전환");
+            }
+        }
     }
 
     private void ExecuteCapture(PlayerController target)
-    {
+    {       
+        if (target.NetHideState != HideState.None)
+        {
+            //플레이어가 숨어있는 곳의 네트워크ID를 이용해 Photon 내부 딕셔너리에서 찾음
+            if (Runner.TryFindObject(target.NetCurrentHideSpotId, out NetworkObject hideSpotObj))
+            {
+                //네트워크 오브젝트로 되어 있는 HideSpot 상호작용 스크립트를 찾음
+                HideSpotInteractable spot = hideSpotObj.GetComponentInChildren<HideSpotInteractable>();
+
+                if (spot != null)
+                {
+                    spot.ServerTryExit(target);
+                }
+            }
+        }
+
         //플레이어 컨트롤러의 포획 함수 호출
         target.ServerEnterCaptured(playerRespawnPoint.position, playerRespawnPoint.rotation);
+
+        //시선 고정을 위해 잡아둔 플레이어를 기억함
+        currentCapturedPlayer = target;
 
         //포획 상태로 전환 및 포획 중 플래그 활성화
         currentState = CreatureState.Capture;
         isCapturing = true;
         stateTimer = 0f;
+        stuckTimer = 0f;
         currentSearchPhase = SearchPhase.None;
         currentTrackedDb = 0f;
 
@@ -583,10 +708,17 @@ public class CreatureAI : NetworkBehaviour
         //해당 구역 조명 관리자에게 암전 명령 전달
         ZoneLightingManager myZoneLightManager = ZoneLightingManager.GetManager(myZone);
         if (myZoneLightManager != null) myZoneLightManager.SetCaptureDarkout(true);
+
+        //포획 시 해당 구역의 구출 구역 문 강제 폐쇄
+        RescueZoneDoor rescueDoor = RescueZoneDoor.GetDoor(myZone);
+        if (rescueDoor != null) rescueDoor.CloseDoor();
     }
 
     private void UpdateCaptureState()
     {
+        //크리쳐가 플레이어를 바라봄
+        Transform lookTarget = currentCapturedPlayer != null ? currentCapturedPlayer.transform : playerTarget;
+
         //포획 대상 바라보기
         if (playerTarget != null)
         {
@@ -595,6 +727,9 @@ public class CreatureAI : NetworkBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), Runner.DeltaTime * 5f);
         }
 
+        //플레이어가 크리처를 바라보게 강제 회전
+        ForcePlayerLookAtCreature(currentCapturedPlayer);
+
         //포획 타이머 증가
         stateTimer += Runner.DeltaTime;
 
@@ -602,6 +737,7 @@ public class CreatureAI : NetworkBehaviour
         if (stateTimer >= 2.0f && isCapturing)
         {
             isCapturing = false;
+            currentCapturedPlayer = null;
 
             //모터를 통해 현재 층수 확인
             int currentFloor = motor.GetCurrentFloor();
@@ -618,11 +754,36 @@ public class CreatureAI : NetworkBehaviour
             //상태 복구 및 타겟 초기화
             currentState = CreatureState.Patrol;
             playerTarget = null;
-
+            
             //조명 관리자에게 암전 해제 명령 전달
             ZoneLightingManager myZoneLightManager = ZoneLightingManager.GetManager(myZone);
             if (myZoneLightManager != null) myZoneLightManager.SetCaptureDarkout(false);
         }
+    }
+
+    //잡힌 플레이어가 크리처를 강제로 바라봄
+    private void ForcePlayerLookAtCreature(PlayerController targetPlayer)
+    {
+        if (currentCapturedPlayer == null) return;
+
+        //마우스 화면 돌리기 잠금
+        targetPlayer.SetInputLock(true, true);
+
+        //크리처를 바라보는 수평 방향 계산
+        Vector3 directionToCreature = (transform.position - targetPlayer.transform.position).normalized;        
+        
+        //수평만 바라보고 상하 회전 방지
+        directionToCreature.y = 0f;
+
+        Quaternion targetRotation = Quaternion.LookRotation(directionToCreature);
+
+        //강제 회전
+        if (targetPlayer.KCCMotor != null) targetPlayer.KCCMotor.WarpToPose(targetPlayer.transform.position, targetRotation);
+        
+        //KCC가 없을 경우
+        else targetPlayer.transform.rotation = targetRotation;        
+
+        Debug.Log("강제 돌리기");
     }
 
     //구출 구역 성공 시 호출
@@ -639,8 +800,12 @@ public class CreatureAI : NetworkBehaviour
                 currentSearchPhase = SearchPhase.None;
                 playerTarget = null;
                 currentTrackedDb = 0f;
+                stuckTimer = 0f;
                 motor.SetSpeed(patrolSpeed);
                 walkieTracker.ResetCost();
+
+                motor.StopMoving();
+                motor.ResumeMoving();
             }
 
             Debug.Log("[CreatureAI] 구출 구역 개방 성공! 10초간 크리처 상태 전이 보호가 활성화됩니다.");
@@ -650,10 +815,15 @@ public class CreatureAI : NetworkBehaviour
     //구출 구역 이탈 시 보호 즉시 종료
     public void CancelRescueProtection()
     {
-        if (Object.HasStateAuthority && rescueProtectTimer > 0f)
+        if (Object.HasStateAuthority)
         {
-            rescueProtectTimer = 0f;
-            Debug.Log("[CreatureAI] 플레이어가 구출 구역을 이탈하여 10초 보호가 즉시 해제됩니다!");
+            isRescueZoneOccupied = false;
+
+            if (rescueProtectTimer > 0f)
+            {
+                rescueProtectTimer = 0f;
+                Debug.Log("[CreatureAI] 플레이어가 구출 구역을 이탈하여 10초 보호가 즉시 해제됩니다!");
+            }
         }
     }
 

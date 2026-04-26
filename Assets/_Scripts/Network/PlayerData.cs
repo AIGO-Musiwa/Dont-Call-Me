@@ -10,6 +10,9 @@ public class PlayerData : NetworkBehaviour
     [Networked] public NetworkBool IsMicActive { get; set; }            // 마이크 활성화 상태
     [Networked] public int SlotIndex { get; set; } = -1;                // 로비 내 슬롯 인덱스 (0~3, -1은 미할당)
     [Networked] public NetworkBool HasReturnedToLobby { get; set; }     // 로비로 복귀 했는지 확인
+    [Networked] public NetworkBool IsHost {  get; set; }                // 호스트인지 확인
+    [Networked] public NetworkBool IsReviewingResult {  get; set; }     // 결과 화면을 보고 있는 중인지 여부
+    [Networked] public PlayerState FinalPlayerState { get; set; }       // 마지막 플레이어 상태
 
     // ── 게임 전용 ────────────────────────────────────────
     [Networked] public NetworkId PlayerControllerNetId { get; set; }
@@ -37,12 +40,15 @@ public class PlayerData : NetworkBehaviour
         if (Runner.IsServer)
         {
             Rpc_SetReady(true);
+            Rpc_SetIsHost(true);
         }
         else
         {
             bool isReturning = GameLauncher.Instance?.IsReturningToLobby ?? false;
             if (isReturning)
                 Rpc_SetReady(false);
+
+            Rpc_SetIsHost(false);
         }
 
         // VoiceManager에 로컬 플레이어 등록
@@ -73,6 +79,12 @@ public class PlayerData : NetworkBehaviour
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void Rpc_SetHasReturnedToLobby(NetworkBool value) => HasReturnedToLobby = value;
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void Rpc_SetIsHost(NetworkBool isHost) => IsHost = isHost;
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void Rpc_SetReviewingResult(NetworkBool value) => IsReviewingResult = value;
 
     #endregion
 }

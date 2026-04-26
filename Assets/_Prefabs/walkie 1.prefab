@@ -16,6 +16,11 @@ GameObject:
   - component: {fileID: 8460504366003122129}
   - component: {fileID: 9013565362436366231}
   - component: {fileID: 125236520022789986}
+  - component: {fileID: 6287643571551782626}
+  - component: {fileID: 8392521974040166426}
+  - component: {fileID: 2983645422821229213}
+  - component: {fileID: 1061040307581151515}
+  - component: {fileID: 3656956827058511912}
   m_Layer: 6
   m_Name: walkie 1
   m_TagString: Untagged
@@ -131,19 +136,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73c4e429a58847c4bb752b6e8d1e6295, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WalkieTalkieItem
-  itemType: 0
+  itemType: 1
   isRoleItem: 0
   itemName: "\uC54C \uC218 \uC5C6\uB294 \uC544\uC774\uD15C"
   localViewPrefab: {fileID: 1756438538067288}
   viewRotationOffset: {x: 0, y: 150, z: 0}
   outlineComponent: {fileID: 0}
-  _NetItemType: 0
+  _NetItemType: 1
   _NetIsRoleItem:
     _value: 0
   _NetIsEquipped:
     _value: 0
   materialController: {fileID: 8460504366003122129}
   whiteNoiseSource: {fileID: 125236520022789986}
+  walkieVoiceMinDistance: 2
   _NetZone: 0
   _NetWalkieState: 0
 --- !u!114 &8460504366003122129
@@ -178,6 +184,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 6942906395794247724}
+  - {fileID: 3656956827058511912}
   ForceRemoteRenderTimeframe: 0
 --- !u!82 &125236520022789986
 AudioSource:
@@ -200,8 +207,8 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
+  MinDistance: 2
+  MaxDistance: 8
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -276,3 +283,102 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &6287643571551782626
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1756438538067288}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+--- !u!54 &8392521974040166426
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1756438538067288}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!65 &2983645422821229213
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1756438538067288}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.4, y: 0.8, z: 0.3}
+  m_Center: {x: -0.00000008940698, y: 0.11214362, z: -0.043346554}
+--- !u!65 &1061040307581151515
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1756438538067288}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.33550438, y: 0.74138796, z: 0.21924332}
+  m_Center: {x: -0.00000008940698, y: 0.11214362, z: -0.043346554}
+--- !u!114 &3656956827058511912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1756438538067288}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0

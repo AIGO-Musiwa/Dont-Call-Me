@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 // 소리 이벤트 발행 전용 유틸리티
@@ -21,37 +22,23 @@ public static class SoundEmitter
     #endregion
 
     // 자연음 채널 발행 (플레이어 음성, 발소리 등)
-    public static void EmitNatural(float voicedB, Vector3 sourcePosition, Zone sourceZone)
+    public static void EmitNatural(float voicedB, Vector3 sourcePosition, Zone sourceZone, PlayerController pc)
     {
-        float penalty = CalculateObstaclePenalty(sourcePosition, sourceZone);
+        if (pc == null) return;
 
-        Debug.Log($"[SoundEmitter] EmitNatural - Zone: {sourceZone}, voicedB: {voicedB}, penalty: {penalty}");
-
-        SoundEventBus.Emit(new SoundEvent
+        if (pc.HasStateAuthority)
         {
-            channel = SoundChannel.Natural,
-            voicedB = voicedB,
-            sourcePosition = sourcePosition,
-            obstaclePenaltydB = penalty
-        });
-    }
-
-    // 무전음 채널 발행
-    public static void EmitWalkie(float voicedB, Vector3 sourcePosition)
-    {
-        SoundEventBus.Emit(new SoundEvent
-        {
-            channel = SoundChannel.Walkie,
-            voicedB = voicedB,
-            sourcePosition = sourcePosition,
-            obstaclePenaltydB = 0f
-        });
+            float penalty = CalculateObstaclePenalty(sourcePosition, sourceZone);
+            EmitToEventBus(SoundChannel.Natural, voicedB, sourcePosition, penalty, sourceZone);
+        }
+        else
+            pc.RPC_EmitNatural(voicedB, sourcePosition, sourceZone);  
     }
 
     // ── 편의성을 위한 소리 이벤트 발행 ─────────────────────────
 
     // 발소리 dB 이벤트 발행
-    public static void EmitFootstep(CharacterAudioModule.FootstepType type, Vector3 position, Zone sourceZone)
+    public static void EmitFootstep(CharacterAudioModule.FootstepType type, Vector3 position, Zone sourceZone, PlayerController pc)
     {
         float dB = type switch
         {
@@ -61,24 +48,30 @@ public static class SoundEmitter
             _ => 31f
         };
 
-        EmitNatural(dB, position, sourceZone);
+        EmitNatural(dB, position, sourceZone, pc);
     }
 
-    // 라디오 유인음 발행
-    public static void EmitRadio(Vector3 radioPosition)
+    public static void EmitWalkieDirect(float voicedB, Vector3 sourcePosition, Zone sourceZone)
     {
-        EmitWalkie(47f, radioPosition);
+        EmitToEventBus(SoundChannel.Walkie, voicedB, sourcePosition, 0f, sourceZone);
     }
 
-    // 퍼즐 실패 패널티음 발행
-    public static void EmitPuzzleFail(Vector3 puzzlePosition)
+    public static void EmitToEventBus(SoundChannel channel, float voicedB, Vector3 sourcePosition, float ObstaclePenalty, Zone sourceZone)
     {
-        EmitWalkie(49f, puzzlePosition);
+        SoundEventBus.Emit(new SoundEvent
+        {
+            channel = channel,
+            voicedB = voicedB,
+            sourcePosition = sourcePosition,
+            obstaclePenaltydB = ObstaclePenalty,
+            sourceZone = sourceZone
+        });
     }
+
 
     #region 차폐 계산
 
-    private static float CalculateObstaclePenalty(Vector3 sourcePosition, Zone sourceZone)
+    public static float CalculateObstaclePenalty(Vector3 sourcePosition, Zone sourceZone)
     {
         if (!creatureSensors.TryGetValue(sourceZone, out CreatureSensor sensor))
         {

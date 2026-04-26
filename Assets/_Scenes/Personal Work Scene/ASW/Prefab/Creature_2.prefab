@@ -179,6 +179,7 @@ GameObject:
   - component: {fileID: 841392345713996855}
   - component: {fileID: 5655324595871334449}
   - component: {fileID: 3998803744345994779}
+  - component: {fileID: 80867225086042153}
   m_Layer: 20
   m_Name: Creature_2
   m_TagString: Untagged
@@ -317,7 +318,7 @@ NavMeshAgent:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 535513259889772823}
   m_Enabled: 0
-  m_AgentTypeID: 0
+  m_AgentTypeID: -902729914
   m_Radius: 0.4
   m_Speed: 3.5
   m_Acceleration: 8
@@ -399,6 +400,9 @@ MonoBehaviour:
   playerRespawnPoint: {fileID: 0}
   creatureRespawnPoint1F: {fileID: 0}
   creatureRespawnPoint3F: {fileID: 0}
+  rescueProtectTime: 10
+  rescueProtectTimer: 0
+  isRescueZoneOccupied: 0
 --- !u!114 &841392345713996855
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -431,13 +435,19 @@ MonoBehaviour:
   eyeHeight: 2
   obstaclMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 649
   alertThresholdDB: 18
   criticalThresholdDB: 28
-  captureRange: 2
+  soundObstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  defaultObstaclePenalty: 15
+  captureRange: 4
   captureAngle: 90
-  cabinetDetectRange: 1.5
+  touchCaptureRange: 2
+  cabinetDetectRange: 2
   deskDetectRange: 1.2
+  debugSoundVolumeDB: 40
 --- !u!114 &3998803744345994779
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -454,6 +464,21 @@ MonoBehaviour:
   costDangerThresholdFinal: 10
   costRate: 1
   costDecayRate: 1
+--- !u!114 &80867225086042153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535513259889772823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dffc6a94a8f2a43b09bd95d5c0ca5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SoundDetectionLogger
+  logNatural: 1
+  logWalkie: 1
+  minPerceivedDbToLog: 0
 --- !u!1 &539186377256783234
 GameObject:
   m_ObjectHideFlags: 0
