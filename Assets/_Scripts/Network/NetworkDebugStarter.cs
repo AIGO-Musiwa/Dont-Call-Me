@@ -35,6 +35,8 @@ public class NetworkDebugStarter : MonoBehaviour
 
         var callbackHandler = new FusionCallbackHandler();
 
+        callbackHandler.IsDebugSession = true;
+
         runner = Instantiate(runnerPrefab);
         runner.name = "NetworkRunner [Dev]";
         runner.AddCallbacks(callbackHandler);
