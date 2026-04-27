@@ -9,6 +9,7 @@ using UnityEngine;
 /// - 이 방 안의 배치 슬롯 목록 보관
 /// - 방 점유 여부 판단
 /// - 퍼즐 배치 가능한 슬롯 / 힌트 배치 가능한 슬롯 제공
+/// - 자식 PlacementSlotMeta 자동 수집
 /// </summary>
 public class RoomPlacementGroup : MonoBehaviour
 {
@@ -20,6 +21,9 @@ public class RoomPlacementGroup : MonoBehaviour
     [Header("슬롯 목록")]
     [SerializeField] private List<PlacementSlotMeta> slots = new();    // 이 방 안의 배치 슬롯 목록
 
+    [Header("자동 수집")]
+    [SerializeField] private bool autoCollectSlots = true;             // 자식 슬롯 자동 수집 여부
+
     [Header("디버그")]
     [SerializeField] private bool enableDebugLog = false;              // 디버그 로그 출력 여부
 
@@ -29,6 +33,123 @@ public class RoomPlacementGroup : MonoBehaviour
     public Zone Zone => zone;                                          // 방 Zone 외부 읽기용
     public int Floor => floor;                                         // 방 층수 외부 읽기용
     public IReadOnlyList<PlacementSlotMeta> Slots => slots;            // 슬롯 목록 외부 읽기용
+
+    private void OnValidate()
+    {
+        if (!autoCollectSlots)
+            return;
+
+        CollectSlotsFromChildren(); // 인스펙터 값 변경 시 자식 슬롯 자동 수집
+    }
+
+    /// <summary>
+    /// 자식/하위 자식의 PlacementSlotMeta를 자동 수집한다.
+    /// </summary>
+    [ContextMenu("Collect Slots From Children")]
+    public void CollectSlotsFromChildren()
+    {
+        PlacementSlotMeta[] foundSlots = GetComponentsInChildren<PlacementSlotMeta>(); // 활성 자식 슬롯 수집
+
+        slots.Clear();
+
+        for (int i = 0; i < foundSlots.Length; i++)
+        {
+            PlacementSlotMeta slot = foundSlots[i];
+            if (slot == null)
+                continue;
+
+            if (slot.gameObject == gameObject)
+                continue; // 자기 자신 제외 방어
+
+            slots.Add(slot);
+        }
+
+        SortSlots(); // slotId 기준으로 정렬
+        Log($"자식 슬롯 자동 수집 완료 | RoomId={roomId} | SlotCount={slots.Count}");
+    }
+
+    /// <summary>
+    /// 슬롯 목록이 비어 있으면 한 번 더 자동 수집한다.
+    /// </summary>
+    public void EnsureSlotsCollected()
+    {
+        bool hasAnyValidSlot = false;
+
+        for (int i = 0; i < slots.Count; i++)
+        {
+            if (slots[i] != null)
+            {
+                hasAnyValidSlot = true;
+                break;
+            }
+        }
+
+        if (hasAnyValidSlot)
+            return;
+
+        CollectSlotsFromChildren();
+    }
+
+    /// <summary>
+    /// 이 방 데이터가 정상적인지 검사한다.
+    /// </summary>
+    public bool ValidateRoom()
+    {
+        EnsureSlotsCollected(); // 검사 전에 슬롯 목록 보정
+
+        if (string.IsNullOrWhiteSpace(roomId))
+        {
+            LogWarning("roomId가 비어 있습니다.");
+            return false;
+        }
+
+        if (floor < 1 || floor > 3)
+        {
+            LogWarning($"floor 값이 잘못되었습니다. | RoomId={roomId} | Floor={floor}");
+            return false;
+        }
+
+        if (slots.Count == 0)
+        {
+            LogWarning($"배치 슬롯이 하나도 없습니다. | RoomId={roomId}");
+            return false;
+        }
+
+        bool hasValidHintOrPuzzleSlot = false;
+
+        for (int i = 0; i < slots.Count; i++)
+        {
+            PlacementSlotMeta slot = slots[i];
+            if (slot == null)
+                continue;
+
+            hasValidHintOrPuzzleSlot = true;
+            break;
+        }
+
+        if (!hasValidHintOrPuzzleSlot)
+        {
+            LogWarning($"유효한 슬롯 참조가 없습니다. | RoomId={roomId}");
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// slotId 기준으로 슬롯 목록을 정렬한다.
+    /// </summary>
+    private void SortSlots()
+    {
+        slots.Sort((a, b) =>
+        {
+            if (a == null && b == null) return 0;
+            if (a == null) return 1;
+            if (b == null) return -1;
+
+            return string.Compare(a.SlotId, b.SlotId, System.StringComparison.Ordinal);
+        });
+    }
 
     /// <summary>
     /// 현재 이 방이 점유되었는지 반환한다.
@@ -231,5 +352,13 @@ public class RoomPlacementGroup : MonoBehaviour
             return;
 
         Debug.Log($"[RoomPlacementGroup] {message}", this);
+    }
+
+    private void LogWarning(string message)
+    {
+        if (!enableDebugLog)
+            return;
+
+        Debug.LogWarning($"[RoomPlacementGroup] {message}", this);
     }
 }

@@ -11,6 +11,7 @@ using UnityEngine;
 /// - RoundGenerationResult가 제공하는 TargetSlot 기준으로 바로 스폰
 /// - 배치 규칙은 RoundGenerator가 전부 담당
 /// - 이 스크립트는 계획 소비 + 스폰 후 연결 작업만 담당
+/// - 스폰 전에 카탈로그 자동 준비/검증 단계 추가
 /// </summary>
 public class PuzzleSpawnManager : NetworkBehaviour
 {
@@ -77,27 +78,8 @@ public class PuzzleSpawnManager : NetworkBehaviour
             return;
         }
 
-        if (Runner == null)
-        {
-            LogWarning("Runner가 없어 퍼즐 랜덤 배치를 시작할 수 없습니다.");
-            return;
-        }
-
-        if (!Runner.IsServer)
-        {
-            LogWarning("PuzzleSpawnManager는 서버에서만 실행해야 합니다.");
-            return;
-        }
-
-        if (puzzleDefinitionDatabase == null ||
-            puzzleProgressManager == null ||
-            roundSeedManager == null ||
-            aZoneCatalog == null ||
-            bZoneCatalog == null)
-        {
-            LogWarning("필수 참조가 비어 있어 랜덤 배치를 시작할 수 없습니다.");
-            return;
-        }
+        if (!CanStartSpawn())
+            return; // 스폰 가능 상태가 아니면 중단
 
         ClearSpawnedObjects(); // 이전 라운드 정보 정리
 
@@ -197,6 +179,70 @@ public class PuzzleSpawnManager : NetworkBehaviour
         _hasSpawnedRound = true;
 
         Log($"퍼즐 랜덤 배치 완료 | ZoneA Stage1={_zoneAStage1Puzzles.Count} | ZoneB Stage1={_zoneBStage1Puzzles.Count} | ZoneA Stage2={_zoneAStage2Puzzles.Count} | ZoneB Stage2={_zoneBStage2Puzzles.Count}");
+    }
+
+    /// <summary>
+    /// 스폰 전 카탈로그 준비와 검증까지 통과했는지 확인한다.
+    /// </summary>
+    private bool CanStartSpawn()
+    {
+        if (Runner == null)
+        {
+            LogWarning("Runner가 없어 퍼즐 랜덤 배치를 시작할 수 없습니다.");
+            return false;
+        }
+
+        if (!Runner.IsServer)
+        {
+            LogWarning("PuzzleSpawnManager는 서버에서만 실행해야 합니다.");
+            return false;
+        }
+
+        if (puzzleDefinitionDatabase == null ||
+            puzzleProgressManager == null ||
+            roundSeedManager == null ||
+            aZoneCatalog == null ||
+            bZoneCatalog == null)
+        {
+            LogWarning("필수 참조가 비어 있어 랜덤 배치를 시작할 수 없습니다.");
+            return false;
+        }
+
+        PrepareCatalogsBeforeSpawn(); // 스폰 전 카탈로그 자동 준비
+
+        if (!ValidateCatalogsBeforeSpawn())
+            return false; // 준비 후 검증 실패 시 중단
+
+        return true;
+    }
+
+    /// <summary>
+    /// 스폰 전에 각 Zone 카탈로그의 Room/Slot 목록을 준비한다.
+    /// </summary>
+    private void PrepareCatalogsBeforeSpawn()
+    {
+        aZoneCatalog.PrepareCatalog(); // ZoneA 방/슬롯 자동 수집 및 점유 상태 초기화
+        bZoneCatalog.PrepareCatalog(); // ZoneB 방/슬롯 자동 수집 및 점유 상태 초기화
+
+        Log("Zone 카탈로그 준비 완료");
+    }
+
+    /// <summary>
+    /// 스폰 전에 각 Zone 카탈로그가 정상적인지 검사한다.
+    /// </summary>
+    private bool ValidateCatalogsBeforeSpawn()
+    {
+        bool aValid = aZoneCatalog.ValidateCatalog(); // ZoneA 유효성 검사
+        bool bValid = bZoneCatalog.ValidateCatalog(); // ZoneB 유효성 검사
+
+        if (!aValid || !bValid)
+        {
+            LogWarning($"Zone 카탈로그 검증 실패 | ZoneA={aValid} | ZoneB={bValid}");
+            return false;
+        }
+
+        Log("Zone 카탈로그 검증 통과");
+        return true;
     }
 
     /// <summary>
