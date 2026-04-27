@@ -69,9 +69,9 @@ public class SettingsManager : MonoBehaviour
         // 감도는 PlayerController 등에서 이 클래스의 정적 변수나 데이터를 참조하게 하면 좋아.
 
         // 4. 슬라이더 이벤트 배선 연결 (실시간 조절)
-        masterSlider?.onValueChanged.AddListener(val => { ApplyVolume("MasterParam", val); PlayerPrefs.SetFloat(KeyMaster, val); });
-        bgmSlider?.onValueChanged.AddListener(val => { ApplyVolume("BGMParam", val); PlayerPrefs.SetFloat(KeyBGM, val); });
-        sfxSlider?.onValueChanged.AddListener(val => { ApplyVolume("SFXParam", val); PlayerPrefs.SetFloat(KeySFX, val); });
+        masterSlider?.onValueChanged.AddListener(val => { ApplyVolume(KeyMaster, val); PlayerPrefs.SetFloat(KeyMaster, val); });
+        bgmSlider?.onValueChanged.AddListener(val => { ApplyVolume(KeyBGM, val); PlayerPrefs.SetFloat(KeyBGM, val); });
+        sfxSlider?.onValueChanged.AddListener(val => { ApplyVolume(KeySFX, val); PlayerPrefs.SetFloat(KeySFX, val); });
         sensitivitySlider?.onValueChanged.AddListener(val => { PlayerPrefs.SetFloat(KeySens, val); });
 
         // 음성 슬라이더 이벤트 연결
@@ -141,5 +141,11 @@ public class SettingsManager : MonoBehaviour
     {
         PlayerPrefs.Save();
         Debug.Log("<color=yellow>[시스템]</color> 모든 설정 데이터가 저장소에 기록되었습니다.");
+    }
+
+    // 설정창 끄기 / 닫기
+    public void ToggleSettingPanel()
+    {
+        gameObject.SetActive(!gameObject.activeSelf);
     }
 }
