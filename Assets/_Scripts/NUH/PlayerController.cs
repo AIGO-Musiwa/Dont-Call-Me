@@ -1261,21 +1261,26 @@ public class PlayerController : NetworkBehaviour, IInteractable
             holdInteractable.OnHoldInteract(this, holdDeltaTime);         // Hold 대상이면 수리 등 지속 상호작용 실행
     }
 
+    // 🛠️ [수신 단자 개조] 클라이언트에서 모아둔 성공 횟수(successCount)를 받음
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    public void RPC_ProcessMinigameSuccess()
+    public void RPC_ProcessMinigameSuccess(int successCount)
     {
-        if (NetPlayerState != PlayerState.Captured)
-            return;                                                       // 포획 상태가 아니면 무시
+        if (NetPlayerState != PlayerState.Captured || successCount <= 0)
+            return;
 
-        NetAftereffectPercent = Mathf.Max(0f, NetAftereffectPercent - 3.0f); // 후유증 3% 감소
+        // 🛠️ 1% * 성공 횟수만큼 방출량을 계산
+        float reductionValue = 1.0f * successCount;
+
+        NetAftereffectPercent = Mathf.Max(0f, NetAftereffectPercent - reductionValue);
 
         if (NetCaptureExpireTimer.IsRunning)
         {
-            float currentRemaining = NetCaptureExpireTimer.RemainingTime(Runner).GetValueOrDefault(0); // 현재 남은 시간 계산
-            NetCaptureExpireTimer = TickTimer.CreateFromSeconds(Runner, currentRemaining + 3.0f);       // 남은 시간 3초 증가
+            float currentRemaining = NetCaptureExpireTimer.RemainingTime(Runner).GetValueOrDefault(0);
+            // 🛠️ 삭감된 만큼 생존 시간도 비례해서 연장!
+            NetCaptureExpireTimer = TickTimer.CreateFromSeconds(Runner, currentRemaining + reductionValue);
         }
 
-        Debug.Log($"[미니게임] 서버 동기화 완료! 후유증 3% 삭감. 현재 후유증: {NetAftereffectPercent}%");
+        Debug.Log($"<color=cyan>[미니게임 결산]</color> 1사이클 완료! {successCount}회 성공하여 후유증 {reductionValue}% 삭감. 현재: {NetAftereffectPercent}%");
     }
 
     #region 게임 종료 이벤트 확인용 RPC
