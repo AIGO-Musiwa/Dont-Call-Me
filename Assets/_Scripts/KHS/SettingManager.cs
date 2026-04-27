@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Audio;
+using Photon.Voice.Unity;
+using Fusion;
 
 /// <summary>
 /// 게임의 모든 환경 설정을 관리하는 중앙 관제 모듈.
@@ -15,7 +17,10 @@ public class SettingsManager : MonoBehaviour
     [SerializeField] private Slider masterSlider;
     [SerializeField] private Slider bgmSlider;
     [SerializeField] private Slider sfxSlider;
-    [SerializeField] private Slider micSlider;
+
+    [Header("음성 설정 슬라이더")]
+    [SerializeField] private Slider micGainSlider;          // 마이크 게인 (0~2)
+    [SerializeField] private Slider globalReceiveSlider;   // 다른 플레이어 전체 수신 볼륨 (0~1)
 
     [Header("조작 설정 (Controls)")]
     [SerializeField] private Slider sensitivitySlider;
@@ -24,8 +29,11 @@ public class SettingsManager : MonoBehaviour
     private const string KeyMaster = "Vol_Master";
     private const string KeyBGM = "Vol_BGM";
     private const string KeySFX = "Vol_SFX";
-    private const string KeyMic = "Vol_Mic";
     private const string KeySens = "Mouse_Sens";
+
+    // 음성 설정 키 (외부 접근 허용
+    public const string KeyMicGain = "Mic_Gain";
+    public const string KeyGlobalReceiveVolume = "Voice_GlobalReceive";
 
     private void Start()
     {
@@ -33,29 +41,52 @@ public class SettingsManager : MonoBehaviour
         float vMaster = PlayerPrefs.GetFloat(KeyMaster, 0.8f);
         float vBGM = PlayerPrefs.GetFloat(KeyBGM, 0.7f);
         float vSFX = PlayerPrefs.GetFloat(KeySFX, 1.0f);
-        float vMic = PlayerPrefs.GetFloat(KeyMic, 1.0f);
         float vSens = PlayerPrefs.GetFloat(KeySens, 1.0f);
+
+        // 음성 설정값 로드
+        float vMicGain = PlayerPrefs.GetFloat(KeyMicGain, 1.0f);
+        float vGlobalRecv = PlayerPrefs.GetFloat(KeyGlobalReceiveVolume, 1.0f);
 
         // 2. 계기판(UI)에 현재 값 반영
         if (masterSlider) masterSlider.value = vMaster;
         if (bgmSlider) bgmSlider.value = vBGM;
         if (sfxSlider) sfxSlider.value = vSFX;
-        if (micSlider) micSlider.value = vMic;
         if (sensitivitySlider) sensitivitySlider.value = vSens;
 
+        // 음성 UI 초기값 반영
+        if (micGainSlider) micGainSlider.value = vMicGain;
+        if (globalReceiveSlider) globalReceiveSlider.value = vGlobalRecv;
+
         // 3. 실제 시스템 회로에 값 인가
-        ApplyVolume("MasterParam", vMaster);
-        ApplyVolume("BGMParam", vBGM);
-        ApplyVolume("SFXParam", vSFX);
-        ApplyVolume("MicParam", vMic);
+        ApplyVolume(KeyMaster, vMaster);
+        ApplyVolume(KeyBGM, vBGM);
+        ApplyVolume(KeySFX, vSFX);
+
+        // 음성 시스템 초기값 적용
+        ApplyMicGain(vMicGain);
+        ApplyGlobalReceiveVolume(vGlobalRecv);
+
         // 감도는 PlayerController 등에서 이 클래스의 정적 변수나 데이터를 참조하게 하면 좋아.
 
         // 4. 슬라이더 이벤트 배선 연결 (실시간 조절)
-        masterSlider?.onValueChanged.AddListener(val => { ApplyVolume("MasterParam", val); PlayerPrefs.SetFloat(KeyMaster, val); });
-        bgmSlider?.onValueChanged.AddListener(val => { ApplyVolume("BGMParam", val); PlayerPrefs.SetFloat(KeyBGM, val); });
-        sfxSlider?.onValueChanged.AddListener(val => { ApplyVolume("SFXParam", val); PlayerPrefs.SetFloat(KeySFX, val); });
-        micSlider?.onValueChanged.AddListener(val => { ApplyVolume("MicParam", val); PlayerPrefs.SetFloat(KeyMic, val); });
+        masterSlider?.onValueChanged.AddListener(val => { ApplyVolume(KeyMaster, val); PlayerPrefs.SetFloat(KeyMaster, val); });
+        bgmSlider?.onValueChanged.AddListener(val => { ApplyVolume(KeyBGM, val); PlayerPrefs.SetFloat(KeyBGM, val); });
+        sfxSlider?.onValueChanged.AddListener(val => { ApplyVolume(KeySFX, val); PlayerPrefs.SetFloat(KeySFX, val); });
         sensitivitySlider?.onValueChanged.AddListener(val => { PlayerPrefs.SetFloat(KeySens, val); });
+
+        // 음성 슬라이더 이벤트 연결
+        micGainSlider?.onValueChanged.AddListener(val => { ApplyMicGain(val); PlayerPrefs.SetFloat(KeyMicGain, val); });
+        globalReceiveSlider?.onValueChanged.AddListener(val => { ApplyGlobalReceiveVolume(val); PlayerPrefs.SetFloat(KeyGlobalReceiveVolume, val); });
+    
+        // Runner 생성 시점에 WebRtcAudioDsp 주입
+        if (GameLauncher.Instance != null)
+            GameLauncher.Instance.OnRunnerCreated += OnRunnerCreated;   
+    }
+
+    private void OnDestroy()
+    {
+        if (GameLauncher.Instance != null)
+            GameLauncher.Instance.OnRunnerCreated -= OnRunnerCreated;
     }
 
     /// <summary>
@@ -70,6 +101,39 @@ public class SettingsManager : MonoBehaviour
         mainMixer.SetFloat(paramName, db);
     }
 
+    // 마이크 볼륨 적용
+    private void ApplyMicGain(float value)
+    {
+        VoiceManager.Instance?.SetMicGain(value);
+    }
+
+    private void ApplyGlobalReceiveVolume(float value)
+    {
+        VoiceManager.Instance?.SetGlobalReceiveVolume(value);
+    }
+
+    // WebRtc DSP 초기화
+    public void OnRunnerCreated(NetworkRunner runner)
+    {
+        var webRtcDsp = runner.GetComponent<WebRtcAudioDsp>();
+
+        if (webRtcDsp == null)
+            webRtcDsp = FindAnyObjectByType<WebRtcAudioDsp>();
+
+        if (webRtcDsp == null)
+        {
+            Debug.LogWarning("[SettingsManager] WebRtcAudioDsp를 찾지 못했습니다.");
+            return;
+        }
+
+        webRtcDsp.NoiseSuppression = true;      // 노이즈 억제
+        webRtcDsp.AEC = true;                   // 에코 억제
+        webRtcDsp.HighPass = true;              // 저주파 잡음 제거
+        webRtcDsp.AGC = false;                  // 자동 볼륨 조절
+
+        Debug.Log("[SettingsManager] WebRtcAudioDsp 초기화 완료 (NS: ON, AEC: ON, AGC: OFF)");
+    }
+
     /// <summary>
     /// 설정창을 닫거나 종료할 때 저장소에 데이터 영구 기록
     /// </summary>
@@ -77,5 +141,11 @@ public class SettingsManager : MonoBehaviour
     {
         PlayerPrefs.Save();
         Debug.Log("<color=yellow>[시스템]</color> 모든 설정 데이터가 저장소에 기록되었습니다.");
+    }
+
+    // 설정창 끄기 / 닫기
+    public void ToggleSettingPanel()
+    {
+        gameObject.SetActive(!gameObject.activeSelf);
     }
 }

@@ -15,12 +15,17 @@ public class PlayerVoiceController : NetworkBehaviour
 
     private Transform listenerTransform;
 
+    private float globalVolume = 1f;        // 다른 플레이어 전체 수신 볼륨 배율 (0 ~ 1)
+
     public override void Spawned()
     {
         playerController = GetComponent<PlayerController>();
 
         // 네트워크 권한과 데이터가 확실히 세팅된 시점
         if (playerController == null || !HasInputAuthority) return;
+
+        // PlayerPrefs에서 globalVolume 불러오기
+        globalVolume = PlayerPrefs.GetFloat(SettingsManager.KeyGlobalReceiveVolume, 1f);
 
         VoiceManager.Instance?.SwitchToGameMode(playerController.NetZone);
     }
@@ -42,10 +47,11 @@ public class PlayerVoiceController : NetworkBehaviour
 
         float dist = Vector3.Distance(transform.position, teammatePc.transform.position);
 
-        float volume = dist >= maxDistance
+        float distanceVolume = dist >= maxDistance
             ? 0f
             : Mathf.Clamp01(minDistance / Mathf.Max(dist, minDistance));
-        teammateAudioSource.volume = volume;
+
+        teammateAudioSource.volume = globalVolume * distanceVolume;
     }
 
     private void UpdateSpectatorVolume()
@@ -54,10 +60,10 @@ public class PlayerVoiceController : NetworkBehaviour
         if (target == null) return;
         if (listenerTransform == null) return;
 
-        // 관전 대상 AudioSource 항상 최대 볼륨
+        // 관전 대상 AudioSource -> globalVolume 적용
         AudioSource targetAudio = target.GetComponent<AudioSource>();
         if (targetAudio != null)
-            targetAudio.volume = 1f;
+            targetAudio.volume = globalVolume;
 
         // 관전 대상 팀원 찾기
         PlayerController teammate = FindTeammateOf(target);
@@ -68,10 +74,11 @@ public class PlayerVoiceController : NetworkBehaviour
         if (teammateAudio == null) return;
 
         float dist = Vector3.Distance(listenerTransform.position, teammate.transform.position);
-        float volume = dist >= maxDistance
+        float distanceVolume = dist >= maxDistance
             ? 0f
             : Mathf.Clamp01(minDistance / Mathf.Max(dist, minDistance));
-        teammateAudio.volume = volume;
+
+        teammateAudio.volume = globalVolume * distanceVolume;
     }
 
     // spectatingTarget과 같은 구역이면서 살아있는 팀원 반환
@@ -97,6 +104,12 @@ public class PlayerVoiceController : NetworkBehaviour
     public void SetListenerTransform(Transform listenerTransform)
     {
         this.listenerTransform = listenerTransform;
+    }
+
+    // 전체 수신 볼륨 설정
+    public void SetGlobalVolume(float volume)
+    {
+        globalVolume = Mathf.Clamp01(volume);
     }
 
     // PlayerController.OnPlayerStateChanged에서 호출
