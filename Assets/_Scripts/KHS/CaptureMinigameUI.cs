@@ -6,6 +6,7 @@ using System.Collections;
 /// <summary>
 /// 1500px 규격 최적화 심박계 미니게임.
 /// 스캐너는 고정된 비주얼을 유지하며, 배경 그래프(RawImage)의 색상만으로 피드백을 출력함.
+/// 5번의 시도(1사이클)를 진행한 뒤, 성공한 횟수만큼 서버에 일괄 방출(결산)한다.
 /// </summary>
 public class CaptureMinigameUI : MonoBehaviour
 {
@@ -19,7 +20,7 @@ public class CaptureMinigameUI : MonoBehaviour
 
     [Header("게임 설정")]
     [SerializeField] private float totalDuration = 5.0f;     // 총 이동 시간
-    [SerializeField] private int totalBeats = 5;             // 비트 수
+    [SerializeField] private int totalBeats = 5;             // 1사이클당 비트 수
     [SerializeField] private float hitBoxWidth = 100f;       // 히트박스 가로 폭
 
     [Header("시각 피드백 색상")]
@@ -30,7 +31,11 @@ public class CaptureMinigameUI : MonoBehaviour
     private PlayerController _owner;
     private float _sessionTimer = 0f;
     private int _currentBeatIndex = 0;
+
+    // 🛠️ [신규 부품] 사이클 내 로컬 상태 트래킹
     private bool _hasClickedThisBeat = false;
+    private int _cycleSuccessCount = 0; // 이번 사이클에서 성공한 횟수
+
     private bool _isActive = false;
 
     public void OpenUI(PlayerController owner)
@@ -51,6 +56,8 @@ public class CaptureMinigameUI : MonoBehaviour
         _sessionTimer = 0f;
         _currentBeatIndex = 0;
         _hasClickedThisBeat = false;
+        _cycleSuccessCount = 0; // 🛠️ 사이클 초기화 시 성공 스택도 0으로 포맷
+
         UpdateScannerPosition();
     }
 
@@ -78,7 +85,6 @@ public class CaptureMinigameUI : MonoBehaviour
     {
         if (scannerBar == null || graphContainer == null) return;
 
-        // 진행도에 따른 단순 위치 이동 (1500px 트랙)
         float progress = Mathf.Clamp01(_sessionTimer / totalDuration);
         float targetX = progress * graphContainer.rect.width;
         scannerBar.anchoredPosition = new Vector2(targetX, scannerBar.anchoredPosition.y);
@@ -91,21 +97,25 @@ public class CaptureMinigameUI : MonoBehaviour
 
         if (checkIndex > _currentBeatIndex)
         {
+            // 🛠️ 클릭하지 않고 비트가 지나가 버린 경우 (무위험 실패)
             if (!_hasClickedThisBeat && _currentBeatIndex < totalBeats)
             {
-                HandleFailure();
-                return;
+                TriggerVisualFeedback(failColor);
             }
 
             _currentBeatIndex = checkIndex;
-            _hasClickedThisBeat = false;
+            _hasClickedThisBeat = false; // 다음 비트를 위해 클릭 권한 장전
 
+            // 🛠️ 1사이클(5번) 스캔이 완전히 끝남! (결산 타이밍)
             if (_currentBeatIndex >= totalBeats)
             {
-                if (_owner != null && _owner.Object.HasInputAuthority)
+                if (_cycleSuccessCount > 0 && _owner != null && _owner.Object.HasInputAuthority)
                 {
-                    _owner.RPC_ProcessMinigameSuccess();
+                    // 모아둔 성공 스택을 서버로 발송
+                    _owner.RPC_ProcessMinigameSuccess(_cycleSuccessCount);
                 }
+
+                // 사이클 무한 반복
                 ResetSession();
             }
         }
@@ -113,7 +123,10 @@ public class CaptureMinigameUI : MonoBehaviour
 
     public void OnClickInput()
     {
+        // 이미 이번 비트에서 스위치를 눌렀다면 무시
         if (!_isActive || _hasClickedThisBeat) return;
+
+        _hasClickedThisBeat = true; // 스위치 락 온 (1비트 1클릭 제한)
 
         float widthPerBeat = graphContainer.rect.width / totalBeats;
         float targetCenterX = (_currentBeatIndex * widthPerBeat) + (widthPerBeat / 2f);
@@ -123,27 +136,21 @@ public class CaptureMinigameUI : MonoBehaviour
 
         if (currentScannerX >= hitBoxStart && currentScannerX <= hitBoxEnd)
         {
-            _hasClickedThisBeat = true;
-
-            // 🛠️ 배경 그래프만 녹색으로 점등
-            StopAllCoroutines();
-            StartCoroutine(FlashVisuals(successColor));
+            // 🛠️ 성공: 스택 적립 및 녹색등
+            _cycleSuccessCount++;
+            TriggerVisualFeedback(successColor);
         }
         else
         {
-            HandleFailure();
+            // 🛠️ 실패: 리스크 없이 빨간등만 점등하고 지나감
+            TriggerVisualFeedback(failColor);
         }
     }
 
-    private void HandleFailure()
+    private void TriggerVisualFeedback(Color color)
     {
-        if (!_isActive) return;
-
-        // 🛠️ 배경 그래프만 빨간색으로 점등
         StopAllCoroutines();
-        if (gameObject.activeInHierarchy) StartCoroutine(FlashVisuals(failColor));
-
-        ResetSession();
+        if (gameObject.activeInHierarchy) StartCoroutine(FlashVisuals(color));
     }
 
     private void ResetVisuals()
@@ -153,12 +160,9 @@ public class CaptureMinigameUI : MonoBehaviour
 
     private IEnumerator FlashVisuals(Color targetColor)
     {
-        // 1. 색상 즉시 변경
         if (graphImage != null) graphImage.color = targetColor;
-
         yield return new WaitForSeconds(0.15f);
 
-        // 2. 부드러운 복구 (Lerp)
         float elapsed = 0f;
         float duration = 0.2f;
         while (elapsed < duration)
