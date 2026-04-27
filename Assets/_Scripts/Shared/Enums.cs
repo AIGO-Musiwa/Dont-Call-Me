@@ -218,6 +218,14 @@ public enum EscapeRoute
     Rooftop,            // 옥상
 }
 
+// 탈출 상호작용 종류
+public enum EscapeInteractType
+{
+    EscapeButton,       // 3단계 퍼즐 방에 있는 3막 진입용 동시 입력 버튼
+    FrontDoor,          // 1층 정문 탈출구
+    RooftopDoor         // 3층 옥상 탈출구
+}
+
 // ── 게임 전체 ────────────────────────────────────────────
 
 // 게임 진행 상태 (클리어/실패는 별도 처리)

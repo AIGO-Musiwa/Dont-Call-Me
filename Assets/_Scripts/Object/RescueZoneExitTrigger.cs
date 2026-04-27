@@ -50,6 +50,9 @@ public class RescueZoneExitTrigger : MonoBehaviour
                 if (playerColliders.Count == 0)
                 {
                     SetCreatureProtection(false);
+
+                    //인원이 0명이 되면 구출 구역 문을 무조건 닫음
+                    RescueZoneDoor.GetDoor(myZone)?.CloseDoor();
                 }
             }
         }
