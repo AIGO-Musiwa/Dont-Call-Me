@@ -8,6 +8,8 @@ public class FusionCallbackHandler : INetworkRunnerCallbacks
 {
     public static FusionCallbackHandler Current { get; private set; }
 
+    public bool IsDebugSession { get; set; } = false;
+
     public FusionCallbackHandler()
     {
         Current = this;
@@ -51,6 +53,12 @@ public class FusionCallbackHandler : INetworkRunnerCallbacks
     public void OnConnectRequest(NetworkRunner runner,
             NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
     {
+        if (IsDebugSession)
+        {
+            request.Accept();
+            return;
+        }
+
         // 게임 실행중 입장 거부
         if (GameSessionManager.Instance != null)
         {
