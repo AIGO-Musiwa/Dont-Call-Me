@@ -843,6 +843,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
         MovePlayerToWorldPose(NetCaptureAnchorPosition, NetCaptureAnchorRotation); // 구조 구역으로 이동
 
+        SetInputLock(true, false);                                        // 이동 잠금, 시야는 허용
+
         float remainSeconds = Mathf.Max(0f, rescueBaseTimeSeconds - NetAftereffectPercent); // 남은 구조 가능 시간 계산
         NetCaptureExpireTimer = TickTimer.CreateFromSeconds(Runner, remainSeconds); // 사망 타이머 시작
     }

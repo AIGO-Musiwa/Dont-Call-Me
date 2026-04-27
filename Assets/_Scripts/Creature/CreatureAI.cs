@@ -728,6 +728,7 @@ public class CreatureAI : NetworkBehaviour
         }
 
         //플레이어가 크리처를 바라보게 강제 회전
+        if(currentCapturedPlayer.NetCapturePhase == CapturePhase.Transition)
         ForcePlayerLookAtCreature(currentCapturedPlayer);
 
         //포획 타이머 증가
