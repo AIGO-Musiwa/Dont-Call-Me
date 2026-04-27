@@ -51,7 +51,9 @@ public class StageManager : NetworkBehaviour
     [Networked] private NetworkBool NetZoneBStage3Completed { get; set; } // ZoneB Stage3 완료 여부
 
     //탈출 버튼 동시 입력 관련 네트워크 변수
-    [Networked] public NetworkBool IsEscapeButtonExposed { get; private set; }
+    //[Networked] public NetworkBool IsEscapeButtonExposed { get; private set; }
+    [Networked] public NetworkBool IsZoneAEscapeButtonExposed { get; private set; } // ZoneA 탈출 버튼 노출 여부
+    [Networked] public NetworkBool IsZoneBEscapeButtonExposed { get; private set; } // ZoneB 탈출 버튼 노출 여부
     [Networked] private NetworkBool IsZoneAEscapePressed { get; set; }
     [Networked] private NetworkBool IsZoneBEscapePressed { get; set; }
     [Networked] private TickTimer EscapeInputTimer { get; set; }
@@ -68,6 +70,12 @@ public class StageManager : NetworkBehaviour
             NetZoneBStage1Completed = false; // ZoneB Stage1 완료 플래그 초기화
             NetZoneAStage3Completed = false; // ZoneA Stage3 완료 플래그 초기화
             NetZoneBStage3Completed = false; // ZoneB Stage3 완료 플래그 초기화
+
+            IsZoneAEscapeButtonExposed = false; // ZoneA 버튼 비노출
+            IsZoneBEscapeButtonExposed = false; // ZoneB 버튼 비노출
+            IsZoneAEscapePressed = false;       // ZoneA 입력 상태 초기화
+            IsZoneBEscapePressed = false;       // ZoneB 입력 상태 초기화
+            EscapeInputTimer = TickTimer.None;  // 동시 입력 타이머 초기화
 
             SetAllStairBlocksActive(false); // 시작 시 계단 차단벽 전부 비활성화
             SetStage3DoorOpen(Zone.ZoneA, false); // ZoneA 3단계 진입 문 닫기
@@ -220,6 +228,7 @@ public class StageManager : NetworkBehaviour
                 return;
 
             NetZoneAStage3Completed = true; // ZoneA Stage3 완료 기록
+            IsZoneAEscapeButtonExposed = true;  // ZoneA 탈출 버튼 노출
             Log("ZoneA Stage3 완료 보고 수신");
         }
         else
@@ -228,13 +237,9 @@ public class StageManager : NetworkBehaviour
                 return;
 
             NetZoneBStage3Completed = true; // ZoneB Stage3 완료 기록
+            IsZoneBEscapeButtonExposed = true;  // ZoneB 탈출 버튼 노출
             Log("ZoneB Stage3 완료 보고 수신");
         }
-
-        // 현재 규칙:
-        // Stage3 최종 퍼즐을 어느 한 Zone이라도 해결하면 즉시 3막 진입
-        if (!IsAct3Active)
-            TriggerAct3();
     }
 
     #endregion
@@ -248,7 +253,7 @@ public class StageManager : NetworkBehaviour
     public void TryPressEscapeButton(Zone zone)
     {
         if (!HasStateAuthority) return;
-        if (!IsEscapeButtonExposed || IsAct3Active) return;
+        if (IsAct3Active) return;
 
         if (zone == Zone.ZoneA) IsZoneAEscapePressed = true;
         if (zone == Zone.ZoneB) IsZoneBEscapePressed = true;
@@ -267,9 +272,13 @@ public class StageManager : NetworkBehaviour
             return;
 
         IsAct3Active = true;
-        
-        //버튼 재입력 방지
-        IsEscapeButtonExposed = false;
+
+        // 버튼 재입력 방지
+        IsZoneAEscapeButtonExposed = false;
+        IsZoneBEscapeButtonExposed = false;
+        IsZoneAEscapePressed = false;
+        IsZoneBEscapePressed = false;
+        EscapeInputTimer = TickTimer.None;
 
         CreatureAI[] allCreature = FindObjectsByType<CreatureAI>(FindObjectsSortMode.None);
         foreach (CreatureAI creature in allCreature)
