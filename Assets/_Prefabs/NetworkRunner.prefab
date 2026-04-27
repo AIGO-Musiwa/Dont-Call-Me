@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6088936365565497534}
   - component: {fileID: 4510451673783556081}
   - component: {fileID: 5490368820723442805}
+  - component: {fileID: -2721505351923070160}
   m_Layer: 0
   m_Name: NetworkRunner
   m_TagString: Untagged
@@ -165,10 +166,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: PhotonVoice::Photon.Voice.Unity.WebRtcAudioDsp
   aec: 1
   aecHighPass: 0
-  agc: 1
+  agc: 0
   agcCompressionGain: 9
   agcTargetLevel: 3
   vad: 1
-  highPass: 0
+  highPass: 1
   noiseSuppression: 1
   reverseStreamDelayMs: 120
+--- !u!114 &-2721505351923070160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5123960976820580460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c5a59a5090d53846a88754128023d96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MicAudioProcessor

@@ -286,14 +286,47 @@ public class VoiceManager : MonoBehaviour
 
     #endregion
 
+    #region 사운드 설정 API
+
+    // 마이크 게인 설정 (0 ~ 2) - 1이 원본, 1 초과 시 증폭
+    public void SetMicGain(float gain)
+    {
+        MicAudioProcessor.Instance?.SetMicGain(gain);
+    }
+
+    // 다른 플레이어 수신 볼륨 설정 (0 ~ 1)
+    public void SetGlobalReceiveVolume(float volume)
+    {
+        var allControllers = FindObjectsByType<PlayerVoiceController>(FindObjectsSortMode.None);
+
+        foreach (var controller in allControllers)
+        {
+            if (controller.HasInputAuthority) continue;
+            controller.SetGlobalVolume(volume);
+        }
+
+        // 로비 씬: PlayerData의 Speaker AudioSource 직접 조절
+        if (allControllers.Length == 0)
+        {
+            var allSpeakers = FindObjectsByType<Speaker>(FindObjectsSortMode.None);
+            foreach(var speaker in allSpeakers)
+            {
+                var audioSource = speaker.GetComponent<AudioSource>();
+                if (audioSource != null)
+                    audioSource.volume = volume;
+            }
+        }
+    }
+
+    #endregion
+
+    #region 내부 유틸
     private void ApplyGroup(byte[] groups)
     {
         // null -> 기존 구독 전부 해제 후 새 그룹만 구독
         voiceConnection.Client.OpChangeGroups(new byte[0], groups);
         Debug.Log($"[VoiceManager] Voice Group 적용 → [{string.Join(", ", groups)}]");
     }
-
-    #region 내부 유틸
 
     private byte GetMyZoneGroup()
     {

@@ -77,6 +77,15 @@ MonoBehaviour:
   _IsMicActive:
     _value: 0
   _SlotIndex: -1
+  _HasReturnedToLobby:
+    _value: 0
+  _IsHost:
+    _value: 0
+  _IsReviewingResult:
+    _value: 0
+  _FinalPlayerState: 0
+  _PlayerControllerNetId:
+    Raw: 0
 --- !u!114 &5829420761922636412
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -98,7 +107,7 @@ AudioSource:
   m_GameObject: {fileID: 8231561430400621833}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -6983404352095380901, guid: 94a6fbf40ebbb524dabe2174f314a8ea, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
