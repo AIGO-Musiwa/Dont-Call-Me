@@ -46,9 +46,15 @@ public class StageManager : NetworkBehaviour
     [Networked] private NetworkBool NetZoneAStage1Completed { get; set; } // ZoneA Stage1 완료 승인 여부
     [Networked] private NetworkBool NetZoneBStage1Completed { get; set; } // ZoneB Stage1 완료 승인 여부
 
-    // [추가] Zone별 Stage3 완료 상태
+    //Zone별 Stage3 완료 상태
     [Networked] private NetworkBool NetZoneAStage3Completed { get; set; } // ZoneA Stage3 완료 여부
     [Networked] private NetworkBool NetZoneBStage3Completed { get; set; } // ZoneB Stage3 완료 여부
+
+    //탈출 버튼 동시 입력 관련 네트워크 변수
+    [Networked] public NetworkBool IsEscapeButtonExposed { get; private set; }
+    [Networked] private NetworkBool IsZoneAEscapePressed { get; set; }
+    [Networked] private NetworkBool IsZoneBEscapePressed { get; set; }
+    [Networked] private TickTimer EscapeInputTimer { get; set; }
 
     public override void Spawned()
     {
@@ -68,6 +74,32 @@ public class StageManager : NetworkBehaviour
             SetStage3DoorOpen(Zone.ZoneB, false); // ZoneB 3단계 진입 문 닫기
         }
     }
+
+    public override void FixedUpdateNetwork()
+    {
+        if (!HasInputAuthority) return;
+
+        //동시 입력 타이머 처리
+        if (EscapeInputTimer.IsRunning)
+        {
+            //양쪽 모두 입력 완료 시 탈출(3막) 발동
+            if (IsZoneAEscapePressed && IsZoneBEscapePressed)
+            {
+                EscapeInputTimer = TickTimer.None;
+                TriggerAct3();
+            }
+
+            //시간 초과 시 입력 초기화
+            else if (EscapeInputTimer.Expired(Runner))
+            {
+                IsZoneAEscapePressed = false;
+                IsZoneBEscapePressed = false;
+                EscapeInputTimer = TickTimer.None;
+                Log("탈출 버튼 동시 입력 시간 초과, 입력을 초기화합니다.");
+            }
+        }
+    }
+
 
     #region Stage1 완료 -> Stage2 해금 / Stage3 문 개방
 
@@ -212,12 +244,32 @@ public class StageManager : NetworkBehaviour
     /// <summary>
     /// 3막(Act3)을 발동한다.
     /// </summary>
+    
+    public void TryPressEscapeButton(Zone zone)
+    {
+        if (!HasStateAuthority) return;
+        if (!IsEscapeButtonExposed || IsAct3Active) return;
+
+        if (zone == Zone.ZoneA) IsZoneAEscapePressed = true;
+        if (zone == Zone.ZoneB) IsZoneBEscapePressed = true;
+
+        //타이머가 돌고 있지 않으면 0.5초 타이머 시간 (동시 입력 판정)
+        if (!EscapeInputTimer.IsRunning)
+        {
+            EscapeInputTimer = TickTimer.CreateFromSeconds(Runner, 0.5f);
+            Log($"{zone} 탈출 버튼 입력! 0.5초 대기 시작");
+        }
+    }
+
     public void TriggerAct3()
     {
         if (!HasStateAuthority || IsAct3Active)
             return;
 
         IsAct3Active = true;
+        
+        //버튼 재입력 방지
+        IsEscapeButtonExposed = false;
 
         CreatureAI[] allCreature = FindObjectsByType<CreatureAI>(FindObjectsSortMode.None);
         foreach (CreatureAI creature in allCreature)
@@ -314,6 +366,27 @@ public class StageManager : NetworkBehaviour
         ReportZoneStage1Completed(Zone.ZoneB);
 
         Log("디버그 | 양쪽 Zone Stage2 해금 + Stage3 문 개방 강제 적용");
+    }
+
+    [ContextMenu("Debug/3단계 완료 강제 승인 (탈출 버튼 노출)")]
+    private void DebugForceExposeEscapeButton()
+    {
+        if (!Application.isPlaying)
+        {
+            LogWarning("플레이 모드에서만 실행 가능합니다.");
+            return;
+        }
+
+        if (!HasStateAuthority)
+        {
+            LogWarning("상태 권한이 있는 서버(호스트)에서만 실행 가능합니다.");
+            return;
+        }
+
+        ReportZoneStage3Completed(Zone.ZoneA);
+        ReportZoneStage3Completed(Zone.ZoneB);
+
+        Log("디버그 | 양쪽 Zone Stage3 완료 강제 승인 및 탈출 버튼 노출");
     }
 
     [ContextMenu("Debug/3막(Act 3) 강제 진입")]
