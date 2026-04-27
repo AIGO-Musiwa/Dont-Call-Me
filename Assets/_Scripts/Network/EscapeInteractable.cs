@@ -16,12 +16,14 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
         //버튼 타입일 경우, StageManager의 노출 플래그에 따라 시작적 표현 활성화
         if (interactType == EscapeInteractType.EscapeButton && buttonActiveVisual != null)
         {
-            bool isExposed = StageManager.Instance != null && StageManager.Instance.IsEscapeButtonExposed;
-            
-            if (buttonActiveVisual.activeSelf != isExposed) buttonActiveVisual.SetActive(isExposed);            
+            bool isExposed = StageManager.Instance != null &&
+                             (StageManager.Instance.IsZoneAEscapeButtonExposed ||
+                             StageManager.Instance.IsZoneBEscapeButtonExposed);
+
+            if (buttonActiveVisual.activeSelf != isExposed) buttonActiveVisual.SetActive(isExposed);
         }
     }
-    
+
     public bool CanInteract(PlayerController actor)
     {
         return true;
@@ -51,7 +53,7 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
     private void HandleEscapeButtonInteract()
     {
         //3단계 퍼즐이 모두 풀려 버튼이 노출된 상태에서만 작동
-        if (StageManager.Instance.IsEscapeButtonExposed)
+        if (StageManager.Instance.IsZoneAEscapeButtonExposed || StageManager.Instance.IsZoneBEscapeButtonExposed)
         {
             StageManager.Instance.TryPressEscapeButton(myZone);
             Debug.Log($"[{myZone}] 탈출 버튼 입력 완료! 반대편 입력을 기다립니다.");
@@ -125,14 +127,14 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
     }
 
     //UI 문구
-    public string GetPromptText(PlayerController actor)    
+    public string GetPromptText(PlayerController actor)
     {
         if (StageManager.Instance == null) return string.Empty;
 
         switch (interactType)
         {
             case EscapeInteractType.EscapeButton:
-                if (StageManager.Instance.IsEscapeButtonExposed) return "탈출 버튼 누르기";
+                if (StageManager.Instance.IsZoneAEscapeButtonExposed || StageManager.Instance.IsZoneBEscapeButtonExposed) return "탈출 버튼 누르기";
                 else return string.Empty;
 
             case EscapeInteractType.FrontDoor:
