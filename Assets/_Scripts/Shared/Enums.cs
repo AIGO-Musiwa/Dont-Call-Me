@@ -61,6 +61,12 @@ public enum PuzzleStage
     Stage3,
 }
 
+public enum PlacementSlotUsageType
+{
+    HintOnly = 0,       // 힌트만 배치 가능
+    PuzzleOrHint = 1    // 퍼즐 / 힌트 모두 배치 가능
+}
+
 // ── 크리처 ────────────────────────────────────────────────
 
 public enum CreatureState
