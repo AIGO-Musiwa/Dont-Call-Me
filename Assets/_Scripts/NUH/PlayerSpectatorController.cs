@@ -17,6 +17,8 @@ public class PlayerSpectatorController : MonoBehaviour
     [SerializeField] private CinemachineCamera spectatorOrbitCamera;      // 관전용 가상 카메라
     [SerializeField] private InputActionReference lookAction;             // 관전 회전 입력 액션
     [SerializeField] private InputActionReference zoomAction;             // 관전 줌 입력 액션
+    [SerializeField] private InputActionReference previousTargetAction;   // 이전 대상 전환 입력 액션
+    [SerializeField] private InputActionReference nextTargetAction;       // 다음 대상 전환 입력 액션
 
     [Header("Orbit")]
     [SerializeField] private float horizontalSpeed = 0.2f;                // 수평 회전 민감도
@@ -42,8 +44,6 @@ public class PlayerSpectatorController : MonoBehaviour
     private int _targetIndex;                                             // 현재 선택된 관전 대상 인덱스
 
     private bool _isSpectating;                                           // 현재 관전 모드 진입 여부
-    private bool _prevInteractPressed;                                    // 이전 프레임 대상 전환 입력 상태(이전 대상)
-    private bool _prevWalkiePressed;                                      // 이전 프레임 대상 전환 입력 상태(다음 대상)
 
     /// <summary>
     /// 로컬 플레이어를 연결하고 관전 리그와 평상시 카메라 참조를 초기화한다.
@@ -94,18 +94,18 @@ public class PlayerSpectatorController : MonoBehaviour
 
     /// <summary>
     /// 로컬 플레이어의 상태를 보고 관전 진입 / 유지 / 종료를 관리한다.
-    /// Orbit / Zoom은 로컬 입력으로만 처리한다.
+    /// Orbit / Zoom / 대상 전환은 로컬 입력으로만 처리한다.
     /// </summary>
     private void LateUpdate()
     {
-        // owner가 없거나 로컬 플레이어가 아니면 아무것도 하지 않는다.
+        // owner가 없거나 로컬 플레이어가 아니면 아무것도 하지 않는다
         if (_owner == null || !_owner.HasInputAuthority)
             return;
 
-        // Dead / Escaped이면 관전 상태로 본다.
+        // Dead / Escaped 이면 관전 상태로 본다
         bool shouldSpectate = _owner.IsSpectatorState();
 
-        // 관전 상태가 아니면 필요 시 관전 모드를 종료한다.
+        // 관전 상태가 아니면 필요 시 관전 모드 종료
         if (!shouldSpectate)
         {
             if (_isSpectating)
@@ -114,50 +114,24 @@ public class PlayerSpectatorController : MonoBehaviour
             return;
         }
 
-        // 아직 관전 모드가 아니라면 최초 진입 처리.
+        // 아직 관전 모드가 아니라면 최초 진입 처리
         if (!_isSpectating)
             EnterSpectatorMode();
 
-        // 현재 대상이 유효한지 점검하고 필요 시 목록 갱신.
+        // 현재 대상이 유효한지 점검하고 필요 시 목록 갱신
         RefreshTargetsIfNeeded();
 
-        // 마우스 이동으로 orbit 값을 갱신.
+        // 좌클릭 / 우클릭으로 관전 대상 전환
+        ProcessTargetSwitchInput();
+
+        // 마우스 이동으로 orbit 값 갱신
         ApplyOrbitInput();
 
-        // 휠 입력으로 줌 값을 갱신.
+        // 휠 입력으로 줌 값을 갱신
         ApplyZoomInput();
 
-        // 현재 대상 anchor를 Follow / LookAt에 계속 반영.
+        // 현재 대상 anchor를 Follow / LookAt에 적용
         ApplyCurrentTarget();
-    }
-
-    /// <summary>
-    /// PlayerController.FixedUpdateNetwork에서 전달받은 버튼 입력으로
-    /// 관전 대상 전환만 처리한다.
-    /// </summary>
-    public void TickSpectatorInput(PlayerNetworkInput input)
-    {
-        // 관전 중이 아닐 때는 대상 전환 입력을 받지 않는다.
-        if (!_isSpectating)
-            return;
-
-        // 이전 대상 전환 입력 상태.
-        bool interactPressed = input.Buttons.IsSet(InputButtons.InteractPressed);
-
-        // 다음 대상 전환 입력 상태.
-        bool walkiePressed = input.Buttons.IsSet(InputButtons.Walkie);
-
-        // 입력이 막 눌린 순간에만 이전 대상으로 이동.
-        if (interactPressed && !_prevInteractPressed)
-            SelectPreviousTarget();
-
-        // 입력이 막 눌린 순간에만 다음 대상으로 이동.
-        if (walkiePressed && !_prevWalkiePressed)
-            SelectNextTarget();
-
-        // 엣지 트리거 판정을 위해 이전 입력 상태를 저장.
-        _prevInteractPressed = interactPressed;
-        _prevWalkiePressed = walkiePressed;
     }
 
     /// <summary>
@@ -188,8 +162,6 @@ public class PlayerSpectatorController : MonoBehaviour
         _isSpectating = false;                // 내부적으로 관전 종료 표시
         _targets.Clear();                     // 관전 대상 목록 비움
         _targetIndex = 0;                     // 인덱스 초기화
-        _prevInteractPressed = false;         // 이전 입력 상태 초기화
-        _prevWalkiePressed = false;           // 이전 입력 상태 초기화
 
         // 관전 가상 카메라가 더 이상 누구도 따라보지 않도록 해제한다.
         if (spectatorOrbitCamera != null)
@@ -209,9 +181,17 @@ public class PlayerSpectatorController : MonoBehaviour
     /// 관전 가능한 대상 목록을 새로 구성한다.
     /// - 자기 자신은 제외
     /// - CanBeSpectated()가 true인 플레이어만 포함
+    /// - InputAuthority.PlayerId 기준으로 정렬해 순서를 안정화한다.
+    /// - 기존 관전 대상이 아직 유효하면 최대한 유지한다.
     /// </summary>
     private void RefreshTargets()
     {
+        // 갱신 전 현재 타겟을 기억한다.
+        PlayerController previousTarget = null;
+
+        if (_targetIndex >= 0 && _targetIndex < _targets.Count)
+            previousTarget = _targets[_targetIndex];
+
         _targets.Clear(); // 기존 목록 제거
 
         // 현재 씬에 존재하는 플레이어를 전부 찾는다.
@@ -227,8 +207,47 @@ public class PlayerSpectatorController : MonoBehaviour
             _targets.Add(player);
         }
 
-        // 목록 갱신 후 인덱스를 안전 범위로 다시 맞춘다.
+        // 관전 대상 순서를 안정화한다.
+        _targets.Sort(CompareSpectatorTarget);
+
+        // 이전 타겟이 아직 목록에 있으면 같은 타겟을 유지한다.
+        if (previousTarget != null)
+        {
+            int previousIndex = _targets.IndexOf(previousTarget);
+
+            if (previousIndex >= 0)
+            {
+                _targetIndex = previousIndex;
+                return;
+            }
+        }
+
+        // 이전 타겟을 유지할 수 없으면 인덱스를 안전 범위로 보정한다.
         ClampTargetIndex();
+    }
+
+    /// <summary>
+    /// 관전 대상 목록을 안정적으로 정렬하기 위한 비교 함수.
+    /// InputAuthority.PlayerId가 낮은 플레이어가 앞에 오도록 정렬한다.
+    /// </summary>
+    private int CompareSpectatorTarget(PlayerController a, PlayerController b)
+    {
+        int aId = GetSpectatorSortId(a); // A 플레이어 정렬 ID
+        int bId = GetSpectatorSortId(b); // B 플레이어 정렬 ID
+
+        return aId.CompareTo(bId);
+    }
+
+    /// <summary>
+    /// 관전 대상 정렬에 사용할 안정적인 ID를 반환한다.
+    /// NetworkObject나 InputAuthority가 비정상인 경우 뒤로 밀기 위해 int.MaxValue를 반환한다.
+    /// </summary>
+    private int GetSpectatorSortId(PlayerController target)
+    {
+        if (target == null || target.Object == null)
+            return int.MaxValue;
+
+        return target.Object.InputAuthority.PlayerId;
     }
 
     /// <summary>
@@ -346,6 +365,34 @@ public class PlayerSpectatorController : MonoBehaviour
         float nextRadius = _orbitalFollow.Radius - zoom * zoomSpeed;
         _orbitalFollow.Radius = Mathf.Clamp(nextRadius, minDistance, maxDistance);
     }
+
+    private void ProcessTargetSwitchInput()
+    {
+        // 관전 중이 아니면 대상 전환 입력 처리 x
+        if(!_isSpectating)
+            return;
+
+        // 이전 대상 입력 액션이 이번 프레임에 눌렸는지 확인
+        bool previousPressed = 
+            previousTargetAction != null && 
+            previousTargetAction.action != null && 
+            previousTargetAction.action.WasPressedThisFrame();
+
+        // 다음 대상 입력 액션이 이번 프레임에 눌렸는지 확인
+        bool nextPressed = 
+            nextTargetAction != null && 
+            nextTargetAction.action != null && 
+            nextTargetAction.action.WasPressedThisFrame();
+
+        // 좌클릭 계열 입력으로 이전 대상 선택
+        if(previousPressed)
+            SelectPreviousTarget();
+
+        // 우클릭 계열 입력으로 다음 대상 선택
+        if(nextPressed)
+            SelectNextTarget();
+    }
+
 
     /// <summary>
     /// 다음 관전 대상으로 순환한다.
