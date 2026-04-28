@@ -42,6 +42,7 @@ public class MicLevelUI : MonoBehaviour
     private float currentFill = 0f;
     private bool markerPositionSet = false;
 
+    private const float silenceThreshold = 0.001f;
 
     private void OnEnable()
     {
@@ -146,7 +147,12 @@ public class MicLevelUI : MonoBehaviour
         foreach (var s in samples) sum += s * s;
         float rms = Mathf.Sqrt(sum / sampleWindow);
 
-        if (rms <= 0f) return -96f;
+        // 무음 판정
+        if (rms < silenceThreshold) return -96f;
+
+        float gain = PlayerPrefs.GetFloat(SettingsManager.KeyMicGain, 1f);
+        rms = Mathf.Clamp(rms * gain, 0f, 1f);
+
         return 20f * Mathf.Log10(rms);
     }
 
