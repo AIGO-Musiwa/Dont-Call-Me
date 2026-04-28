@@ -937,6 +937,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureExpireTimer = TickTimer.None;                           // 사망 타이머 종료
         NetMovementLocked = true;                                         // 이동 잠금
         NetLookLocked = true;                                             // 시야 잠금
+
+        // 사망 시 관전 룸으로 이동 요청
+        StageManager.Instance?.RequestTeleportToDeadRoom(this);
     }
 
     public void ServerEnterEscaped()
@@ -957,6 +960,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureExpireTimer = TickTimer.None;                           // 사망 타이머 종료
         NetMovementLocked = true;                                         // 이동 잠금
         NetLookLocked = true;                                             // 시야 잠금
+
+        // 탈출 시 관전 룸으로 이동 요청
+        StageManager.Instance?.RequestTeleportToDeadRoom(this);
     }
 
     public bool ServerTryPickupLeftHand(ItemObject item)
