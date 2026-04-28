@@ -149902,6 +149902,8 @@ MonoBehaviour:
   spectatorOrbitCamera: {fileID: 1097593966}
   lookAction: {fileID: -5630151704836100654, guid: e8da5280c7347af4195ae9f3d9e7af3a, type: 3}
   zoomAction: {fileID: 5187656620827309004, guid: e8da5280c7347af4195ae9f3d9e7af3a, type: 3}
+  previousTargetAction: {fileID: 1120369429361536294, guid: e8da5280c7347af4195ae9f3d9e7af3a, type: 3}
+  nextTargetAction: {fileID: -4670622468078651250, guid: e8da5280c7347af4195ae9f3d9e7af3a, type: 3}
   horizontalSpeed: 0.2
   verticalSpeed: 0.15
   defaultVerticalAngle: 15
@@ -180596,8 +180598,11 @@ MonoBehaviour:
   zoneB_StairA_Bottom: {fileID: 886360097}
   zoneB_StairB_Top: {fileID: 573072557}
   zoneB_StairB_Bottom: {fileID: 255563770}
+  deadRespawnPoint: {fileID: 0}
   enableDebugLog: 1
   _IsAct3Active:
+    _value: 0
+  _IsEscapeButtonExposed:
     _value: 0
   _IsZoneAEscapeButtonExposed:
     _value: 0

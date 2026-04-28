@@ -157,10 +157,15 @@ public class PlayerController : NetworkBehaviour, IInteractable
             return;                                                      // 입력 없으면 종료
 
         if (!SettingsManager.IsOpen)
-            KCCMotor.Simulate(input, NetMovementLocked, NetLookLocked);      // 이동/시야 시뮬레이션
+            KCCMotor.Simulate(input, NetMovementLocked, NetLookLocked);   // 이동/시야 시뮬레이션
 
-        if (HasInputAuthority && SpectatorController != null && IsSpectatorState())
-            SpectatorController.TickSpectatorInput(input);               // 관전 상태 입력 처리
+        // 관전 상태에서는 일반 상호작용 / Hold 상호작용 / 무전기 PTT를 처리하지 않는다.
+        // 관전 카메라 대상 전환은 PlayerSpectatorController.LateUpdate()에서 로컬 입력으로 처리한다.
+        if (HasInputAuthority && IsSpectatorState())
+        {
+            _prevWalkiePressed = false;                                  // 관전 진입 시 PTT 엣지 상태 초기화
+            return;
+        }
 
         bool interactPressedThisTick = input.Buttons.IsSet(InputButtons.InteractPressed); // 이번 tick 눌림 순간 입력
         bool interactHeldThisTick = input.Buttons.IsSet(InputButtons.InteractHeld);       // 이번 tick 유지 입력
@@ -197,6 +202,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
             !_prevWalkiePressed)
         {
             _prevWalkiePressed = true;
+
             if (GetHeldWalkieTalkie() != null)
                 RPC_RequestPTT(true);
         }
@@ -206,6 +212,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
                  _prevWalkiePressed)
         {
             _prevWalkiePressed = false;
+
             if (GetHeldWalkieTalkie() != null)
                 RPC_RequestPTT(false);
         }
@@ -937,6 +944,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureExpireTimer = TickTimer.None;                           // 사망 타이머 종료
         NetMovementLocked = true;                                         // 이동 잠금
         NetLookLocked = true;                                             // 시야 잠금
+
+        // 사망 시 관전 룸으로 이동 요청
+        StageManager.Instance?.RequestTeleportToDeadRoom(this);
     }
 
     public void ServerEnterEscaped()
@@ -957,6 +967,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureExpireTimer = TickTimer.None;                           // 사망 타이머 종료
         NetMovementLocked = true;                                         // 이동 잠금
         NetLookLocked = true;                                             // 시야 잠금
+
+        // 탈출 시 관전 룸으로 이동 요청
+        StageManager.Instance?.RequestTeleportToDeadRoom(this);
     }
 
     public bool ServerTryPickupLeftHand(ItemObject item)
