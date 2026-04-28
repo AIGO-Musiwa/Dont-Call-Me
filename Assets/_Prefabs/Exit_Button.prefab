@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4145102897740926831}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -41,7 +41,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7236042674053630337}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: switch_armature
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -75,7 +75,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4987266372203688685}
   - component: {fileID: 4092952001126523631}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: switch
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -168,7 +168,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8661309529109964618}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: root
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -200,7 +200,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7056239630772786922}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: button_end
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -231,7 +231,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 604432368747049528}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: root_end
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -264,8 +264,8 @@ GameObject:
   - component: {fileID: 4343433592649293784}
   - component: {fileID: 9040290426768212096}
   - component: {fileID: 7701600847576753521}
-  - component: {fileID: 5531362399255158530}
-  m_Layer: 0
+  - component: {fileID: 5008557289105063821}
+  m_Layer: 6
   m_Name: Exit_Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -323,8 +323,8 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 9040290426768212096}
   ForceRemoteRenderTimeframe: 0
---- !u!64 &5531362399255158530
-MeshCollider:
+--- !u!65 &5008557289105063821
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -341,7 +341,6 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 0}
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1.9536753, z: 1.4136734}
+  m_Center: {x: -0, y: 1.0143733, z: -0.06606674}
