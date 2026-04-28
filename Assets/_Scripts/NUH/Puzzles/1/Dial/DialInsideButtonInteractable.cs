@@ -1,17 +1,17 @@
 using UnityEngine;
 
 /// <summary>
-/// 다이얼 퍼즐 좌측 회전 버튼 상호작용 담당.
-/// 클릭되면 루트 퍼즐에 Left 입력을 전달한다.
+/// 금고 내부 버튼 상호작용 담당.
+/// 다이얼 해제 후 이 버튼을 누르면 퍼즐이 최종 클리어된다.
 /// </summary>
-public class DialRotateLeftInteractable : MonoBehaviour, IInteractable, IChildPuzzleInteractable
+public class DialInsideButtonInteractable : MonoBehaviour, IInteractable, IChildPuzzleInteractable
 {
     [Header("설정")]
-    [SerializeField] private DialPuzzle ownerPuzzle;      // 소속 루트 퍼즐
-    [SerializeField] private int interactableId = 0;      // 자식 상호작용 ID
+    [SerializeField] private DialPuzzle ownerPuzzle;      // 소속 다이얼 퍼즐
+    [SerializeField] private int interactableId = 2;      // 자식 상호작용 ID
 
     [Header("프롬프트")]
-    [SerializeField] private string promptText = "좌측 회전"; // 상호작용 문구
+    [SerializeField] private string promptText = "버튼 누르기"; // 상호작용 문구
 
     public int InteractableId => interactableId;
 
@@ -29,7 +29,10 @@ public class DialRotateLeftInteractable : MonoBehaviour, IInteractable, IChildPu
         if (ownerPuzzle.IsSolved)
             return false;
 
-        if (ownerPuzzle.IsDialUnlocked)
+        if (!ownerPuzzle.IsDialUnlocked)
+            return false;
+
+        if (ownerPuzzle.IsInsideButtonPressed)
             return false;
 
         return true;
@@ -43,7 +46,7 @@ public class DialRotateLeftInteractable : MonoBehaviour, IInteractable, IChildPu
         if (actor.NetRightHandItem != null)
             actor.ServerDropRightHandItem();
 
-        ownerPuzzle.OnRotateInput(RotationDirection.Left);
+        ownerPuzzle.ServerPressInsideButton(actor);
     }
 
     public string GetPromptText(PlayerController actor)
