@@ -156,7 +156,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!GetInput(out PlayerNetworkInput input))
             return;                                                      // 입력 없으면 종료
 
-        KCCMotor.Simulate(input, NetMovementLocked, NetLookLocked);      // 이동/시야 시뮬레이션
+        if (!SettingsManager.IsOpen)
+            KCCMotor.Simulate(input, NetMovementLocked, NetLookLocked);      // 이동/시야 시뮬레이션
 
         if (HasInputAuthority && SpectatorController != null && IsSpectatorState())
             SpectatorController.TickSpectatorInput(input);               // 관전 상태 입력 처리

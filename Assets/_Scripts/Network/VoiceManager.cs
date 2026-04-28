@@ -298,15 +298,17 @@ public class VoiceManager : MonoBehaviour
     public void SetGlobalReceiveVolume(float volume)
     {
         var allControllers = FindObjectsByType<PlayerVoiceController>(FindObjectsSortMode.None);
+        bool hasRemoteController = false;
 
         foreach (var controller in allControllers)
         {
-            if (controller.HasInputAuthority) continue;
+            if (!controller.HasInputAuthority) continue;
             controller.SetGlobalVolume(volume);
+            hasRemoteController = true;
         }
 
         // 로비 씬: PlayerData의 Speaker AudioSource 직접 조절
-        if (allControllers.Length == 0)
+        if (!hasRemoteController)
         {
             var allSpeakers = FindObjectsByType<Speaker>(FindObjectsSortMode.None);
             foreach(var speaker in allSpeakers)

@@ -3,6 +3,8 @@ using UnityEngine.UI;
 using UnityEngine.Audio;
 using Photon.Voice.Unity;
 using Fusion;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 게임의 모든 환경 설정을 관리하는 중앙 관제 모듈.
@@ -10,6 +12,9 @@ using Fusion;
 /// </summary>
 public class SettingsManager : MonoBehaviour
 {
+    [Header("설정 패널")]
+    [SerializeField] private GameObject settingPanel;
+
     [Header("오디오 믹서 (Audio Mixer)")]
     [SerializeField] private AudioMixer mainMixer;
 
@@ -24,6 +29,8 @@ public class SettingsManager : MonoBehaviour
 
     [Header("조작 설정 (Controls)")]
     [SerializeField] private Slider sensitivitySlider;
+
+    public static bool IsOpen { get; private set; } = false;
 
     // 데이터 저장을 위한 고유 키값 (오타 방지)
     private const string KeyMaster = "Vol_Master";
@@ -77,10 +84,18 @@ public class SettingsManager : MonoBehaviour
         // 음성 슬라이더 이벤트 연결
         micGainSlider?.onValueChanged.AddListener(val => { ApplyMicGain(val); PlayerPrefs.SetFloat(KeyMicGain, val); });
         globalReceiveSlider?.onValueChanged.AddListener(val => { ApplyGlobalReceiveVolume(val); PlayerPrefs.SetFloat(KeyGlobalReceiveVolume, val); });
-    
+
+        settingPanel.SetActive(false);
+
         // Runner 생성 시점에 WebRtcAudioDsp 주입
         if (GameLauncher.Instance != null)
             GameLauncher.Instance.OnRunnerCreated += OnRunnerCreated;   
+    }
+
+    private void Update()
+    {
+        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            ToggleSettingPanel();
     }
 
     private void OnDestroy()
@@ -146,6 +161,25 @@ public class SettingsManager : MonoBehaviour
     // 설정창 끄기 / 닫기
     public void ToggleSettingPanel()
     {
-        gameObject.SetActive(!gameObject.activeSelf);
+        if (settingPanel == null) return;
+
+        bool isActive = !settingPanel.activeSelf;
+        settingPanel.SetActive(isActive);
+        IsOpen = isActive;
+
+        if (isActive)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        else
+        {
+            bool isInGame = SceneManager.GetActiveScene().buildIndex == SceneNames.GAME_INDEX;
+            if (isInGame)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+        }
     }
 }
