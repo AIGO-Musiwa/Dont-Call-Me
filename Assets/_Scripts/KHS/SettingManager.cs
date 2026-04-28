@@ -25,7 +25,7 @@ public class SettingsManager : MonoBehaviour
 
     [Header("음성 설정 슬라이더")]
     [SerializeField] private Slider micGainSlider;          // 마이크 게인 (0~2)
-    [SerializeField] private Slider globalReceiveSlider;   // 다른 플레이어 전체 수신 볼륨 (0~1)
+    [SerializeField] private Slider globalReceiveSlider;    // 다른 플레이어 전체 수신 볼륨 (0~1)
 
     [Header("조작 설정 (Controls)")]
     [SerializeField] private Slider sensitivitySlider;
@@ -162,6 +162,8 @@ public class SettingsManager : MonoBehaviour
     public void ToggleSettingPanel()
     {
         if (settingPanel == null) return;
+
+        if (MicCalibrationUI.IsCalibrating) return;
 
         bool isActive = !settingPanel.activeSelf;
         settingPanel.SetActive(isActive);
