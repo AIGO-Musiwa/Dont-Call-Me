@@ -450,6 +450,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialHint
   totalSteps: 6
+  firstDirectionSpriteRenderer: {fileID: 583972722534794062}
   stepTexts:
   - {fileID: 3523326312591382891}
   - {fileID: 776868686898542507}
@@ -1210,7 +1211,7 @@ GameObject:
   - component: {fileID: 5960228701597843908}
   - component: {fileID: 583972722534794062}
   m_Layer: 0
-  m_Name: Square
+  m_Name: Sprite_Arrow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1224,13 +1225,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7841276308514798028}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.18112677, y: 0.9834598, z: -0, w: 0}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: 3, y: 1.01, z: 0}
   m_LocalScale: {x: 0.33709, y: 0.33709, z: 0.33709}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4682677442060399405}
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 20.871}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!212 &583972722534794062
 SpriteRenderer:
   serializedVersion: 2
