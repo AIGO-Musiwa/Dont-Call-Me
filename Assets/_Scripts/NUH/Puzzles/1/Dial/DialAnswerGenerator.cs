@@ -2,55 +2,90 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 다이얼 퍼즐 정답 숫자열 생성 전용 유틸
-/// 퍼즐 본체와 힌트가 같은 seed로 완전히 같은 숫자열을 만들기 위해 분리
+/// 다이얼 퍼즐 정답 데이터.
+/// 시작 방향과 단계별 회전 횟수를 함께 가진다.
+/// </summary>
+public class DialAnswerData
+{
+    public RotationDirection FirstDirection;        // 첫 입력 방향
+    public List<int> StepCounts = new();            // 단계별 회전 횟수
+}
+
+/// <summary>
+/// 다이얼 퍼즐 정답 생성 전용 유틸.
+/// 퍼즐 본체와 힌트가 같은 seed로 같은 시작 방향/숫자열을 만들기 위해 사용한다.
 /// </summary>
 public static class DialAnswerGenerator
 {
     /// <summary>
-    /// 시드 기반으로 다이얼 정답 숫자 6개를 생성
-    /// 방향은 생성 x 
-    /// 방향은 항상 좌->우->좌->우->...
+    /// 시드 기반으로 다이얼 정답 데이터를 생성한다.
+    /// - 첫 방향은 좌/우 랜덤
+    /// - 이후 방향은 반대로 번갈아 진행
+    /// - 36도 기준 10칸 다이얼이므로 최대 9회까지 허용
     /// </summary>
-    public static List<int> GenerateStepCounts(int seed, int totalSteps)
+    public static DialAnswerData GenerateAnswerData(int seed, int totalSteps)
     {
-        SeedRandom rng = new SeedRandom(seed);          // 시드 기반 난수기
-        List<int> result = new List<int>(totalSteps);   // 생성된 숫자열
+        SeedRandom rng = new SeedRandom(seed);              // 시드 기반 난수기
+        DialAnswerData result = new DialAnswerData();       // 최종 정답 데이터
 
-        int currentSignedPosition = 0;                  // 현재 다이얼 누적 위치값 (0, +1, -2 같은 값)
+        result.FirstDirection = rng.NextInt(0, 2) == 0
+            ? RotationDirection.Left
+            : RotationDirection.Right;                      // 첫 방향 랜덤 결정
+
+        int currentSignedPosition = 0;                      // 현재 다이얼 누적 위치값
 
         for (int stepIndex = 0; stepIndex < totalSteps; stepIndex++)
         {
-            bool isLeftStep = stepIndex % 2 == 0;       // 0,2,4번째는 좌 / 1,3,5번째는 우로 회전해야함
-            int minStepCount;
-            int maxStepCount = 7;   // 2단계 이후 최대값
+            RotationDirection direction = GetDirectionByStepIndex(result.FirstDirection, stepIndex);
 
-            if(stepIndex == 0)
+            int minStepCount;
+            int maxStepCount = 9;                            // 36도 기준 10칸이므로 최대 9회
+
+            if (stepIndex == 0)
             {
-                // 1단계는 좌측 고정 1~4
                 minStepCount = 1;
-                maxStepCount = 4;
+                maxStepCount = 5;                            // 첫 단계는 반 바퀴 이내 1~5회
             }
             else
             {
-                // 다음 단계부터는 반드시 0을 지나가야 하므로 최소값 계산
-                minStepCount = Mathf.Abs(currentSignedPosition) + 1;
+                minStepCount = Mathf.Abs(currentSignedPosition) + 1; // 0을 지나가도록 최소 횟수 계산
             }
 
-            // 최소값이 최대값보다 커지면 최대값으로 보정
             minStepCount = Mathf.Clamp(minStepCount, 1, maxStepCount);
 
-            // SeedRandom.NextInd 는 max exclusive라 +1 필요
             int stepCount = rng.NextInt(minStepCount, maxStepCount + 1);
-            result.Add(stepCount);
+            result.StepCounts.Add(stepCount);
 
-            // 생성 즉시 signed position 갱신
-            if (isLeftStep)
+            if (direction == RotationDirection.Left)
                 currentSignedPosition -= stepCount;
             else
                 currentSignedPosition += stepCount;
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 기존 코드 호환용 숫자열 생성 함수.
+    /// 가능하면 새 코드에서는 GenerateAnswerData()를 사용한다.
+    /// </summary>
+    public static List<int> GenerateStepCounts(int seed, int totalSteps)
+    {
+        return GenerateAnswerData(seed, totalSteps).StepCounts;
+    }
+
+    /// <summary>
+    /// 첫 방향과 단계 인덱스를 기준으로 현재 단계 방향을 계산한다.
+    /// </summary>
+    public static RotationDirection GetDirectionByStepIndex(RotationDirection firstDirection, int stepIndex)
+    {
+        bool sameAsFirst = stepIndex % 2 == 0;
+
+        if (sameAsFirst)
+            return firstDirection;
+
+        return firstDirection == RotationDirection.Left
+            ? RotationDirection.Right
+            : RotationDirection.Left;
     }
 }
