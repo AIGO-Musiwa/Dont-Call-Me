@@ -139,6 +139,13 @@ public enum LightPatternPanelVisualState : byte
     SolvedGreen = 3
 }
 
+public enum ViewRole
+{
+    HintBulb = 0,    // 힌트 전구
+    PuzzleLamp = 1,  // 퍼즐 상태 램프
+    PanelPad = 2     // 입력 패드
+}
+
 public enum RotationDirection
 {
     Left,
