@@ -6,8 +6,8 @@ using UnityEngine;
 
 public class ZoneDistributor : NetworkBehaviour
 {
-    [Header("플레이어 프리팹")]
-    [SerializeField] private NetworkObject playerPrefab;
+    [Header("캐릭터 레지스트리")]
+    [SerializeField] private CharacterprefabRegistry characterRegistry;
 
     [Header("Zone A 스폰 포인트")]
     [SerializeField] private Transform zoneASpawnPoint;
@@ -122,6 +122,12 @@ public class ZoneDistributor : NetworkBehaviour
             return;
         }
 
+        if (characterRegistry == null)
+        {
+            LogWarning("CharacterPrefabRegistry 참조가 없습니다.");
+            return;
+        }
+
         roundSeedManager.EnsureRoundSeed();
 
         int roundSeed = roundSeedManager.CurrentSeed;
@@ -158,7 +164,15 @@ public class ZoneDistributor : NetworkBehaviour
             Vector3 spawnPos = spawnPoint != null ? spawnPoint.position : Vector3.zero;
             Quaternion spawnRot = spawnPoint != null ? spawnPoint.rotation : Quaternion.identity;
 
-            NetworkObject obj = Runner.Spawn(playerPrefab, spawnPos, spawnRot, playerRef);
+            // CharacterIndex 기반으로 인게임 프리팹 선택
+            NetworkObject ingamePrefab = characterRegistry.GetIngamePrefab(data.CharacterIndex);
+            if (ingamePrefab == null)
+            {
+                LogWarning($"인게임 프리팹 없음 | CharacterIndex={data.CharacterIndex} | Player={playerRef}");
+                continue;
+            }
+
+            NetworkObject obj = Runner.Spawn(ingamePrefab, spawnPos, spawnRot, playerRef);
             if (obj == null)
             {
                 LogWarning($"PlayerController Spawn 실패: Player={playerRef}");

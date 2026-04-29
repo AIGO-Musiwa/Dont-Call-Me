@@ -10,7 +10,8 @@ public class TitleManager : MonoBehaviour
 {
     // ── Inspector ─────────────────────────────────────────
     [Header("패널")]
-    [SerializeField] private GameObject titlePanel;
+    [SerializeField] private GameObject mainPanel;          // 타이틀 메인
+    [SerializeField] private GameObject roomPanel;          // 방 생성/입장 패널
 
     [Header("닉네임 입력")]
     [SerializeField] private TMP_InputField nicknameInput;
@@ -18,24 +19,17 @@ public class TitleManager : MonoBehaviour
     [Header("방 코드 입력")]
     [SerializeField] private TMP_InputField roomCodeInput;
 
-    [Header("버튼")]
-    [SerializeField] private Button createRoomButton;
-    [SerializeField] private Button joinRoomButton;
-
     [Header("에러 패널")]
     [SerializeField] private GameObject errorPanel;
     [SerializeField] private TextMeshProUGUI errorText;
 
     private GameLauncher _launcher;
-
-    // IME 누출 방지용 스냅샷
-    private string nicknameSnapshot;
-    private string roomCodeSnapshot;
-    private bool pendingImeGuard;
+    private string confirmedNickname;       // 확정된 닉네임
 
     private void Start()
     {
         errorPanel.SetActive(false);
+        ShowMain();
 
         _launcher = GameLauncher.Instance;
         if (_launcher == null)
@@ -62,7 +56,8 @@ public class TitleManager : MonoBehaviour
         roomCodeInput.onValidateInput += ValidateRoomCodeInput;
         roomCodeInput.characterLimit = Constants.ROOM_CODE_LENGTH;
 
-        FocusNickname();
+        nicknameInput.ActivateInputField();
+        nicknameInput.Select();
     }
 
     private void OnDestroy()
@@ -75,61 +70,6 @@ public class TitleManager : MonoBehaviour
 
         roomCodeInput.onValidateInput -= ValidateRoomCodeInput;
     }
-
-    private void Update()
-    {
-        HandleTabNavigation();
-    }
-
-    private void LateUpdate()
-    {
-        CheckImeGuard();
-    }
-
-    #region InputField Tab 순환처리
-
-    private void HandleTabNavigation()
-    {
-        if (!Keyboard.current.tabKey.wasPressedThisFrame) return;
-
-        if (nicknameInput.isFocused)
-            FocusRoomCode();
-        else if (roomCodeInput.isFocused)
-            FocusNickname();
-        else
-            FocusNickname();
-    }
-
-    private void FocusNickname()
-    {
-        nicknameInput.ActivateInputField();
-        nicknameInput.Select();
-    }
-
-    private void FocusRoomCode()
-    {
-        // 포커스 전환 직전 두 필드를 모두 스냅샷으로 저장
-        nicknameSnapshot = nicknameInput.text;
-        roomCodeSnapshot = roomCodeInput.text;
-        pendingImeGuard = true;
-
-        roomCodeInput.ActivateInputField();
-        roomCodeInput.Select();
-    }
-
-    private void CheckImeGuard()
-    {
-        if (!pendingImeGuard) return;
-        pendingImeGuard = false;
-
-        if (roomCodeInput.text != roomCodeSnapshot)
-        {
-            nicknameInput.text = nicknameSnapshot;  // 닉네임 복원
-            roomCodeInput.text = roomCodeSnapshot;  // 코드 스냅샷으로 복원 (누출 문자 제거)
-        }
-    }
-
-    #endregion
 
     #region roomCode 입력 필터
 
@@ -152,18 +92,34 @@ public class TitleManager : MonoBehaviour
 
     #region 버튼 콜백 (Inspector에서 연결)
 
-    // 방 생성 버튼 클릭
-    public void OnCreateRoomClicked()
+    // 타이틀 메인 - 시작 버튼
+    public void OnStartClicked()
     {
-        if (!TryGetValidNickname(out string nickname)) return;
-        _launcher.CreateRoom(nickname);
+        confirmedNickname = nicknameInput.text.Trim();
+
+        if (string.IsNullOrEmpty(confirmedNickname))
+        {
+            confirmedNickname = GenerateRandomNickname();
+            nicknameInput.text = confirmedNickname;
+        }
+        else if (confirmedNickname.Length > Constants.NICKNAME_MAX_LENGTH)
+        {
+            ShowError($"닉네임은 {Constants.NICKNAME_MAX_LENGTH}자 이하로 입력해주세요.");
+            return;
+        }
+
+        ShowRoom();
     }
 
-    // 방 참가 버튼 클릭
+    // 방 생성/입장 패널 - 방 생성 버튼
+    public void OnCreateRoomClicked()
+    {
+        _launcher.CreateRoom(confirmedNickname);
+    }
+
+    // 방 생성/입장 패널 - 방 참가 버튼
     public void OnJoinRoomClicked()
     {
-        if (!TryGetValidNickname(out string nickname)) return;
-
         string roomCode = roomCodeInput.text.Trim().ToUpper();
         if (roomCode.Length != Constants.ROOM_CODE_LENGTH)
         {
@@ -171,7 +127,19 @@ public class TitleManager : MonoBehaviour
             return;
         }
 
-        _launcher.JoinRoom(nickname, roomCode);
+        _launcher.JoinRoom(confirmedNickname, roomCode);
+    }
+
+    // 방 생성/입장 패널 - 뒤로가기 버튼
+    public void OnBackClicked()
+    {
+        ShowMain();
+    }
+
+    // 에러 창 끄기
+    public void OnErrorConfirmClicked()
+    {
+        errorPanel.SetActive(false);
     }
 
     #endregion
@@ -181,11 +149,8 @@ public class TitleManager : MonoBehaviour
     // 플레이어 입장 이벤트 처리
     private void HandlePlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        if (player == runner.LocalPlayer)
-        {
-            if (runner.IsServer)
-                runner.LoadScene(SceneRef.FromIndex(SceneNames.LOBBY_INDEX));
-        }
+        if (player == runner.LocalPlayer && runner.IsServer)
+            runner.LoadScene(SceneRef.FromIndex(SceneNames.LOBBY_INDEX));
     }
 
     // 방 참가/생성 실패 이벤트 처리
@@ -196,33 +161,24 @@ public class TitleManager : MonoBehaviour
 
     #endregion
 
-    #region 외부 공개 메서드
+    #region 패널 전환
 
-    // Title 씬 메뉴 보이기/숨기기
-    public void Show() => titlePanel.SetActive(true);
-    public void Hide() => titlePanel.SetActive(false);
+    private void ShowMain()
+    {
+        mainPanel.SetActive(true);
+        roomPanel.SetActive(false);
+    }
+
+    private void ShowRoom()
+    {
+        mainPanel.SetActive(false);
+        roomPanel.SetActive(true);
+        roomCodeInput.text = string.Empty;
+    }
+
     #endregion
 
     #region 내부 유틸
-
-    // 닉네임 유효성 검사 및 없을 시 랜덤 닉네임 생성
-    private bool TryGetValidNickname(out string nickname)
-    {
-        nickname = nicknameInput.text.Trim();
-
-        if (string.IsNullOrEmpty(nickname))
-        {
-            nickname = GenerateRandomNickname();
-            nicknameInput.text = nickname;
-        }
-
-        else if (nickname.Length > Constants.NICKNAME_MAX_LENGTH)
-        {
-            ShowError($"닉네임은 {Constants.NICKNAME_MAX_LENGTH}자 이하로 입력해주세요.");
-            return false;
-        }
-        return true;
-    }
 
     // 랜덤 닉네임을 위한 글자들
     private static readonly string[] NameSyllables =
@@ -248,12 +204,6 @@ public class TitleManager : MonoBehaviour
     {
         errorText.text = message;
         errorPanel.SetActive(true);
-    }
-
-    // 에러 창 끄기
-    public void OnErrorConfirmClicked()
-    {
-        errorPanel.SetActive(false);
     }
 
     #endregion

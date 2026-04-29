@@ -61203,7 +61203,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 104d1804d2ade22429360fd285f526a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZoneDistributor
-  playerPrefab: {fileID: 3346838686624773243, guid: 1dff29171c43415458346cf9cc25d16f, type: 3}
+  characterRegistry: {fileID: 11400000, guid: 900029e8ff603b9489e5c6b116df001e, type: 2}
   zoneASpawnPoint: {fileID: 691801472}
   zoneBSpawnPoint: {fileID: 1405469488}
   roundSeedManager: {fileID: 940602868}
@@ -184180,7 +184180,6 @@ MonoBehaviour:
   masterSlider: {fileID: 1814444935}
   bgmSlider: {fileID: 393238846}
   sfxSlider: {fileID: 1647506628}
-  micGainSlider: {fileID: 0}
   globalReceiveSlider: {fileID: 117730061}
   sensitivitySlider: {fileID: 267191095}
 --- !u!222 &1544655229
@@ -196045,6 +196044,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkDebugStarter
   runnerPrefab: {fileID: 5485668934217040620, guid: e0417ef891fc9684fa0ad78a2fa7d358, type: 3}
+  characterRegistry: {fileID: 11400000, guid: 900029e8ff603b9489e5c6b116df001e, type: 2}
   sessionName: Lego test
   testNickname: TestPlayer
   playerDataPrefab: {fileID: 3058198935618079336, guid: 86f272d8fc5284641be8e46d38a00118, type: 3}
