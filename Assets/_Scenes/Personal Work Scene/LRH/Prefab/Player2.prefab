@@ -290,8 +290,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f34196dce3cf0ad4d8069cee116ab746, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHandView
-  rightHandSocket: {fileID: 0}
-  leftHandSocket: {fileID: 0}
+  rightHandSocket: {fileID: 4440487346739832180}
+  leftHandSocket: {fileID: 2546813620553444516}
 --- !u!114 &5612902865707178944
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -491,8 +491,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocalHeldItemView
   playerController: {fileID: 240582007588533922}
-  rightHandAnchor: {fileID: 9216362359286237224}
-  leftHandAnchor: {fileID: 2546813620553444516}
+  rightHandAnchor: {fileID: 4343026471112974446}
+  leftHandAnchor: {fileID: 3299142367361451348}
 --- !u!114 &-2663173833969849363
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -904,6 +904,37 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &3724849958423015226
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4440487346739832180}
+  m_Layer: 0
+  m_Name: RightHandSoket
+  m_TagString: Untagged
+  m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4440487346739832180
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3724849958423015226}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.000000022351736, y: -0.000000033527606, z: 0.00000001559965, w: 1}
+  m_LocalPosition: {x: 0.07500009, y: 0.009999879, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5229453286644084639}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5354373334187213990
 GameObject:
   m_ObjectHideFlags: 0
@@ -1172,37 +1203,6 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!1 &6372969937829851577
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 9216362359286237224}
-  m_Layer: 0
-  m_Name: LeftHandSoket
-  m_TagString: Untagged
-  m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &9216362359286237224
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6372969937829851577}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0.6319781, y: 0.43377775, z: -0.6422154, w: -0.000000040978183}
-  m_LocalPosition: {x: -0.792274, y: 0.6052185, z: -0.8813025}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5229453286644084639}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8206823203231823437
 GameObject:
   m_ObjectHideFlags: 0
@@ -1314,7 +1314,7 @@ PrefabInstance:
       addedObject: {fileID: 2546813620553444516}
     - targetCorrespondingSourceObject: {fileID: 2218025616597017850, guid: 1e702983913400042ac3fcd1173a6d37, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 9216362359286237224}
+      addedObject: {fileID: 4440487346739832180}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 7296818736855454420, guid: 1e702983913400042ac3fcd1173a6d37, type: 3}
       insertIndex: -1

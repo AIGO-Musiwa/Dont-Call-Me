@@ -26,6 +26,9 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
 
     public bool CountForStageProgress => countForStage1Progress; // 진행도 집계 포함 여부 외부 읽기용
 
+    [Header("사운드 모듈")]
+    [SerializeField] protected MultiAudioTrigger audioModule;
+
     public bool IsSolved
     {
         get
@@ -142,7 +145,7 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
         if (NetIsSolved)
             return; // 이미 solved면 중복 처리 방지
 
-        //TODO_Sound - 퍼즐 공통 성공
+        if (audioModule != null) audioModule.PlaySound(SoundType.Success); //성공
 
         NetIsSolved = true; // solved 상태 네트워크 반영
         Solved?.Invoke(this); // 외부 이벤트 발행
@@ -154,7 +157,7 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     /// </summary>
     protected virtual void MarkFailed()
     {
-        //TODO_Sound - 퍼즐 공통 실패
+        if (audioModule != null) audioModule.PlaySound(SoundType.Fail); // 실패
     }
 
     /// <summary>

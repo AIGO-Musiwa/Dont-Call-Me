@@ -110,6 +110,31 @@ public enum ItemType
     Reagent,            // 시약 퍼즐
 }
 
+/// <summary>
+/// 게임 내 모든 오브젝트가 공유하는 범용 사운드 신호 규격
+/// </summary>
+public enum SoundType
+{
+    // [퍼즐 공통]
+    Success,        // 정답/클리어
+    Fail,           // 오답/실패
+
+    // [조작계]
+    InteractLight,  // 가벼운 터치, 다이얼 1칸
+    InteractHeavy,  // 묵직한 레버 당김
+    Connect,        // 전선 꽂음
+    Disconnect,     // 전선 뽑음
+
+    // [기계 작동]
+    MechanicalMove, // 문 열림, 기어 돌아감
+    BeepSmall,      // 힌트 전구 개별 점등
+    BeepLarge,      // 힌트 전구 전체 점등
+
+    // [라디오 전용]
+    RadioRepair,    // 수리 중 나는 소리 (드라이버 돌리는 소리 등)
+    RadioActive     // 라디오 작동 소리 (음악, 방송 소리 등)
+}
+
 // ── 무전기 ────────────────────────────────────────────────
 
 public enum  WalkieState
