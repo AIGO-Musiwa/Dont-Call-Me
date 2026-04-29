@@ -164,6 +164,8 @@ public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             return;
         }
 
+        //TODO_Sound - 문양 레버 조작
+
         int inputSymbolId = _leverSymbolIds[interactableId];
         int expectedSymbolId = _answerSequence[NetCurrentStep];
 

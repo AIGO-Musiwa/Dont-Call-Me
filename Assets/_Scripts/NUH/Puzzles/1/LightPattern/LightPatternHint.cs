@@ -123,6 +123,8 @@ public class LightPatternHint : MonoBehaviour, IPuzzleSeedReceiver
 
                 if (index >= 0 && index < hintBulbs.Count && hintBulbs[index] != null)
                 {
+                    //TODO_Sound - 전구 힌트 개별 깜빡임
+
                     hintBulbs[index].SetHintActive(true);
                     yield return new WaitForSeconds(hintOnTime);
                     hintBulbs[index].SetHintActive(false);
@@ -130,6 +132,8 @@ public class LightPatternHint : MonoBehaviour, IPuzzleSeedReceiver
 
                 yield return new WaitForSeconds(hintOffTime);
             }
+
+            //TODO_Sound - 전구 힌트 전체 깜빡임
 
             TurnAllBulbs(true);
             yield return new WaitForSeconds(fullBlinkOnTime);

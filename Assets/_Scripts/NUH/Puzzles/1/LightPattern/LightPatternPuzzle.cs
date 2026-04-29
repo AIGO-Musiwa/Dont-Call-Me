@@ -115,6 +115,8 @@ public class LightPatternPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         if (!IsValidPanelIndex(interactableId))
             return;
 
+        //TODO_Sound - 전구 패턴 패널 입력
+
         int expectedPanelIndex = _answerSequence[NetCurrentStep];
 
         if (interactableId != expectedPanelIndex)

@@ -142,6 +142,8 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
         if (NetIsSolved)
             return; // 이미 solved면 중복 처리 방지
 
+        //TODO_Sound - 퍼즐 공통 성공
+
         NetIsSolved = true; // solved 상태 네트워크 반영
         Solved?.Invoke(this); // 외부 이벤트 발행
     }
@@ -152,7 +154,7 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     /// </summary>
     protected virtual void MarkFailed()
     {
-        // 기본 공통 처리 없음
+        //TODO_Sound - 퍼즐 공통 실패
     }
 
     /// <summary>
