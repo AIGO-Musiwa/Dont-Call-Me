@@ -178,6 +178,8 @@ public class WireConnectionPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             ? actor.Object.Id
             : default;
 
+        //TODO_Sound - 전선 좌측 소켓 선택
+
         RefreshSelectionView();
         Log($"좌측 선택 | left = {leftIndex}");
     }
@@ -214,6 +216,9 @@ public class WireConnectionPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         int selectedLeft = NetSelectedLeftIndex;
         SetConnectedRightByLeft(selectedLeft, rightIndex);
         SyncCachedConnectionsFromNetwork();
+
+        //TODO_Sound - 전선 연결 생성
+
         RefreshConnectionsView();
 
         ClearCurrentSelection();
@@ -245,6 +250,9 @@ public class WireConnectionPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
         SetConnectedRightByLeft(leftIndex, -1);
         SyncCachedConnectionsFromNetwork();
+
+        //TODO_Sound - 전선 연결 해제
+
         RefreshConnectionsView();
 
         Log($"연결 해제 | left = {leftIndex}");
@@ -270,6 +278,8 @@ public class WireConnectionPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
         NetJudgePressSerial++;
         HandleJudgePressVisual(NetJudgePressSerial);
+
+        //TODO_Sound - 전선 Confirm 레버 조작
 
         for (int leftIndex = 0; leftIndex < socketCount; leftIndex++)
         {

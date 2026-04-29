@@ -140,6 +140,8 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
         ApplySignedPositionToView();
 
+        //TODO_Sound - 금고 다이얼 회전
+
         int expectedCount = _answerStepCounts[NetCurrentStepIndex];
 
         if (NetCurrentStepProgress > expectedCount)
@@ -177,6 +179,9 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             return;
 
         NetInsideButtonPressed = true;
+
+        //TODO_Sound - 금고 내부 버튼 입력
+
         ApplyInsideButtonToView();
 
         MarkSolved();
@@ -212,6 +217,8 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     {
         NetDialUnlocked = true;
         NetSafeDoorOpened = true;
+
+        //TODO_Sound - 금고 문 열림
 
         ApplyDoorOpenedToViewAnimated();
 
