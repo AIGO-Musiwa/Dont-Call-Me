@@ -104,6 +104,10 @@ public class VoiceManager : MonoBehaviour
     {
         localData = data;
         FetchComponents();
+
+        // 저장된 마이크 장치 적용
+        ApplySavedMicDevice();
+
         SwitchToLobbyMode();
     }
 
@@ -337,6 +341,27 @@ public class VoiceManager : MonoBehaviour
             : Constants.GROUP_ZONE_B;
     }
 
+    // PlayerPrefs에 저장된 마이크 장치를 Recorder에 적용
+    private void ApplySavedMicDevice()
+    {
+        if (recorder == null) return;
+
+        string savedDevice = PlayerPrefs.GetString("Mic_Device", "");
+        if (string.IsNullOrEmpty(savedDevice)) return;
+
+        foreach (var device in Microphone.devices)
+        {
+            if (device == savedDevice)
+            {
+                recorder.MicrophoneDevice = new Photon.Voice.DeviceInfo(savedDevice);
+                Debug.Log($"[VoiceManager] 저장된 마이크 장치 적용 → {savedDevice}");
+                return;
+            }
+        }
+        Debug.LogWarning($"[VoiceManager] 저장된 마이크 장치를 찾을 수 없음 → {savedDevice}");
+        PlayerPrefs.DeleteKey("Mic_Device");
+    }
+
     private void FetchComponents()
     {
         var runner = GameLauncher.Instance?.Runner ?? FindAnyObjectByType<NetworkRunner>();
@@ -346,13 +371,9 @@ public class VoiceManager : MonoBehaviour
         voiceConnection = runner.GetComponent<VoiceConnection>();
 
         if (recorder == null)
-        {
             Debug.LogWarning("[VoiceManager] Recorder를 찾지 못했습니다.");
-        }
         if (voiceConnection == null)
-        {
             Debug.LogWarning("[VoiceManager] VoiceConnection을 찾지 못했습니다.");
-        }
     }
 
     #endregion

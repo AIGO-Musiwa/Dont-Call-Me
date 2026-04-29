@@ -23,7 +23,8 @@ public class MicAudioProcessor : MonoBehaviour
         Instance = this;
 
         // 기본 게인 1f
-        amplifier = new MicAmplifierShort(1f);
+        float savedGain = PlayerPrefs.GetFloat(SettingsManager.KeyMicGain, 1f);
+        amplifier = new MicAmplifierShort(Mathf.Clamp(savedGain, 0f, 2f));
     }
 
     private void OnDestroy()

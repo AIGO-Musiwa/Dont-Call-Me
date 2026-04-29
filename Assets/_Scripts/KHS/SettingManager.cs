@@ -15,6 +15,19 @@ public class SettingsManager : MonoBehaviour
     [Header("설정 패널")]
     [SerializeField] private GameObject settingPanel;
 
+    [Header("설정 탭 버튼")]
+    [SerializeField] private Button audioButton;
+    [SerializeField] private Button controlButton;
+    [SerializeField] private Button mikeButton;
+
+    [Header("탭 UI 패널")]
+    [SerializeField] private GameObject audioUIPanel;
+    [SerializeField] private GameObject controlUIPanel;
+    [SerializeField] private GameObject mikeUIPanel;
+
+    [Header("닫기 버튼")]
+    [SerializeField] private Button closeButton;
+
     [Header("오디오 믹서 (Audio Mixer)")]
     [SerializeField] private AudioMixer mainMixer;
 
@@ -24,8 +37,7 @@ public class SettingsManager : MonoBehaviour
     [SerializeField] private Slider sfxSlider;
 
     [Header("음성 설정 슬라이더")]
-    [SerializeField] private Slider micGainSlider;          // 마이크 게인 (0~2)
-    [SerializeField] private Slider globalReceiveSlider;   // 다른 플레이어 전체 수신 볼륨 (0~1)
+    [SerializeField] private Slider globalReceiveSlider;    // 다른 플레이어 전체 수신 볼륨 (0~1)
 
     [Header("조작 설정 (Controls)")]
     [SerializeField] private Slider sensitivitySlider;
@@ -51,7 +63,6 @@ public class SettingsManager : MonoBehaviour
         float vSens = PlayerPrefs.GetFloat(KeySens, 1.0f);
 
         // 음성 설정값 로드
-        float vMicGain = PlayerPrefs.GetFloat(KeyMicGain, 1.0f);
         float vGlobalRecv = PlayerPrefs.GetFloat(KeyGlobalReceiveVolume, 1.0f);
 
         // 2. 계기판(UI)에 현재 값 반영
@@ -61,7 +72,6 @@ public class SettingsManager : MonoBehaviour
         if (sensitivitySlider) sensitivitySlider.value = vSens;
 
         // 음성 UI 초기값 반영
-        if (micGainSlider) micGainSlider.value = vMicGain;
         if (globalReceiveSlider) globalReceiveSlider.value = vGlobalRecv;
 
         // 3. 실제 시스템 회로에 값 인가
@@ -70,7 +80,6 @@ public class SettingsManager : MonoBehaviour
         ApplyVolume(KeySFX, vSFX);
 
         // 음성 시스템 초기값 적용
-        ApplyMicGain(vMicGain);
         ApplyGlobalReceiveVolume(vGlobalRecv);
 
         // 감도는 PlayerController 등에서 이 클래스의 정적 변수나 데이터를 참조하게 하면 좋아.
@@ -82,9 +91,15 @@ public class SettingsManager : MonoBehaviour
         sensitivitySlider?.onValueChanged.AddListener(val => { PlayerPrefs.SetFloat(KeySens, val); });
 
         // 음성 슬라이더 이벤트 연결
-        micGainSlider?.onValueChanged.AddListener(val => { ApplyMicGain(val); PlayerPrefs.SetFloat(KeyMicGain, val); });
         globalReceiveSlider?.onValueChanged.AddListener(val => { ApplyGlobalReceiveVolume(val); PlayerPrefs.SetFloat(KeyGlobalReceiveVolume, val); });
 
+        // 버튼 이벤트 구독
+        audioButton.onClick.AddListener(OpenAudioUIPanel);
+        controlButton.onClick.AddListener(OpenControlUIPanel);
+        mikeButton.onClick.AddListener(OpenMikeUIPanel);
+        closeButton.onClick.AddListener(CloseSettingPanel);
+
+        CloseAllUIPanel();
         settingPanel.SetActive(false);
 
         // Runner 생성 시점에 WebRtcAudioDsp 주입
@@ -116,12 +131,7 @@ public class SettingsManager : MonoBehaviour
         mainMixer.SetFloat(paramName, db);
     }
 
-    // 마이크 볼륨 적용
-    private void ApplyMicGain(float value)
-    {
-        VoiceManager.Instance?.SetMicGain(value);
-    }
-
+    // 다른 플레이어 목소리 크기 조절
     private void ApplyGlobalReceiveVolume(float value)
     {
         VoiceManager.Instance?.SetGlobalReceiveVolume(value);
@@ -163,8 +173,11 @@ public class SettingsManager : MonoBehaviour
     {
         if (settingPanel == null) return;
 
+        if (MicCalibrationUI.IsCalibrating) return;
+
         bool isActive = !settingPanel.activeSelf;
         settingPanel.SetActive(isActive);
+        OpenAudioUIPanel();
         IsOpen = isActive;
 
         if (isActive)
@@ -181,5 +194,39 @@ public class SettingsManager : MonoBehaviour
                 Cursor.visible = false;
             }
         }
+    }
+
+    // 오디오 UI창 켜기
+    private void OpenAudioUIPanel()
+    {
+        CloseAllUIPanel();
+        audioUIPanel.SetActive(true);
+    }
+
+    // 조작 UI창 켜기
+    private void OpenControlUIPanel()
+    {
+        CloseAllUIPanel();
+        controlUIPanel.SetActive(true);
+    }
+
+    private void OpenMikeUIPanel()
+    {
+        CloseAllUIPanel();
+        mikeUIPanel.SetActive(true);
+    }
+
+    // 모든 UI창 끄기
+    private void CloseAllUIPanel()
+    {
+        audioUIPanel.SetActive(false);
+        controlUIPanel.SetActive(false);
+        mikeUIPanel.SetActive(false);
+    }
+
+    // 설정 창 끄기
+    private void CloseSettingPanel()
+    {
+        settingPanel.SetActive(false);
     }
 }
