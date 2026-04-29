@@ -14,7 +14,6 @@ public class SymbolLeverView : MonoBehaviour
     [Header("레버 각도")]
     [SerializeField] private float upAngleY = 0f;                // 위 상태 Y각도
     [SerializeField] private float pullAngleY = 180f;            // 위 상태에서 당길 때 추가할 Y각도
-    [SerializeField] private bool invertPullDirection = false;   // 당기는 방향 반전 여부
 
     [Header("레버 애니메이션")]
     [SerializeField] private float rotateDuration = 0.25f;       // 레버 회전 시간
@@ -72,7 +71,7 @@ public class SymbolLeverView : MonoBehaviour
     /// </summary>
     private Quaternion GetTargetRotation(bool isPulled)
     {
-        float signedPullAngle = invertPullDirection ? -pullAngleY : pullAngleY;
+        float signedPullAngle = -pullAngleY;
         float targetY = isPulled ? upAngleY + signedPullAngle : upAngleY;
 
         Vector3 euler = Target.localEulerAngles;

@@ -69,11 +69,11 @@ public static class WireConnectionAnswerGenerator
         return new List<WireSocketColor>
         {
             WireSocketColor.Red,
-            WireSocketColor.Orange,
+            WireSocketColor.DarkOrange,
             WireSocketColor.Yellow,
             WireSocketColor.Green,
             WireSocketColor.Blue,
-            WireSocketColor.Navy,
+            WireSocketColor.DarkGray,
             WireSocketColor.Purple,
             WireSocketColor.White,
             WireSocketColor.Black

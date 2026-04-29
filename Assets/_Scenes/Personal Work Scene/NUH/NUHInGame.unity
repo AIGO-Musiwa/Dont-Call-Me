@@ -171023,7 +171023,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1322572316
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -278497,8 +278497,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a837aec69daf35c4b8b6ff9409b50345, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MicLevelUI
-  micGauge: {fileID: 35618796}
-  dBLabel: {fileID: 1655583542}
+  direction: 0
+  levelBar: {fileID: 0}
+  markerWhisper: {fileID: 0}
+  markerNormal: {fileID: 0}
+  markerLoud: {fileID: 0}
   colorSafe: {r: 0, g: 1, b: 0, a: 1}
   colorAlert: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   colorCritical: {r: 1, g: 0, b: 0, a: 1}
