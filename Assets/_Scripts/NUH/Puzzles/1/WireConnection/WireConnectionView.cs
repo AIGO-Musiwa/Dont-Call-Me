@@ -7,6 +7,7 @@ using UnityEngine;
 /// - 좌우 소켓 색 표시
 /// - 선택된 좌측 하이라이트
 /// - 연결선 표시 / 숨김 및 위치 반영
+/// - 연결선 색상 검은색 적용
 /// - Confirm 레버 애니메이션
 /// - Confirm 판정 Emission 표시
 /// </summary>
@@ -36,6 +37,10 @@ public class WireConnectionView : MonoBehaviour
     [Header("연결선 두께")]
     [SerializeField] private float lineThickness = 0.1f; // 연결선 두께
 
+    [Header("연결선 색상")]
+    [SerializeField] private Color connectionLineColor = Color.black; // 실제 연결선 표시 색상
+    [SerializeField] private string connectionLineColorPropertyName = "_BaseColor"; // 연결선 머티리얼 색상 프로퍼티
+
     [Header("색상 머터리얼 프로퍼티")]
     [SerializeField] private string colorPropertyName = "_BaseColor"; // 소켓 색상 프로퍼티
 
@@ -56,6 +61,7 @@ public class WireConnectionView : MonoBehaviour
     [SerializeField] private float judgeFailBlinkOffTime = 0.15f; // 검정색 유지 시간
 
     private MaterialPropertyBlock _mpb; // 소켓 색상용 MPB
+    private MaterialPropertyBlock _lineMpb; // 연결선 색상용 MPB
     private MaterialPropertyBlock _judgeMpb; // Confirm Emission용 MPB
 
     private Coroutine _judgeFailRoutine; // 실패 깜빡임 코루틴
@@ -70,6 +76,7 @@ public class WireConnectionView : MonoBehaviour
     private void Awake()
     {
         _mpb = new MaterialPropertyBlock();
+        _lineMpb = new MaterialPropertyBlock();
         _judgeMpb = new MaterialPropertyBlock();
 
         HideAllLines();
@@ -105,6 +112,7 @@ public class WireConnectionView : MonoBehaviour
 
     /// <summary>
     /// 현재 연결 상태를 연결선 비주얼에 반영한다.
+    /// 연결선은 활성화될 때 검은색으로 보정한다.
     /// </summary>
     public void ApplyConnections(IReadOnlyList<int> connectedRightIndexByLeft)
     {
@@ -113,17 +121,21 @@ public class WireConnectionView : MonoBehaviour
         for (int leftIndex = 0; leftIndex < count; leftIndex++)
         {
             Transform line = connectionLineVisuals[leftIndex];
+
             if (line == null)
                 continue;
 
             int rightIndex = connectedRightIndexByLeft[leftIndex];
+
             if (rightIndex < 0 || rightIndex >= rightSocketPoints.Count)
             {
                 line.gameObject.SetActive(false);
                 continue;
             }
 
-            if (leftIndex >= leftSocketPoints.Count || leftSocketPoints[leftIndex] == null || rightSocketPoints[rightIndex] == null)
+            if (leftIndex >= leftSocketPoints.Count ||
+                leftSocketPoints[leftIndex] == null ||
+                rightSocketPoints[rightIndex] == null)
             {
                 line.gameObject.SetActive(false);
                 continue;
@@ -144,6 +156,10 @@ public class WireConnectionView : MonoBehaviour
             }
 
             line.gameObject.SetActive(true);
+
+            // 연결선은 실제 연결이 생성된 상태이므로 검은색으로 표시한다.
+            ApplyConnectionLineColor(line);
+
             line.position = (start + end) * 0.5f;
             line.rotation = Quaternion.FromToRotation(cylinderAxis, dir.normalized);
 
@@ -282,6 +298,31 @@ public class WireConnectionView : MonoBehaviour
     }
 
     /// <summary>
+    /// 연결선 Renderer에 검은색을 적용한다.
+    /// 연결선 머티리얼이 이미 검은색이어도, 런타임에서 한 번 더 보정한다.
+    /// </summary>
+    private void ApplyConnectionLineColor(Transform line)
+    {
+        if (line == null)
+            return;
+
+        Renderer lineRenderer = line.GetComponent<Renderer>();
+
+        if (lineRenderer == null)
+            lineRenderer = line.GetComponentInChildren<Renderer>();
+
+        if (lineRenderer == null)
+            return;
+
+        if (_lineMpb == null)
+            _lineMpb = new MaterialPropertyBlock();
+
+        lineRenderer.GetPropertyBlock(_lineMpb);
+        _lineMpb.SetColor(connectionLineColorPropertyName, connectionLineColor);
+        lineRenderer.SetPropertyBlock(_lineMpb);
+    }
+
+    /// <summary>
     /// Confirm Emission 색상을 반영한다.
     /// Material의 Emission은 미리 켜두고, 여기서는 Black ↔ Color만 바꾼다.
     /// </summary>
@@ -289,6 +330,9 @@ public class WireConnectionView : MonoBehaviour
     {
         if (judgeIndicatorRenderer == null)
             return;
+
+        if (_judgeMpb == null)
+            _judgeMpb = new MaterialPropertyBlock();
 
         Color finalColor = color * judgeEmissionIntensity;
 
@@ -309,6 +353,9 @@ public class WireConnectionView : MonoBehaviour
         _judgeFailRoutine = null;
     }
 
+    /// <summary>
+    /// 소켓 Renderer 목록에 색상 목록을 반영한다.
+    /// </summary>
     private void ApplyColorsToRenderers(List<Renderer> renderers, IReadOnlyList<WireSocketColor> colors)
     {
         int count = Mathf.Min(renderers.Count, colors.Count);
@@ -316,8 +363,12 @@ public class WireConnectionView : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             Renderer renderer = renderers[i];
+
             if (renderer == null)
                 continue;
+
+            if (_mpb == null)
+                _mpb = new MaterialPropertyBlock();
 
             renderer.GetPropertyBlock(_mpb);
             _mpb.SetColor(colorPropertyName, ToUnityColor(colors[i]));
@@ -325,12 +376,15 @@ public class WireConnectionView : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// WireSocketColor 값을 Unity Color로 변환한다.
+    /// </summary>
     private Color ToUnityColor(WireSocketColor socketColor)
     {
         return socketColor switch
         {
             WireSocketColor.Red => Color.red,
-            WireSocketColor.DarkOrange => new Color(1f, 0.55f, 0f),
+            WireSocketColor.DarkOrange => new Color(1f, 0.5f, 0f),
             WireSocketColor.Yellow => Color.yellow,
             WireSocketColor.Green => Color.green,
             WireSocketColor.Blue => Color.blue,
