@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MicCalibrationUI : MonoBehaviour
@@ -47,6 +48,9 @@ public class MicCalibrationUI : MonoBehaviour
 
         if (calibSentenceText != null)
             calibSentenceText.gameObject.SetActive(false);
+
+        if (SceneManager.GetActiveScene().buildIndex == SceneNames.GAME_INDEX)
+            autoCalibButton.interactable = false;
 
         // 패널 초기 비활성화
         SetBlockPanel(false);
