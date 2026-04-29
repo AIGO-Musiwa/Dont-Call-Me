@@ -36,6 +36,9 @@ public class LightPatternHint : MonoBehaviour, IPuzzleSeedReceiver
     private bool _hasAnswerSeed;                                         // 시드 적용 완료 여부
     private Coroutine _loopRoutine;                                      // 반복 재생 코루틴
 
+    [Header("사운드 모듈")]
+    [SerializeField] private MultiAudioTrigger audioModule;
+
     private void Awake()
     {
         TurnAllBulbs(false);
@@ -123,7 +126,8 @@ public class LightPatternHint : MonoBehaviour, IPuzzleSeedReceiver
 
                 if (index >= 0 && index < hintBulbs.Count && hintBulbs[index] != null)
                 {
-                    //TODO_Sound - 전구 힌트 개별 깜빡임
+                    // 사운드 재생
+                    if (audioModule != null) audioModule.PlaySound(SoundType.BeepSmall); //  전구 힌트 개별 깜빡임
 
                     hintBulbs[index].SetHintActive(true);
                     yield return new WaitForSeconds(hintOnTime);
@@ -133,7 +137,8 @@ public class LightPatternHint : MonoBehaviour, IPuzzleSeedReceiver
                 yield return new WaitForSeconds(hintOffTime);
             }
 
-            //TODO_Sound - 전구 힌트 전체 깜빡임
+            // 사운드 재생
+            if (audioModule != null) audioModule.PlaySound(SoundType.BeepLarge); // 전구 힌트 전체 깜빡임
 
             TurnAllBulbs(true);
             yield return new WaitForSeconds(fullBlinkOnTime);

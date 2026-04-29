@@ -23,8 +23,6 @@ public class PuzzleButtonInteractable : PuzzleInteractableBase
     [Networked]
     public int NetPressCount { get; private set; }
 
-    [Header("사운드 모듈")]
-    [SerializeField] private MultiAudioTrigger audioModule; // 🛠️ 통일성을 위해 audioModule로 이름 변경
 
 
     public override void Spawned()
