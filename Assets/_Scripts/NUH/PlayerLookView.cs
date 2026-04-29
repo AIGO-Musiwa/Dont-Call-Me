@@ -34,6 +34,8 @@ public class PlayerLookView : MonoBehaviour
         if (!IsReady())
             return;
 
+        if (SettingsManager.IsOpen) return;
+
         ApplySharedLookPose();
         ApplyAuthorityOnlyPresentation();
     }

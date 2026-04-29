@@ -241,3 +241,12 @@ public enum GameState
     Loading = 0,        // 모든 클라이언트 로딩 완료 대기
     Playing = 1         // 게임 진행 중
 }
+
+// ── UI ──────────────────────────────────────────────────
+
+// 마이크 레벨 게이지
+public enum GaugeDirection
+{
+    Horizontal,
+    Vertical
+}
