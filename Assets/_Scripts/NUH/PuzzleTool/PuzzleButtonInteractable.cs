@@ -23,7 +23,8 @@ public class PuzzleButtonInteractable : PuzzleInteractableBase
     [Networked]
     public int NetPressCount { get; private set; }
 
-    [SerializeField] private SimpleAudioTrigger audioTrigger; // 연결 단자
+    [Header("사운드 모듈")]
+    [SerializeField] private MultiAudioTrigger audioModule; // 🛠️ 통일성을 위해 audioModule로 이름 변경
 
 
     public override void Spawned()
@@ -76,9 +77,11 @@ public class PuzzleButtonInteractable : PuzzleInteractableBase
     {
         ApplyPresentation();
 
-        // 심플오디오트리거에 신호 전달해서 사운드 재생 
-        // 논리는 안 건드리고 신호만 전달하는 거지.
-        if (NetIsPressed && audioTrigger != null) audioTrigger.Play();
+        // 🛠️ [개조 포인트] 다중 채널 모터에 '가벼운 조작음' 신호(Enum)를 전달하도록 수정
+        if (NetIsPressed && audioModule != null)
+        {
+            audioModule.PlaySound(SoundType.InteractLight);
+        }
     }
 
     private void ApplyPresentation()
@@ -86,6 +89,4 @@ public class PuzzleButtonInteractable : PuzzleInteractableBase
         if (buttonView != null)
             buttonView.SetPressed(NetIsPressed);
     }
-
-   
 }
