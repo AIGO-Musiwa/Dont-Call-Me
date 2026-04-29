@@ -8,7 +8,7 @@ using UnityEngine;
 /// - 첫 방향은 좌/우 랜덤
 /// - 이후 방향은 반대로 번갈아 진행
 /// - 36도 기준 10칸 다이얼 규칙 사용
-/// - 다이얼 완료 시 금고 문을 연다
+/// - 다이얼 완료 시 금고 문을 부드럽게 연다
 /// - 금고 안 버튼을 눌러야 최종 퍼즐 클리어 처리한다
 /// </summary>
 public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
@@ -70,7 +70,7 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         base.Spawned();
 
         ApplySignedPositionToView();
-        ApplyDoorOpenedToView();
+        ApplyDoorOpenedToViewImmediate();
         ApplyInsideButtonToView();
     }
 
@@ -93,7 +93,7 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         }
 
         ApplySignedPositionToView();
-        ApplyDoorOpenedToView();
+        ApplyDoorOpenedToViewImmediate();
         ApplyInsideButtonToView();
 
         Log($"다이얼 정답 시드 적용 완료 | seed = {seed} | firstDir = {data.FirstDirection}");
@@ -213,7 +213,7 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         NetDialUnlocked = true;
         NetSafeDoorOpened = true;
 
-        ApplyDoorOpenedToView();
+        ApplyDoorOpenedToViewAnimated();
 
         Log("다이얼 해제 완료. 금고 문 열림. 내부 버튼 입력 대기");
     }
@@ -225,7 +225,7 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     {
         ResetPuzzleStateOnly();
         ApplySignedPositionToView();
-        ApplyDoorOpenedToView();
+        ApplyDoorOpenedToViewImmediate();
         ApplyInsideButtonToView();
 
         Log("다이얼 퍼즐 초기화");
@@ -260,15 +260,15 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// </summary>
     private void OnDialUnlockedChanged()
     {
-        ApplyDoorOpenedToView();
+        // 다이얼 해제 여부 자체로는 별도 시각 처리 없음.
     }
 
     /// <summary>
-    /// 문 열림 상태 변경 시 금고 문 뷰를 갱신한다.
+    /// 문 열림 상태 변경 시 금고 문 뷰를 애니메이션으로 갱신한다.
     /// </summary>
     private void OnSafeDoorOpenedChanged()
     {
-        ApplyDoorOpenedToView();
+        ApplyDoorOpenedToViewAnimated();
     }
 
     /// <summary>
@@ -289,12 +289,23 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     }
 
     /// <summary>
-    /// 현재 문 열림 상태를 금고 문 뷰에 반영한다.
+    /// 현재 문 열림 상태를 금고 문 뷰에 즉시 반영한다.
+    /// 스폰/초기화용이다.
     /// </summary>
-    private void ApplyDoorOpenedToView()
+    private void ApplyDoorOpenedToViewImmediate()
     {
         if (safeDoorView != null)
             safeDoorView.SetOpenedImmediate(NetSafeDoorOpened);
+    }
+
+    /// <summary>
+    /// 현재 문 열림 상태를 금고 문 뷰에 애니메이션으로 반영한다.
+    /// 실제 문 열림/닫힘 이벤트용이다.
+    /// </summary>
+    private void ApplyDoorOpenedToViewAnimated()
+    {
+        if (safeDoorView != null)
+            safeDoorView.SetOpenedAnimated(NetSafeDoorOpened);
     }
 
     /// <summary>

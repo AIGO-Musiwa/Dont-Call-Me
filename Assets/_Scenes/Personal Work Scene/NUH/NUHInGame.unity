@@ -68332,7 +68332,6 @@ Transform:
   - {fileID: 690202010}
   - {fileID: 1678557242}
   - {fileID: 908702935}
-  - {fileID: 1285269308}
   - {fileID: 1411772235}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -167879,52 +167878,6 @@ MonoBehaviour:
   - {fileID: 691338304}
   autoCollectSlots: 1
   enableDebugLog: 0
---- !u!1 &1285269306
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1285269308}
-  - component: {fileID: 1285269307}
-  m_Layer: 0
-  m_Name: PuzzleProgressManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1285269307
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1285269306}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 694fc09084104da4bbe75c8de66341b9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PuzzleProgressManager
-  stageManager: {fileID: 0}
-  enableDebugLog: 1
---- !u!4 &1285269308
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1285269306}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -53.86349, y: 6.01217, z: 53.13936}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 550518426}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1285428302
 GameObject:
   m_ObjectHideFlags: 0
@@ -171070,7 +171023,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1322572316
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -180585,7 +180538,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f88c031edca8b347a508fb889d5f6de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageManager
-  puzzleProgressManager: {fileID: 1285269307}
+  puzzleProgressManager: {fileID: 0}
   zoneAStage3Door: {fileID: 0}
   zoneBStage3Door: {fileID: 0}
   sirenAudioSource: {fileID: 0}
@@ -208661,7 +208614,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkDebugStarter
   runnerPrefab: {fileID: 5485668934217040620, guid: e0417ef891fc9684fa0ad78a2fa7d358, type: 3}
-  sessionName: DevlepTest
+  sessionName: DevlepTestHyun
   testNickname: TestPlayer
   playerDataPrefab: {fileID: 3058198935618079336, guid: 86f272d8fc5284641be8e46d38a00118, type: 3}
 --- !u!4 &1629534845
@@ -278544,8 +278497,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a837aec69daf35c4b8b6ff9409b50345, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MicLevelUI
-  micGauge: {fileID: 35618796}
-  dBLabel: {fileID: 1655583542}
+  direction: 0
+  levelBar: {fileID: 0}
+  markerWhisper: {fileID: 0}
+  markerNormal: {fileID: 0}
+  markerLoud: {fileID: 0}
   colorSafe: {r: 0, g: 1, b: 0, a: 1}
   colorAlert: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   colorCritical: {r: 1, g: 0, b: 0, a: 1}
