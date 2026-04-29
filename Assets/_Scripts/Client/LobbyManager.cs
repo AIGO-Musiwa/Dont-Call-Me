@@ -134,6 +134,8 @@ public class LobbyManager : MonoBehaviour
         // 슬롯 해제
         if (_playerRefToSlot.TryGetValue(player, out var slotIndex))
         {
+            LobbyCharacterViewer.Instance?.OnPlayerLeft(slotIndex);
+
             _slots[slotIndex] = null;
             _playerRefToSlot.Remove(player);
         }
@@ -162,6 +164,8 @@ public class LobbyManager : MonoBehaviour
             }
         }
         RefreshSlots();
+
+        LobbyCharacterViewer.Instance?.RebuildFromExistingPlayerData();
 
         // 슬롯 바인딩 완료 후 오버레이 표시
         if (ResultPayload.Pending != null && resultOverlay != null)

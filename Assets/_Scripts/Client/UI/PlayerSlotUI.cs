@@ -5,8 +5,8 @@ using UnityEngine.UI;
 public class PlayerSlotUI : MonoBehaviour
 {
     // ── Inspector ─────────────────────────────────────────
-    [Header("모니터링 장치 (RTT 연동용)")]
-    public RawImage characterDisplay; // 나중에 Render Texture가 들어올 자리
+    [Header("캐릭터 디스플레이")]
+    public RawImage characterDisplay;
 
     [Header("패널")]
     [SerializeField] private GameObject filledPanel;
@@ -63,6 +63,22 @@ public class PlayerSlotUI : MonoBehaviour
         readyText.text = _boundPlayer.IsReady
             ? "<color=#00FF00>READY</color>"        // 녹색
             : "<color=#FF0000>WAITING</color>";     // 적색
+    }
+
+    // RenderTexture 등록
+    public void SetCharacter(RenderTexture renderTexture)
+    {
+        if (characterDisplay == null) return;
+        characterDisplay.texture = renderTexture;
+        characterDisplay.gameObject.SetActive(true);
+    }
+
+    // 플레이어 퇴장 시 RenderTexture 해제
+    public void ClearCharacter()
+    {
+        if (characterDisplay == null) return;
+        characterDisplay.texture = null;
+        characterDisplay.gameObject.SetActive(false);
     }
 
     #endregion

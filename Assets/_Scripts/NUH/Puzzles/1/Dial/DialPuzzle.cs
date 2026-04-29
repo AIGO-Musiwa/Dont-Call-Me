@@ -55,6 +55,8 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// </summary>
     public bool IsInsideButtonPressed => NetInsideButtonPressed;
 
+    
+
     private void Awake()
     {
         // Awake에서는 Networked 값 접근 금지.
@@ -140,7 +142,8 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
         ApplySignedPositionToView();
 
-        //TODO_Sound - 금고 다이얼 회전
+        //TODO_Sound - 다이얼 회전 사운드
+        if (audioModule != null) audioModule.PlaySound(SoundType.InteractLight); // '금고 다이얼 회전
 
         int expectedCount = _answerStepCounts[NetCurrentStepIndex];
 
@@ -180,7 +183,8 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
         NetInsideButtonPressed = true;
 
-        //TODO_Sound - 금고 내부 버튼 입력
+        //TODO_Sound - 내부 버튼 입력 사운드
+        if (audioModule != null) audioModule.PlaySound(SoundType.InteractLight); //  - 금고 내부 버튼 입력
 
         ApplyInsideButtonToView();
 
@@ -218,7 +222,9 @@ public class DialPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         NetDialUnlocked = true;
         NetSafeDoorOpened = true;
 
-        //TODO_Sound - 금고 문 열림
+
+        //TODO_Sound - 금고 문 열림 사운드
+        if (audioModule != null) audioModule.PlaySound(SoundType.MechanicalMove); //  금고 문 열림
 
         ApplyDoorOpenedToViewAnimated();
 

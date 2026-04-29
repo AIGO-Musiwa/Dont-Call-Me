@@ -9,6 +9,9 @@ public class NetworkDebugStarter : MonoBehaviour
     [Header("연결 설정")]
     [SerializeField] private NetworkRunner runnerPrefab;
 
+    [Header("테스트용 캐릭터 레지스트리")]
+    [SerializeField] private CharacterprefabRegistry characterRegistry;
+
     [Tooltip("MPM 사용 시 인스턴스끼리 같은 이름으로 접속")]
     [SerializeField] private string sessionName = "DevGame";
 
@@ -56,13 +59,18 @@ public class NetworkDebugStarter : MonoBehaviour
 
         GameLauncher.Instance.SetDevPlayerDataPrefab(playerDataPrefab);
 
+        if (characterRegistry != null)
+            GameLauncher.Instance.SetDevCharacterRegistry(characterRegistry);
+        else
+            Debug.LogWarning("[NetworkDebugStarter] CharacterPrefabRegistry가 없습니다. 캐릭터 배정이 작동하지 않습니다.");
+
         var result = await runner.StartGame(new StartGameArgs
         {
             GameMode = GameMode.AutoHostOrClient,           // MPM: 첫 인스턴스: Host, 나머지 Client
             SessionName = sessionName,
             Scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex),
             SceneManager = runner.GetComponent<INetworkSceneManager>()
-                           ?? runner.gameObject.AddComponent<NetworkSceneManagerDefault>()
+                               ?? runner.gameObject.AddComponent<NetworkSceneManagerDefault>()
         });
 
         if (!result.Ok)

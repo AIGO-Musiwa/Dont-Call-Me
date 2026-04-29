@@ -1,19 +1,23 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerResultSlotUI : MonoBehaviour
 {
+    [Header("결과 화면 Player Slot UI")]
     [SerializeField] private GameObject filledGroup;
     [SerializeField] private TextMeshProUGUI nicknameText;
     [SerializeField] private GameObject escapedImage;
     [SerializeField] private GameObject deadImage;
     [SerializeField] private GameObject hostMark;
+    [SerializeField] private Image characterFaceImage;
 
     [Header("닉네임 색상")]
     [SerializeField] private Color localPlayerColor = new Color(1f, 0.85f, 0.2f, 1f); // 노란색
     [SerializeField] private Color defaultColor = Color.white;
 
-    public void SetPlayer(string nickname, PlayerState state, bool isLocalPlayer = false, bool isHost = false)
+    public void SetPlayer(string nickname, PlayerState state, bool isLocalPlayer = false,
+        bool isHost = false, Sprite faceSprite = null)
     {
         filledGroup.SetActive(true);
 
@@ -24,6 +28,13 @@ public class PlayerResultSlotUI : MonoBehaviour
         // 방장 표시
         if (hostMark != null)
             hostMark.SetActive(isHost);
+
+        // 캐릭터 얼굴 스프라이트 적용
+        if (characterFaceImage != null)
+        {
+            characterFaceImage.sprite = faceSprite;
+            characterFaceImage.gameObject.SetActive(faceSprite != null);
+        }
 
         switch (state)
         {

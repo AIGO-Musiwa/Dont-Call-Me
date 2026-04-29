@@ -13,7 +13,9 @@ public class Radio : NetworkBehaviour, IHoldInteractable
 {
     [Header("참조")]
     [SerializeField] private RadioGlassController glassController; // 라디오 유리 시각 상태 제어기
-    [SerializeField] private SimpleAudioTrigger audioTrigger;      // 작동 상태 음향 제어기
+
+    // 🛠️ [개조 포인트 1] SimpleAudioTrigger -> 범용 MultiAudioTrigger로 교체
+    [SerializeField] private MultiAudioTrigger audioModule;        // 작동 상태 음향 제어기
 
     [Header("설정")]
     [SerializeField] private float maxRepairTime = 10f;     // 수리에 필요한 총 시간
@@ -98,12 +100,29 @@ public class Radio : NetworkBehaviour, IHoldInteractable
         if (glassController != null)
             glassController.SetRadioState(CurrentState); // 유리 상태 표시 갱신
 
-        if (audioTrigger != null)
+        // 🛠️ [개조 포인트 2] 상태 머신(FSM)에 따른 사운드 분기 처리
+        if (audioModule != null)
         {
-            if (CurrentState == RadioState.Active)
-                audioTrigger.Play(); // 작동 중이면 소리 재생
-            else
-                audioTrigger.Stop(); // 그 외 상태면 소리 정지
+            switch (CurrentState)
+            {
+                case RadioState.InProgress:
+                    // 수리 중일 때 드라이버 소리 등 재생
+                    audioModule.PlaySound(SoundType.RadioRepair);
+                    break;
+
+                case RadioState.Active:
+                    // 작동 중일 때 소리 (기공사가 원치 않으면 인스펙터에서 이 사운드 매핑을 비워두면 됨!)
+                    audioModule.PlaySound(SoundType.RadioActive);
+                    break;
+
+                case RadioState.Broken:
+                case RadioState.Ready:
+                case RadioState.Disabled:
+                default:
+                    // 그 외 대기/종료/고장 상태에서는 소리 강제 정지
+                    audioModule.StopSound();
+                    break;
+            }
         }
     }
 
