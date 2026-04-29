@@ -14,6 +14,9 @@ public class PlayerData : NetworkBehaviour
     [Networked] public NetworkBool IsReviewingResult {  get; set; }     // 결과 화면을 보고 있는 중인지 여부
     [Networked] public PlayerState FinalPlayerState { get; set; }       // 마지막 플레이어 상태
 
+    [Networked, OnChangedRender(nameof(OnCharacterIndexChanged))]
+    public int CharacterIndex { get; set; } = -1;                       // 캐릭터 프리팹 인덱스
+
     // ── 게임 전용 ────────────────────────────────────────
     [Networked] public NetworkId PlayerControllerNetId { get; set; }
 
@@ -28,33 +31,45 @@ public class PlayerData : NetworkBehaviour
 
     public override void Spawned()
     {
-        if (!HasInputAuthority) return;
-
-        string nickname = GameLauncher.Instance != null
-            ? GameLauncher.Instance.LocalNickname
-            : "Player";
-
-        Rpc_SetNickname(nickname);
-
-        // 호스트는 준비 버튼 없으므로 스폰 즉시 IsReady = true
-        if (Runner.IsServer)
+        if (HasInputAuthority)
         {
-            Rpc_SetReady(true);
-            Rpc_SetIsHost(true);
+
+            string nickname = GameLauncher.Instance != null
+                ? GameLauncher.Instance.LocalNickname
+                : "Player";
+
+            Rpc_SetNickname(nickname);
+
+            // 호스트는 준비 버튼 없으므로 스폰 즉시 IsReady = true
+            if (Runner.IsServer)
+            {
+                Rpc_SetReady(true);
+                Rpc_SetIsHost(true);
+            }
+            else
+            {
+                bool isReturning = GameLauncher.Instance?.IsReturningToLobby ?? false;
+                if (isReturning)
+                    Rpc_SetReady(false);
+
+                Rpc_SetIsHost(false);
+            }
+
+            // VoiceManager에 로컬 플레이어 등록
+            VoiceManager.Instance?.RegisterLocalPlayer(this);
+
+            if (CharacterIndex >= 0 && SlotIndex >= 0)
+                LobbyCharacterViewer.Instance?.OnCharacterAssigned(SlotIndex, CharacterIndex);
+
+            Debug.Log($"[PlayerData] 스폰 완료 | 닉네임={nickname} | IsHost={Runner.IsServer}");
         }
-        else
+
+        // 모든 클라이언트에서 이미 세팅된 CharacterIndex를 수동으로 적용
+        if (CharacterIndex >= 0 && SlotIndex >= 0)
         {
-            bool isReturning = GameLauncher.Instance?.IsReturningToLobby ?? false;
-            if (isReturning)
-                Rpc_SetReady(false);
-
-            Rpc_SetIsHost(false);
+            Debug.Log($"[PlayerData] Spawned 시 CharacterIndex 수동 초기화 | SlotIndex={SlotIndex} | CharacterIndex={CharacterIndex}");
+            LobbyCharacterViewer.Instance?.OnCharacterAssigned(SlotIndex, CharacterIndex);
         }
-
-        // VoiceManager에 로컬 플레이어 등록
-        VoiceManager.Instance?.RegisterLocalPlayer(this);
-
-        Debug.Log($"[PlayerData] 스폰 완료 | 닉네임={nickname} | IsHost={Runner.IsServer}");
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState)
@@ -65,6 +80,14 @@ public class PlayerData : NetworkBehaviour
     }
 
     #endregion
+
+    private void OnCharacterIndexChanged()
+    {
+        if (CharacterIndex < 0 || SlotIndex < 0) return;
+
+        Debug.Log($"[PlayerData] CharacterIndex 변경 감지 | SlotIndex={SlotIndex} | CharacterIndex={CharacterIndex}");
+        LobbyCharacterViewer.Instance?.OnCharacterAssigned(SlotIndex, CharacterIndex);
+    }
 
     #region RPC (본인 → Host)
 
