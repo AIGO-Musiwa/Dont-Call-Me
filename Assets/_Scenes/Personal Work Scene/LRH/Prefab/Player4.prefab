@@ -49,7 +49,6 @@ GameObject:
   - component: {fileID: 2312676653009107545}
   - component: {fileID: 337302903905785820}
   - component: {fileID: 5612902865707178944}
-  - component: {fileID: -88289522558090234}
   - component: {fileID: -7581908001551703947}
   - component: {fileID: 7561785519444632873}
   - component: {fileID: -2814972626013594367}
@@ -307,33 +306,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerFlashlightView
   _controller: {fileID: 240582007588533922}
   _heldFlashlightLight: {fileID: 647167362678895499}
---- !u!114 &-88289522558090234
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 827289365566288008}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a9aab57ee0226d4599d80229a3d3b14, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerSpectatorController
-  spectatorCamera: {fileID: 0}
-  spectatorOrbitCamera: {fileID: 0}
-  lookAction: {fileID: 0}
-  zoomAction: {fileID: 0}
-  previousTargetAction: {fileID: 0}
-  nextTargetAction: {fileID: 0}
-  horizontalSpeed: 0.2
-  verticalSpeed: 0.15
-  defaultVerticalAngle: 15
-  minVerticalAngle: -30
-  maxVerticalAngle: 65
-  zoomSpeed: 0.1
-  defaultDistance: 4
-  minDistance: 2.5
-  maxDistance: 6.5
 --- !u!114 &-7581908001551703947
 MonoBehaviour:
   m_ObjectHideFlags: 0
