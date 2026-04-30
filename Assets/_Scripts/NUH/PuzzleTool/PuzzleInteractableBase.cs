@@ -36,6 +36,8 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
 
     public bool CountForStageProgress => countForStage1Progress; // 진행도 집계 포함 여부 외부 읽기용
 
+    private float failSounddB = 49f;
+
     /// <summary>
     /// 현재 퍼즐에 스폰 Zone이 주입되었는지 반환한다.
     /// </summary>
@@ -212,6 +214,7 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     /// </summary>
     protected virtual void MarkFailed()
     {
+        SoundEmitter.EmitWalkieDirect(failSounddB, transform.position, SpawnZone);
         if (audioModule != null)
             audioModule.PlaySound(SoundType.Fail); // 실패
     }
