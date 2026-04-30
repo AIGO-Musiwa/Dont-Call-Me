@@ -142,7 +142,17 @@ public class TitleManager : MonoBehaviour
         errorPanel.SetActive(false);
     }
 
-    #endregion
+    // 게임 종료
+    public void OnQuitClicked()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+    Application.Quit();
+#endif
+    }
+
+#endregion
 
     #region 이벤트 처리
 
