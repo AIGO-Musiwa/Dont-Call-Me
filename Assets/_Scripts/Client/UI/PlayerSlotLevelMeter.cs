@@ -14,6 +14,8 @@ public class PlayerSlotLevelMeter : MonoBehaviour
     private float currentFill = 0f;
     private float[] samples;
 
+    private bool isLocalPlayer = false;
+    
     private void Awake()
     {
         samples = new float[sampleSize];
@@ -33,7 +35,13 @@ public class PlayerSlotLevelMeter : MonoBehaviour
 
         float target = 0f;
 
-        if ( targetAudioSource != null && targetAudioSource.isPlaying)
+        if (isLocalPlayer)
+        {
+            // 본인은 Recorder.LevelMeter 사용
+            float amp = VoiceManager.Instance?.LocalRecorder?.LevelMeter?.CurrentAvgAmp ?? 0f;
+            target = Mathf.Clamp01(amp * 10f);
+        }
+        else if ( targetAudioSource != null && targetAudioSource.isPlaying)
         {
             targetAudioSource.GetOutputData(samples, 0);
 
@@ -61,7 +69,7 @@ public class PlayerSlotLevelMeter : MonoBehaviour
             if (levelBar != null) levelBar.fillAmount = 0f;
             return;
         }
-
+        isLocalPlayer = playerData.HasInputAuthority;
         targetAudioSource = playerData.GetComponent<AudioSource>();
     }
 
