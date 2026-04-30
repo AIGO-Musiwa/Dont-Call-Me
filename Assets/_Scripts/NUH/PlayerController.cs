@@ -156,7 +156,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!GetInput(out PlayerNetworkInput input))
             return;                                                      // 입력 없으면 종료
 
-        if (!SettingsManager.IsOpen)
+        if (!(SettingsManager.IsOpen && HasInputAuthority))
             KCCMotor.Simulate(input, NetMovementLocked, NetLookLocked);   // 이동/시야 시뮬레이션
 
         // 관전 상태에서는 일반 상호작용 / Hold 상호작용 / 무전기 PTT를 처리하지 않는다.

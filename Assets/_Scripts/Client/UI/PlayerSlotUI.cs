@@ -14,10 +14,12 @@ public class PlayerSlotUI : MonoBehaviour
     [Header("플레이어 정보")]
     [SerializeField] private TextMeshProUGUI nicknameText;
     [SerializeField] private TextMeshProUGUI readyText;
-    [SerializeField] private Image micIcon;
     
     [Header("상태 표시 등")]
     public GameObject hostBadge;      // 방장 표시 아이콘
+
+    [Header("레벨 미터")]
+    [SerializeField] private PlayerSlotLevelMeter levelMeter;
 
     // ── 내부 ──────────────────────────────────────────────
     private PlayerData _boundPlayer;
@@ -34,6 +36,7 @@ public class PlayerSlotUI : MonoBehaviour
     {
         _boundPlayer = data;
         filledPanel.SetActive(true);
+        levelMeter?.setTarget(data);
         Refresh();
     }
 
@@ -42,6 +45,7 @@ public class PlayerSlotUI : MonoBehaviour
     {
         _boundPlayer = null;
         filledPanel.SetActive(false);
+        levelMeter?.Clear();
     }
 
     // 바인딩된 데이터로 UI 갱신
@@ -51,7 +55,6 @@ public class PlayerSlotUI : MonoBehaviour
 
         hostBadge.SetActive(_boundPlayer.IsHost);
         nicknameText.text = _boundPlayer.Nickname.ToString();
-        micIcon.enabled = _boundPlayer.IsMicActive;
 
         // 결과 화면을 확인 중인 플레이어는 상태 텍스트만 교체
         if (_boundPlayer.IsReviewingResult)
