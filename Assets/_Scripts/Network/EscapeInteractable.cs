@@ -11,9 +11,30 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
     [Tooltip("버튼이 노출되었을 때 켤 불빛이나 머티리얼 오브젝트")]
     public GameObject buttonActiveVisual;
 
+    [Header("문 개방 설정 (탈출구 전용)")]
+    [Tooltip("문이 열릴 때 회전할 목표 각도 (예: Y축 90도)")]
+    public Vector3 openRotation = new Vector3(0, 90, 0);
+    [Tooltip("문이 열리는 속도")]
+    public float openSpeed = 5f;
+
+    [Networked] public NetworkBool IsOpen { get; set; }
+
+    private Quaternion closedRotation;
+    private Quaternion targetOpenRotation;
+
+    public override void Spawned()
+    {
+        //문 타입일 경우, 시작 시 회전값과 목표 열림 회전값을 저장
+        if (interactType == EscapeInteractType.FrontDoor || interactType == EscapeInteractType.RooftopDoor)
+        {
+            closedRotation = transform.localRotation;
+            targetOpenRotation = closedRotation * Quaternion.Euler(openRotation);
+        }
+    }
+
     public override void Render()
     {
-        //버튼 타입일 경우, StageManager의 노출 플래그에 따라 시작적 표현 활성화
+        //버튼 타입 연출
         if (interactType == EscapeInteractType.EscapeButton && buttonActiveVisual != null)
         {
             bool isExposed = StageManager.Instance != null &&
@@ -22,10 +43,22 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
 
             if (buttonActiveVisual.activeSelf != isExposed) buttonActiveVisual.SetActive(isExposed);
         }
+
+        //문 타입 연출
+        if (interactType == EscapeInteractType.FrontDoor || interactType == EscapeInteractType.RooftopDoor)
+        {
+            if (Object != null && Object.IsValid)
+            {
+                Quaternion targetRotation = IsOpen ? targetOpenRotation : closedRotation;
+                transform.localRotation = Quaternion.Slerp(transform.localRotation, targetRotation, Time.deltaTime * openSpeed);
+            }
+        }
     }
 
     public bool CanInteract(PlayerController actor)
     {
+        //이미 열린 문은 상호작용 불가능
+        if (IsOpen) return false;
         return true;
     }
 
@@ -64,10 +97,18 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
 
     private void HandleFrontDoorInteract(PlayerController player)
     {
+        if (!HasStateAuthority) return;
+
         //3막 발동 체크
         if (!StageManager.Instance.IsAct3Active)
         {
             Debug.LogWarning("정문 잠김: 아직 3막(탈출 페이즈)이 시작되지 않았습니다.");
+            return;
+        }
+
+        if (IsOpen)        
+        {
+            Debug.LogWarning("정문이 이미 열려 있습니다.");
             return;
         }
 
@@ -77,10 +118,9 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
         //키 종류 체크
         if (heldItem == ItemType.FrontDoorKey || heldItem == ItemType.MasterKey)
         {
-            Debug.Log($"플레이어({player.gameObject.name})가 정문으로 탈출 성공! (사용 키: {heldItem})");
-
-            //서버에 탈출 완료 상태 전송
-            player.ServerEnterEscaped();
+            //문 열기
+            IsOpen = true;
+            Debug.Log($"정문이 개방되었습니다! (사용 키: {heldItem}) 밖으로 나가 최종 탈출 구역에 도달하세요!");
         }
 
         else
@@ -92,6 +132,8 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
 
     private void HandleRooftopDoorInteract(PlayerController player)
     {
+        if (!HasStateAuthority) return;
+
         //3막 발동 체크
         if (!StageManager.Instance.IsAct3Active)
         {
@@ -99,16 +141,17 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
             return;
         }
 
+        //옥상 문은 상호작용으로 열리지 않음
+        if (IsOpen) return;
+
         //플레이어의 오른손 아이템 타입 추출
         ItemType heldItem = GetPlayerRightHandItemType(player);
 
-        //키 종류 체크 (옥상 탈출 조건: 무조건 마스터키)
+        //키 종류 체크 (옥상 탈출 조건: 마스터키)
         if (heldItem == ItemType.MasterKey)
         {
-            Debug.Log($"플레이어({player.gameObject.name})가 옥상으로 탈출 성공! (사용 키: {heldItem})");
-
-            //서버에 탈출 완료 상태 전송
-            player.ServerEnterEscaped();
+            IsOpen = true;
+            Debug.Log($"옥상 문이 개방되었습니다! (사용 키: {heldItem}) 밖으로 나가 최종 탈출 구역에 도달하세요!");
         }
         else
         {
