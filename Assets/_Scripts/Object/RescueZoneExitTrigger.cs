@@ -52,7 +52,7 @@ public class RescueZoneExitTrigger : MonoBehaviour
                     SetCreatureProtection(false);
 
                     //인원이 0명이 되면 구출 구역 문을 무조건 닫음
-                    RescueZoneDoor.GetDoor(myZone)?.CloseDoor();
+                    RescueZoneDoor.CloseAllDoorsInZone(myZone);
                 }
             }
         }
