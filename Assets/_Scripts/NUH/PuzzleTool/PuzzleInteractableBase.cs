@@ -11,6 +11,7 @@ using UnityEngine;
 /// - 규칙에 따라 오른손 아이템 먼저 드랍
 /// - 이후 퍼즐 고유 로직 실행
 /// - solved 상태 변경 시 모든 클라이언트에서 후처리 훅 호출
+/// - 스폰 시 주입받은 Zone 정보를 공통으로 보관
 /// </summary>
 public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
 {
@@ -21,13 +22,39 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     [Header("퍼즐 진행도")]
     [SerializeField] private bool countForStage1Progress = true; // 1단계 진행도 집계 대상인지 여부
 
+    [Header("사운드 모듈")]
+    [SerializeField] protected MultiAudioTrigger audioModule; // 공통 성공/실패 사운드 모듈
+
     [Networked, OnChangedRender(nameof(OnSolvedStateChangedRender))]
     public NetworkBool NetIsSolved { get; private set; } // 퍼즐 최종 클리어 여부 네트워크 동기화 값
 
+    [Networked, OnChangedRender(nameof(OnSpawnZoneChangedRender))]
+    private NetworkBool NetHasSpawnZone { get; set; } // 스폰 Zone 주입 여부
+
+    [Networked, OnChangedRender(nameof(OnSpawnZoneChangedRender))]
+    private int NetSpawnZoneValue { get; set; } // Zone enum을 int로 저장
+
     public bool CountForStageProgress => countForStage1Progress; // 진행도 집계 포함 여부 외부 읽기용
 
-    [Header("사운드 모듈")]
-    [SerializeField] protected MultiAudioTrigger audioModule;
+    /// <summary>
+    /// 현재 퍼즐에 스폰 Zone이 주입되었는지 반환한다.
+    /// </summary>
+    public bool HasSpawnZone
+    {
+        get
+        {
+            if (!IsNetworkReady)
+                return false;
+
+            return NetHasSpawnZone;
+        }
+    }
+
+    /// <summary>
+    /// 현재 퍼즐이 스폰된 Zone.
+    /// HasSpawnZone이 false면 기본값일 수 있으므로 먼저 확인해야 한다.
+    /// </summary>
+    public Zone SpawnZone => (Zone)NetSpawnZoneValue;
 
     public bool IsSolved
     {
@@ -48,8 +75,35 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     {
         IsNetworkReady = true; // Spawned 이후 네트워크 준비 완료 표시
 
+        if (NetHasSpawnZone)
+            HandleSpawnZoneAssigned(SpawnZone); // 이미 Zone이 들어온 상태면 자식 후처리 반영
+
         if (NetIsSolved)
             HandleSolvedStateChanged(); // 이미 solved 상태로 스폰된 경우 화면/연출 반영
+    }
+
+    /// <summary>
+    /// PuzzleSpawnManager가 퍼즐을 스폰한 Zone을 주입한다.
+    /// 서버 권한에서만 호출한다.
+    /// </summary>
+    public virtual void SetSpawnZone(Zone zone)
+    {
+        if (!HasStateAuthority)
+            return; // 서버/상태 권한 없는 쪽은 Zone 확정 불가
+
+        NetSpawnZoneValue = (int)zone; // Zone 값을 네트워크 상태로 저장
+        NetHasSpawnZone = true; // Zone 주입 완료 표시
+
+        HandleSpawnZoneAssigned(zone); // 서버 측 즉시 후처리
+    }
+
+    /// <summary>
+    /// 스폰 Zone이 주입되었을 때 자식 퍼즐에서 필요한 처리를 override한다.
+    /// 기본 구현은 없음.
+    /// </summary>
+    protected virtual void HandleSpawnZoneAssigned(Zone zone)
+    {
+        // 자식 퍼즐에서 필요 시 override
     }
 
     /// <summary>
@@ -145,7 +199,8 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
         if (NetIsSolved)
             return; // 이미 solved면 중복 처리 방지
 
-        if (audioModule != null) audioModule.PlaySound(SoundType.Success); //성공
+        if (audioModule != null)
+            audioModule.PlaySound(SoundType.Success); // 성공
 
         NetIsSolved = true; // solved 상태 네트워크 반영
         Solved?.Invoke(this); // 외부 이벤트 발행
@@ -157,7 +212,8 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     /// </summary>
     protected virtual void MarkFailed()
     {
-        if (audioModule != null) audioModule.PlaySound(SoundType.Fail); // 실패
+        if (audioModule != null)
+            audioModule.PlaySound(SoundType.Fail); // 실패
     }
 
     /// <summary>
@@ -178,6 +234,18 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     private void OnSolvedStateChangedRender()
     {
         HandleSolvedStateChanged(); // 자식 클래스 후처리 훅 호출
+    }
+
+    /// <summary>
+    /// 스폰 Zone 값이 변경되었을 때 Fusion Render 단계에서 호출된다.
+    /// 모든 클라이언트에서 Zone 후처리를 반영하기 위한 진입점이다.
+    /// </summary>
+    private void OnSpawnZoneChangedRender()
+    {
+        if (!NetHasSpawnZone)
+            return;
+
+        HandleSpawnZoneAssigned(SpawnZone);
     }
 
     /// <summary>

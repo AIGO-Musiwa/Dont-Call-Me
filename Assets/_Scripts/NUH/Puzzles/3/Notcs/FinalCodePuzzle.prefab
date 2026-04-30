@@ -1,5 +1,78 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &475188373593730432
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6995041092871951207}
+  - component: {fileID: 3884913404217577108}
+  m_Layer: 0
+  m_Name: ButtonRoot_8
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6995041092871951207
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 475188373593730432}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
+  m_LocalPosition: {x: -0.2508, y: 1.2526, z: 0.29479992}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 3289742054250421900}
+  m_Father: {fileID: 5664790133697997613}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3884913404217577108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 475188373593730432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 269752103248dbf4fb786e511787461a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FinalCodeButtonView
+  buttonVisual: {fileID: 3289742054250421900}
+  pressLocalZOffset: 0.02
+  pressInSeconds: 0.05
+  pressOutSeconds: 0.08
+  pressCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &855237283285293452
 GameObject:
   m_ObjectHideFlags: 0
@@ -27,17 +100,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 855237283285293452}
-  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0.3271999}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3672144899719799172}
-  m_Father: {fileID: 5664790133697997613}
+  m_Father: {fileID: 6644321855118857213}
   m_LocalEulerAnglesHint: {x: 32.645, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.2281, y: 1.2035}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &3690238924533517459
@@ -197,6 +270,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FinalCodeControlButtonInteractable
   ownerPuzzle: {fileID: 5420766630705918657}
+  buttonView: {fileID: 7737671861088564761}
   interactableId: 10
   backspacePrompt: "\uD55C \uAE00\uC790 \uC0AD\uC81C"
   enableDebugLog: 1
@@ -501,6 +575,79 @@ MonoBehaviour:
   defaultRoot: {fileID: 1394906848229239084}
   solvedRoot: {fileID: 7788939476513344080}
   enableDebugLog: 1
+--- !u!1 &1504233864424555395
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6644321855118857213}
+  - component: {fileID: 7737671861088564761}
+  m_Layer: 0
+  m_Name: ButtonRoot_Erase
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6644321855118857213
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1504233864424555395}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
+  m_LocalPosition: {x: -0.2281, y: 1.2035, z: 0.3271999}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1039258258702767149}
+  m_Father: {fileID: 5664790133697997613}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7737671861088564761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1504233864424555395}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 269752103248dbf4fb786e511787461a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FinalCodeButtonView
+  buttonVisual: {fileID: 1039258258702767149}
+  pressLocalZOffset: 0.02
+  pressInSeconds: 0.05
+  pressOutSeconds: 0.08
+  pressCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1845419219552478488
 GameObject:
   m_ObjectHideFlags: 0
@@ -528,17 +675,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1845419219552478488}
-  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0.2700999}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 495995014286893487}
-  m_Father: {fileID: 5664790133697997613}
+  m_Father: {fileID: 2423577385269406831}
   m_LocalEulerAnglesHint: {x: 32.645, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.2508, y: 1.2901}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &4415470084702774896
@@ -698,6 +845,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FinalCodeDigitButtonInteractable
   ownerPuzzle: {fileID: 5420766630705918657}
+  buttonView: {fileID: 338096367857728114}
   interactableId: 5
   promptPrefix: "\uC22B\uC790 \uC785\uB825"
   enableDebugLog: 1
@@ -749,17 +897,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2084748993374270798}
-  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0.2440999}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6644266811052930902}
-  m_Father: {fileID: 5664790133697997613}
+  m_Father: {fileID: 1476220161963028007}
   m_LocalEulerAnglesHint: {x: 32.645, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.2952, y: 1.3284}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &156242962676585579
@@ -919,6 +1067,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FinalCodeDigitButtonInteractable
   ownerPuzzle: {fileID: 5420766630705918657}
+  buttonView: {fileID: 2355542416900775721}
   interactableId: 3
   promptPrefix: "\uC22B\uC790 \uC785\uB825"
   enableDebugLog: 1
@@ -970,17 +1119,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2227555659643041190}
-  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0.2440999}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4893459284788622187}
-  m_Father: {fileID: 5664790133697997613}
+  m_Father: {fileID: 980036043780497131}
   m_LocalEulerAnglesHint: {x: 32.645, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.2508, y: 1.3284}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &1578779617073903276
@@ -1140,6 +1289,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FinalCodeDigitButtonInteractable
   ownerPuzzle: {fileID: 5420766630705918657}
+  buttonView: {fileID: 954496518928461053}
   interactableId: 2
   promptPrefix: "\uC22B\uC790 \uC785\uB825"
   enableDebugLog: 1
@@ -1478,6 +1628,79 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_renderer: {fileID: 6997288831527553731}
   m_maskType: 0
+--- !u!1 &2991340363637349566
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2423577385269406831}
+  - component: {fileID: 338096367857728114}
+  m_Layer: 0
+  m_Name: ButtonRoot_5
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2423577385269406831
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2991340363637349566}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
+  m_LocalPosition: {x: -0.2508, y: 1.2901, z: 0.2700999}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8037931472006067489}
+  m_Father: {fileID: 5664790133697997613}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &338096367857728114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2991340363637349566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 269752103248dbf4fb786e511787461a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FinalCodeButtonView
+  buttonVisual: {fileID: 8037931472006067489}
+  pressLocalZOffset: 0.02
+  pressInSeconds: 0.05
+  pressOutSeconds: 0.08
+  pressCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &3095042148892472476
 GameObject:
   m_ObjectHideFlags: 0
@@ -1505,17 +1728,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3095042148892472476}
-  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0.29479992}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 796985353766500358}
-  m_Father: {fileID: 5664790133697997613}
+  m_Father: {fileID: 5920625264032536677}
   m_LocalEulerAnglesHint: {x: 32.645, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.2046, y: 1.2526}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &2428039889596452308
@@ -1675,6 +1898,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FinalCodeDigitButtonInteractable
   ownerPuzzle: {fileID: 5420766630705918657}
+  buttonView: {fileID: 1531680889844643479}
   interactableId: 7
   promptPrefix: "\uC22B\uC790 \uC785\uB825"
   enableDebugLog: 1
@@ -1971,6 +2195,152 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_renderer: {fileID: 8696121918742118285}
   m_maskType: 0
+--- !u!1 &3319935669731651952
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 694112357961793351}
+  - component: {fileID: 7543489402879806761}
+  m_Layer: 0
+  m_Name: ButtonRoot_9
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &694112357961793351
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3319935669731651952}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
+  m_LocalPosition: {x: -0.2952, y: 1.2526, z: 0.29479992}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2699422450797406158}
+  m_Father: {fileID: 5664790133697997613}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7543489402879806761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3319935669731651952}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 269752103248dbf4fb786e511787461a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FinalCodeButtonView
+  buttonVisual: {fileID: 2699422450797406158}
+  pressLocalZOffset: 0.02
+  pressInSeconds: 0.05
+  pressOutSeconds: 0.08
+  pressCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!1 &3426543272552458995
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 980036043780497131}
+  - component: {fileID: 954496518928461053}
+  m_Layer: 0
+  m_Name: ButtonRoot_2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &980036043780497131
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3426543272552458995}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
+  m_LocalPosition: {x: -0.2508, y: 1.3284, z: 0.2440999}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8176920959237194}
+  m_Father: {fileID: 5664790133697997613}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &954496518928461053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3426543272552458995}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 269752103248dbf4fb786e511787461a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FinalCodeButtonView
+  buttonVisual: {fileID: 8176920959237194}
+  pressLocalZOffset: 0.02
+  pressInSeconds: 0.05
+  pressOutSeconds: 0.08
+  pressCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &3806972711271569094
 GameObject:
   m_ObjectHideFlags: 0
@@ -2088,17 +2458,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3880000538527651160}
-  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0.2440999}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5362432976073501658}
-  m_Father: {fileID: 5664790133697997613}
+  m_Father: {fileID: 7238089582074629531}
   m_LocalEulerAnglesHint: {x: 32.645, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.2046, y: 1.3284}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &3817434389068823179
@@ -2258,6 +2628,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FinalCodeDigitButtonInteractable
   ownerPuzzle: {fileID: 5420766630705918657}
+  buttonView: {fileID: 7224710440023507460}
   interactableId: 1
   promptPrefix: "\uC22B\uC790 \uC785\uB825"
   enableDebugLog: 1
@@ -2309,17 +2680,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4046594254249405204}
-  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0.29479992}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 58295103999394966}
-  m_Father: {fileID: 5664790133697997613}
+  m_Father: {fileID: 694112357961793351}
   m_LocalEulerAnglesHint: {x: 32.645, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.2952, y: 1.2526}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &5588225164766227203
@@ -2479,6 +2850,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FinalCodeDigitButtonInteractable
   ownerPuzzle: {fileID: 5420766630705918657}
+  buttonView: {fileID: 7543489402879806761}
   interactableId: 9
   promptPrefix: "\uC22B\uC790 \uC785\uB825"
   enableDebugLog: 1
@@ -2779,6 +3151,152 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1 &4329815222234912586
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7238089582074629531}
+  - component: {fileID: 7224710440023507460}
+  m_Layer: 0
+  m_Name: ButtonRoot_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7238089582074629531
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4329815222234912586}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
+  m_LocalPosition: {x: -0.2046, y: 1.3284, z: 0.2440999}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6389998573318850813}
+  m_Father: {fileID: 5664790133697997613}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7224710440023507460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4329815222234912586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 269752103248dbf4fb786e511787461a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FinalCodeButtonView
+  buttonVisual: {fileID: 6389998573318850813}
+  pressLocalZOffset: 0.02
+  pressInSeconds: 0.05
+  pressOutSeconds: 0.08
+  pressCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!1 &4366080810574726621
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7913753492401996126}
+  - component: {fileID: 4805478430742909826}
+  m_Layer: 0
+  m_Name: ButtonRoot_6
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7913753492401996126
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4366080810574726621}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
+  m_LocalPosition: {x: -0.2952, y: 1.2901, z: 0.2700999}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5043348962261166609}
+  m_Father: {fileID: 5664790133697997613}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4805478430742909826
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4366080810574726621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 269752103248dbf4fb786e511787461a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FinalCodeButtonView
+  buttonVisual: {fileID: 5043348962261166609}
+  pressLocalZOffset: 0.02
+  pressInSeconds: 0.05
+  pressOutSeconds: 0.08
+  pressCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &4899782374427136127
 GameObject:
   m_ObjectHideFlags: 0
@@ -3055,6 +3573,79 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1 &4977629693281197855
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3119127421988404421}
+  - component: {fileID: 7032989865208664015}
+  m_Layer: 0
+  m_Name: ButtonRoot_4
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3119127421988404421
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4977629693281197855}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
+  m_LocalPosition: {x: -0.2046, y: 1.2901, z: 0.2700999}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6422212083686851349}
+  m_Father: {fileID: 5664790133697997613}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7032989865208664015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4977629693281197855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 269752103248dbf4fb786e511787461a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FinalCodeButtonView
+  buttonVisual: {fileID: 6422212083686851349}
+  pressLocalZOffset: 0.02
+  pressInSeconds: 0.05
+  pressOutSeconds: 0.08
+  pressCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &4984523071490473615
 GameObject:
   m_ObjectHideFlags: 0
@@ -3082,17 +3673,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4984523071490473615}
-  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0.29479992}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5172965488478885025}
-  m_Father: {fileID: 5664790133697997613}
+  m_Father: {fileID: 6995041092871951207}
   m_LocalEulerAnglesHint: {x: 32.645, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.2508, y: 1.2526}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &6045250833897737903
@@ -3252,6 +3843,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FinalCodeDigitButtonInteractable
   ownerPuzzle: {fileID: 5420766630705918657}
+  buttonView: {fileID: 3884913404217577108}
   interactableId: 8
   promptPrefix: "\uC22B\uC790 \uC785\uB825"
   enableDebugLog: 1
@@ -3276,6 +3868,79 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.04, y: 0.04, z: 0.01}
   m_Center: {x: 0.000038170256, y: -0.000051269308, z: 0.005}
+--- !u!1 &5007871088695090260
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1476220161963028007}
+  - component: {fileID: 2355542416900775721}
+  m_Layer: 0
+  m_Name: ButtonRoot_3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1476220161963028007
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5007871088695090260}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
+  m_LocalPosition: {x: -0.2952, y: 1.3284, z: 0.2440999}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7538627960954951825}
+  m_Father: {fileID: 5664790133697997613}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2355542416900775721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5007871088695090260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 269752103248dbf4fb786e511787461a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FinalCodeButtonView
+  buttonVisual: {fileID: 7538627960954951825}
+  pressLocalZOffset: 0.02
+  pressInSeconds: 0.05
+  pressOutSeconds: 0.08
+  pressCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &5032403355524444567
 GameObject:
   m_ObjectHideFlags: 0
@@ -3306,16 +3971,16 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 3779755864022319288}
-  - {fileID: 6389998573318850813}
-  - {fileID: 8176920959237194}
-  - {fileID: 7538627960954951825}
-  - {fileID: 6422212083686851349}
-  - {fileID: 8037931472006067489}
-  - {fileID: 5043348962261166609}
-  - {fileID: 7943837301897299731}
-  - {fileID: 3289742054250421900}
-  - {fileID: 2699422450797406158}
-  - {fileID: 1039258258702767149}
+  - {fileID: 7238089582074629531}
+  - {fileID: 980036043780497131}
+  - {fileID: 1476220161963028007}
+  - {fileID: 3119127421988404421}
+  - {fileID: 2423577385269406831}
+  - {fileID: 7913753492401996126}
+  - {fileID: 5920625264032536677}
+  - {fileID: 6995041092871951207}
+  - {fileID: 694112357961793351}
+  - {fileID: 6644321855118857213}
   m_Father: {fileID: 4080107327000801353}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5344752975830965515
@@ -3712,17 +4377,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5568797865970976472}
-  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0.2700999}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4039955227672524974}
-  m_Father: {fileID: 5664790133697997613}
+  m_Father: {fileID: 7913753492401996126}
   m_LocalEulerAnglesHint: {x: 32.645, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.2952, y: 1.2901}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &211531654333138408
@@ -3882,6 +4547,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FinalCodeDigitButtonInteractable
   ownerPuzzle: {fileID: 5420766630705918657}
+  buttonView: {fileID: 4805478430742909826}
   interactableId: 6
   promptPrefix: "\uC22B\uC790 \uC785\uB825"
   enableDebugLog: 1
@@ -4655,17 +5321,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6687636540458424510}
-  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0.2700999}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5936544888565291776}
-  m_Father: {fileID: 5664790133697997613}
+  m_Father: {fileID: 3119127421988404421}
   m_LocalEulerAnglesHint: {x: 32.645, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.2046, y: 1.2901}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &475651322859767198
@@ -4825,6 +5491,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FinalCodeDigitButtonInteractable
   ownerPuzzle: {fileID: 5420766630705918657}
+  buttonView: {fileID: 7032989865208664015}
   interactableId: 4
   promptPrefix: "\uC22B\uC790 \uC785\uB825"
   enableDebugLog: 1
@@ -4849,6 +5516,79 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.04, y: 0.04, z: 0.01}
   m_Center: {x: 0.00010852143, y: -0.000051268842, z: 0.005}
+--- !u!1 &6758391006672473241
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5920625264032536677}
+  - component: {fileID: 1531680889844643479}
+  m_Layer: 0
+  m_Name: ButtonRoot_7
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5920625264032536677
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6758391006672473241}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.95969504, z: -0.28104362, w: 0}
+  m_LocalPosition: {x: -0.2046, y: 1.2526, z: 0.29479992}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7943837301897299731}
+  m_Father: {fileID: 5664790133697997613}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1531680889844643479
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6758391006672473241}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 269752103248dbf4fb786e511787461a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FinalCodeButtonView
+  buttonVisual: {fileID: 7943837301897299731}
+  pressLocalZOffset: 0.02
+  pressInSeconds: 0.05
+  pressOutSeconds: 0.08
+  pressCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &7089338762607305064
 GameObject:
   m_ObjectHideFlags: 0

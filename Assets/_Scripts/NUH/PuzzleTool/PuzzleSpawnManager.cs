@@ -12,6 +12,7 @@ using UnityEngine;
 /// - 배치 규칙은 RoundGenerator가 전부 담당
 /// - 이 스크립트는 계획 소비 + 스폰 후 연결 작업만 담당
 /// - 스폰 전에 카탈로그 자동 준비/검증 단계 추가
+/// - 스폰된 퍼즐에 자기 Zone을 공통 주입
 /// </summary>
 public class PuzzleSpawnManager : NetworkBehaviour
 {
@@ -118,8 +119,8 @@ public class PuzzleSpawnManager : NetworkBehaviour
 
             if (spawnedPuzzle != null)
             {
-                ApplyAnswerSeedToSpawnedObject(spawnedPuzzle, plan.AnswerSeed); // 퍼즐 정답 시드 적용
-                ApplySpawnZoneToFinalCodePuzzle(spawnedPuzzle, plan.Zone);      // FinalCodePuzzle이면 Zone 자동 주입
+                ApplySpawnZoneToSpawnedPuzzle(spawnedPuzzle, plan.Zone);          // 스폰된 Zone 공통 주입
+                ApplyAnswerSeedToSpawnedObject(spawnedPuzzle, plan.AnswerSeed);  // 퍼즐 정답 시드 적용
                 RegisterSpawnedPuzzle(spawnedPuzzle.gameObject, plan.Zone, plan.Stage); // 진행도/스크린/Stage3 등록
 
                 string slotId = plan.TargetSlot != null ? plan.TargetSlot.SlotId : "null";
@@ -290,18 +291,33 @@ public class PuzzleSpawnManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// 스폰된 퍼즐이 FinalCodePuzzle이면 Zone 값을 자동 주입한다.
+    /// 스폰된 퍼즐에 자기 Zone 값을 공통 주입한다.
+    /// PuzzleSpawnEntry.ProgressTarget을 우선 사용하고,
+    /// 없으면 자식 포함 PuzzleInteractableBase를 탐색한다.
     /// </summary>
-    private void ApplySpawnZoneToFinalCodePuzzle(NetworkObject spawnedPuzzle, Zone zone)
+    private void ApplySpawnZoneToSpawnedPuzzle(NetworkObject spawnedPuzzle, Zone zone)
     {
         if (spawnedPuzzle == null)
             return;
 
-        FinalCodePuzzle finalCodePuzzle = spawnedPuzzle.GetComponent<FinalCodePuzzle>(); // FinalCodePuzzle 찾기
-        if (finalCodePuzzle == null)
-            return;
+        PuzzleInteractableBase targetPuzzle = null;
 
-        finalCodePuzzle.SetSpawnZone(zone); // 스폰된 Zone 주입
+        PuzzleSpawnEntry entry = spawnedPuzzle.GetComponent<PuzzleSpawnEntry>();
+        if (entry != null && entry.ProgressTarget != null)
+            targetPuzzle = entry.ProgressTarget;
+
+        if (targetPuzzle == null)
+            targetPuzzle = spawnedPuzzle.GetComponentInChildren<PuzzleInteractableBase>();
+
+        if (targetPuzzle == null)
+        {
+            LogWarning($"SpawnZone 주입 실패 : PuzzleInteractableBase를 찾을 수 없음 | object={spawnedPuzzle.name}");
+            return;
+        }
+
+        targetPuzzle.SetSpawnZone(zone);
+
+        Log($"SpawnZone 주입 완료 | puzzle={targetPuzzle.name} | zone={zone}");
     }
 
     /// <summary>

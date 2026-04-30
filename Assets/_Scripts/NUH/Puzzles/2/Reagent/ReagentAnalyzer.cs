@@ -127,6 +127,8 @@ public class ReagentAnalyzer : NetworkBehaviour, IInteractable, IChildPuzzleInte
         _insertedItem = reagentItem; // 현재 삽입 시약 참조 저장
         NetInsertedItemId = reagentItem.Object.Id; // 네트워크에 삽입 시약 ID 기록
 
+        //TODO_Sound - 시약 검사기 검사 시작
+
         if (_analyzeRoutine != null)
             StopCoroutine(_analyzeRoutine);
 
