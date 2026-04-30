@@ -54,6 +54,7 @@ public static class SoundEmitter
     public static void EmitWalkieDirect(float voicedB, Vector3 sourcePosition, Zone sourceZone)
     {
         EmitToEventBus(SoundChannel.Walkie, voicedB, sourcePosition, 0f, sourceZone);
+        Debug.Log("전자음 발행");
     }
 
     public static void EmitToEventBus(SoundChannel channel, float voicedB, Vector3 sourcePosition, float ObstaclePenalty, Zone sourceZone)
