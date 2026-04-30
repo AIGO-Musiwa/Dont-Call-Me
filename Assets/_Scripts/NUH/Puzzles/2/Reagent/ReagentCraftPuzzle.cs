@@ -26,7 +26,8 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     [Header("설정")]
     [SerializeField] private int recipeSlotCount = 3; // 시약 선택 슬롯 개수
     [SerializeField] private int progressStepCount = 10; // 프로그레스 총 칸 수
-    [SerializeField] private float craftStartDelay = 1f; // 제조 시작 전 대기 시간
+    [SerializeField] private int countdownStartNumber = 3; // 제조 시작 카운트다운 시작 숫자
+    [SerializeField] private float countdownStepSeconds = 1f; // 카운트다운 한 숫자 유지 시간
     [SerializeField] private float progressStepInterval = 1f; // 프로그레스 한 칸 진행 간격
     [SerializeField] private bool showStage3HintImmediately = true; // 성공 직후 3단계 힌트 화면으로 넘길지 여부
     [SerializeField] private bool enableDebugLog = true; // 디버그 로그 출력 여부
@@ -44,6 +45,8 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private bool _lastRenderedSolved = false; // Render 중 성공 상태 캐시
     private int _lastRenderedViewHash = int.MinValue; // Render 중 불필요한 전체 갱신 방지용 캐시
 
+    private readonly List<int> _progressActionStatesCache = new(); // View 전달용 프로그레스 액션 상태 캐시
+
     private FinalCodeHintData _stage3HintData; // 이 퍼즐이 표시할 3단계 힌트 데이터
     private bool _hasStage3HintData; // 3단계 힌트 데이터 적용 여부
 
@@ -53,6 +56,7 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     [Networked] private NetworkBool NetIsCrafting { get; set; } // 제조 진행 중인지 여부
     [Networked] private NetworkBool NetIsCraftStartPending { get; set; } // 제조 시작 대기 중인지 여부
     [Networked] private NetworkBool NetHasSpawnedCraftedItem { get; set; } // 현재 결과 시약이 월드에 남아 있는지 여부
+    [Networked] private int NetCountdownNumber { get; set; } // 제조 시작 전 카운트다운 숫자, 0이면 숨김
 
     [Networked] private int NetSlot0Value { get; set; } // 0번 슬롯 현재 표시 시약
     [Networked] private int NetSlot1Value { get; set; } // 1번 슬롯 현재 표시 시약
@@ -61,6 +65,17 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     [Networked] private NetworkBool NetSlot0Locked { get; set; } // 0번 슬롯 확정 여부
     [Networked] private NetworkBool NetSlot1Locked { get; set; } // 1번 슬롯 확정 여부
     [Networked] private NetworkBool NetSlot2Locked { get; set; } // 2번 슬롯 확정 여부
+
+    [Networked] private int NetProgressAction0 { get; set; } // 0번 프로그레스 액션, 0=None, 1=Heat, 2=Cool
+    [Networked] private int NetProgressAction1 { get; set; } // 1번 프로그레스 액션
+    [Networked] private int NetProgressAction2 { get; set; } // 2번 프로그레스 액션
+    [Networked] private int NetProgressAction3 { get; set; } // 3번 프로그레스 액션
+    [Networked] private int NetProgressAction4 { get; set; } // 4번 프로그레스 액션
+    [Networked] private int NetProgressAction5 { get; set; } // 5번 프로그레스 액션
+    [Networked] private int NetProgressAction6 { get; set; } // 6번 프로그레스 액션
+    [Networked] private int NetProgressAction7 { get; set; } // 7번 프로그레스 액션
+    [Networked] private int NetProgressAction8 { get; set; } // 8번 프로그레스 액션
+    [Networked] private int NetProgressAction9 { get; set; } // 9번 프로그레스 액션
 
     public override void Spawned()
     {
@@ -143,6 +158,9 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         RefreshAllView();
     }
 
+    /// <summary>
+    /// 시약 슬롯 선택 상태를 초기화한다.
+    /// </summary>
     private void ResetRecipeSelectionState()
     {
         SetNetSlotValue(0, ReagentType.None);
@@ -157,6 +175,9 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         SetNetSlotValue(0, ReagentType.ReagentA);
     }
 
+    /// <summary>
+    /// 제조 진행 상태를 초기화한다.
+    /// </summary>
     private void ResetCraftState()
     {
         if (_craftRoutine != null)
@@ -168,7 +189,10 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         NetIsCrafting = false;
         NetIsCraftStartPending = false;
         NetCurrentProgressIndex = 0;
+        NetCountdownNumber = 0;
         NetHasSpawnedCraftedItem = false;
+
+        ClearProgressActionStates();
 
         _playerActionInputs.Clear();
         _inputUsedProgressIndices.Clear();
@@ -281,10 +305,20 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         Log("제조 시작 요청");
     }
 
+    /// <summary>
+    /// 제조 시작 버튼 입력 후 3,2,1 카운트다운을 거쳐 제조 프로그레스를 진행한다.
+    /// </summary>
     private IEnumerator CoStartCraftProcess()
     {
         NetIsCraftStartPending = true;
-        yield return new WaitForSeconds(craftStartDelay);
+
+        for (int number = countdownStartNumber; number >= 1; number--)
+        {
+            NetCountdownNumber = number;
+            yield return new WaitForSeconds(countdownStepSeconds);
+        }
+
+        NetCountdownNumber = 0;
         NetIsCraftStartPending = false;
 
         NetIsCrafting = true;
@@ -334,6 +368,8 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         _playerActionInputs.Add(step);
         _inputUsedProgressIndices.Add(NetCurrentProgressIndex);
 
+        SetProgressActionState(NetCurrentProgressIndex - 1, ToProgressActionState(actionType));
+
         Log($"행동 입력 기록 | step={NetCurrentProgressIndex} | action={actionType}");
     }
 
@@ -346,6 +382,9 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             return false;
 
         if (_playerActionInputs.Count >= 3)
+            return false;
+
+        if (_inputUsedProgressIndices.Contains(NetCurrentProgressIndex))
             return false;
 
         if (IsSolved)
@@ -495,6 +534,7 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         NetIsCrafting = false;
         NetIsCraftStartPending = false;
         NetCurrentProgressIndex = 0;
+        NetCountdownNumber = 0;
     }
 
     private bool IsAllRecipeSlotsConfirmed()
@@ -516,15 +556,24 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         craftView.ResetToDefault();
         craftView.ApplyRecipeSlotStates(BuildCurrentSlotArray());
 
-        if (NetEditingSlotIndex >= 0 && NetEditingSlotIndex < recipeSlotCount)
-            craftView.SetEditingSlotIndicator(NetEditingSlotIndex);
-        else
-            craftView.ClearEditingSlotIndicator();
+        bool isEditingSlot = NetEditingSlotIndex >= 0 && NetEditingSlotIndex < recipeSlotCount;
+        bool canShowStartButton = IsAllRecipeSlotsConfirmed() &&
+                                  !NetIsCrafting &&
+                                  !NetIsCraftStartPending &&
+                                  !NetHasSpawnedCraftedItem &&
+                                  !IsSolved;
 
-        if (NetCurrentProgressIndex <= 0)
-            craftView.ResetProgressBar();
+        if (isEditingSlot)
+            craftView.SetEditingSlotControls(NetEditingSlotIndex);
         else
-            craftView.SetProgressActiveUpTo(NetCurrentProgressIndex - 1);
+            craftView.ClearEditingSlotControls();
+
+        craftView.SetStartCraftButtonVisible(canShowStartButton);
+        craftView.SetCountdownNumber(NetCountdownNumber);
+        craftView.SetActionButtonsVisible(NetIsCrafting);
+
+        BuildProgressActionStateCache();
+        craftView.ApplyProgressPresentation(NetCurrentProgressIndex, _progressActionStatesCache);
     }
 
     private ReagentType GetNextReagentType(ReagentType current)
@@ -606,6 +655,7 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             hash = hash * 31 + NetCurrentProgressIndex;
             hash = hash * 31 + (NetIsCrafting ? 1 : 0);
             hash = hash * 31 + (NetIsCraftStartPending ? 1 : 0);
+            hash = hash * 31 + NetCountdownNumber;
             hash = hash * 31 + (NetHasSpawnedCraftedItem ? 1 : 0);
             hash = hash * 31 + NetSlot0Value;
             hash = hash * 31 + NetSlot1Value;
@@ -613,6 +663,16 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             hash = hash * 31 + (NetSlot0Locked ? 1 : 0);
             hash = hash * 31 + (NetSlot1Locked ? 1 : 0);
             hash = hash * 31 + (NetSlot2Locked ? 1 : 0);
+            hash = hash * 31 + NetProgressAction0;
+            hash = hash * 31 + NetProgressAction1;
+            hash = hash * 31 + NetProgressAction2;
+            hash = hash * 31 + NetProgressAction3;
+            hash = hash * 31 + NetProgressAction4;
+            hash = hash * 31 + NetProgressAction5;
+            hash = hash * 31 + NetProgressAction6;
+            hash = hash * 31 + NetProgressAction7;
+            hash = hash * 31 + NetProgressAction8;
+            hash = hash * 31 + NetProgressAction9;
             return hash;
         }
     }
@@ -669,6 +729,87 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
                 NetSlot2Locked = value;
                 break;
         }
+    }
+
+    /// <summary>
+    /// 프로그레스 액션 상태를 전부 초기화한다.
+    /// 0=None, 1=Heat, 2=Cool.
+    /// </summary>
+    private void ClearProgressActionStates()
+    {
+        NetProgressAction0 = 0;
+        NetProgressAction1 = 0;
+        NetProgressAction2 = 0;
+        NetProgressAction3 = 0;
+        NetProgressAction4 = 0;
+        NetProgressAction5 = 0;
+        NetProgressAction6 = 0;
+        NetProgressAction7 = 0;
+        NetProgressAction8 = 0;
+        NetProgressAction9 = 0;
+    }
+
+    /// <summary>
+    /// 특정 프로그레스 칸의 액션 상태를 저장한다.
+    /// progressIndex는 0~9 기준이다.
+    /// </summary>
+    private void SetProgressActionState(int progressIndex, int actionState)
+    {
+        switch (progressIndex)
+        {
+            case 0: NetProgressAction0 = actionState; break;
+            case 1: NetProgressAction1 = actionState; break;
+            case 2: NetProgressAction2 = actionState; break;
+            case 3: NetProgressAction3 = actionState; break;
+            case 4: NetProgressAction4 = actionState; break;
+            case 5: NetProgressAction5 = actionState; break;
+            case 6: NetProgressAction6 = actionState; break;
+            case 7: NetProgressAction7 = actionState; break;
+            case 8: NetProgressAction8 = actionState; break;
+            case 9: NetProgressAction9 = actionState; break;
+        }
+    }
+
+    /// <summary>
+    /// 특정 프로그레스 칸의 액션 상태를 반환한다.
+    /// progressIndex는 0~9 기준이다.
+    /// </summary>
+    private int GetProgressActionState(int progressIndex)
+    {
+        return progressIndex switch
+        {
+            0 => NetProgressAction0,
+            1 => NetProgressAction1,
+            2 => NetProgressAction2,
+            3 => NetProgressAction3,
+            4 => NetProgressAction4,
+            5 => NetProgressAction5,
+            6 => NetProgressAction6,
+            7 => NetProgressAction7,
+            8 => NetProgressAction8,
+            9 => NetProgressAction9,
+            _ => 0
+        };
+    }
+
+    /// <summary>
+    /// View에 넘길 프로그레스 액션 상태 캐시를 만든다.
+    /// </summary>
+    private void BuildProgressActionStateCache()
+    {
+        _progressActionStatesCache.Clear();
+
+        for (int i = 0; i < progressStepCount; i++)
+            _progressActionStatesCache.Add(GetProgressActionState(i));
+    }
+
+    /// <summary>
+    /// ReagentActionType을 View 표시용 정수 상태로 변환한다.
+    /// 0=None, 1=Heat, 2=Cool.
+    /// </summary>
+    private int ToProgressActionState(ReagentActionType actionType)
+    {
+        return actionType == ReagentActionType.Heat ? 1 : 2;
     }
 
     private void Log(string message)
