@@ -52,6 +52,7 @@ public class InputHandler : MonoBehaviour
     [SerializeField] private InputActionReference crouchAction;   // 앉기 입력 액션
     [SerializeField] private InputActionReference interactAction; // 상호작용 입력 액션
     [SerializeField] private InputActionReference walkieAction;   // 무전기 입력 액션
+    [SerializeField] private InputActionReference minigameInput;  // 미니게임 입력 키 (스페이스바)
 
     private float _mouseSensitivity = 1.0f; //마우스 감도
 
@@ -64,6 +65,9 @@ public class InputHandler : MonoBehaviour
     /// 로컬 플레이어가 즉시 시야 회전에 사용할 수 있도록 공개한다.
     /// </summary>
     public Vector2 FrameLookDelta { get; private set; } // 이번 프레임 마우스 델타
+
+    // 🛠️ 로컬 미니게임 전용 출력 단자 (단타 전용, 네트워크 전송 X)
+    public bool WasMinigamePressed { get; private set; } // 이번 프레임에 스페이스바를 누른 순간
 
     private bool _sprintPressed;   // 달리기 유지 상태
     private bool _crouchPressed;   // 앉기 유지 상태
@@ -100,6 +104,7 @@ public class InputHandler : MonoBehaviour
         crouchAction.action.Enable();
         interactAction.action.Enable();
         walkieAction.action.Enable();
+        minigameInput.action.Enable(); // 미니게임 액션 활성화
 
         interactAction.action.performed += OnInteractPerformed; // 좌클릭 눌림 순간 감지
         interactAction.action.canceled += OnInteractCanceled;   // 좌클릭 해제 감지
@@ -116,6 +121,7 @@ public class InputHandler : MonoBehaviour
         crouchAction.action.Disable();
         interactAction.action.Disable();
         walkieAction.action.Disable();
+        minigameInput.action.Disable(); // 미니게임 액션 비활성화
 
         interactAction.action.performed -= OnInteractPerformed;
         interactAction.action.canceled -= OnInteractCanceled;
@@ -148,6 +154,8 @@ public class InputHandler : MonoBehaviour
 
         _sprintPressed = sprintAction.action.IsPressed(); // 달리기 유지 상태 갱신
         _crouchPressed = crouchAction.action.IsPressed(); // 앉기 유지 상태 갱신
+        // 🛠️ 로컬 미니게임 단타 입력 읽기 (네트워크 전송 안 됨)
+        WasMinigamePressed = minigameInput.action.WasPressedThisFrame();
     }
 
     /// <summary>

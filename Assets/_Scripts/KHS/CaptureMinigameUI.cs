@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 using System.Collections;
+// using UnityEngine.InputSystem; // 🛠️ 이제 InputHandler를 거치므로 직접 InputSystem을 참조할 필요 없음
 
 /// <summary>
 /// 1500px 규격 최적화 심박계 미니게임.
@@ -29,10 +29,12 @@ public class CaptureMinigameUI : MonoBehaviour
     [SerializeField] private Color failColor = Color.red;
 
     private PlayerController _owner;
+    private InputHandler _inputHandler; // 🛠️ [신규 부품] 로컬 플레이어의 입력 수집기
+
     private float _sessionTimer = 0f;
     private int _currentBeatIndex = 0;
 
-    // 🛠️ [신규 부품] 사이클 내 로컬 상태 트래킹
+    // 사이클 내 로컬 상태 트래킹
     private bool _hasClickedThisBeat = false;
     private int _cycleSuccessCount = 0; // 이번 사이클에서 성공한 횟수
 
@@ -47,6 +49,12 @@ public class CaptureMinigameUI : MonoBehaviour
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
+        // 🛠️ UI가 열릴 때, 플레이어의 InputHandler 배선을 꽂아줌
+        if (_owner != null)
+        {
+            _inputHandler = _owner.GetComponent<InputHandler>();
+        }
+
         ResetVisuals();
         ResetSession();
     }
@@ -56,7 +64,7 @@ public class CaptureMinigameUI : MonoBehaviour
         _sessionTimer = 0f;
         _currentBeatIndex = 0;
         _hasClickedThisBeat = false;
-        _cycleSuccessCount = 0; // 🛠️ 사이클 초기화 시 성공 스택도 0으로 포맷
+        _cycleSuccessCount = 0; // 사이클 초기화 시 성공 스택도 0으로 포맷
 
         UpdateScannerPosition();
     }
@@ -65,7 +73,8 @@ public class CaptureMinigameUI : MonoBehaviour
     {
         if (!_isActive) return;
 
-        if (Pointer.current != null && Pointer.current.press.wasPressedThisFrame)
+        // 🛠️ [개조 포인트] 마우스 클릭 대신 InputHandler의 스페이스바 단타 신호를 받음!
+        if (_inputHandler != null && _inputHandler.WasMinigamePressed)
         {
             OnClickInput();
         }
@@ -97,7 +106,7 @@ public class CaptureMinigameUI : MonoBehaviour
 
         if (checkIndex > _currentBeatIndex)
         {
-            // 🛠️ 클릭하지 않고 비트가 지나가 버린 경우 (무위험 실패)
+            // 클릭하지 않고 비트가 지나가 버린 경우 (무위험 실패)
             if (!_hasClickedThisBeat && _currentBeatIndex < totalBeats)
             {
                 TriggerVisualFeedback(failColor);
@@ -106,7 +115,7 @@ public class CaptureMinigameUI : MonoBehaviour
             _currentBeatIndex = checkIndex;
             _hasClickedThisBeat = false; // 다음 비트를 위해 클릭 권한 장전
 
-            // 🛠️ 1사이클(5번) 스캔이 완전히 끝남! (결산 타이밍)
+            // 1사이클(5번) 스캔이 완전히 끝남! (결산 타이밍)
             if (_currentBeatIndex >= totalBeats)
             {
                 if (_cycleSuccessCount > 0 && _owner != null && _owner.Object.HasInputAuthority)
@@ -136,13 +145,13 @@ public class CaptureMinigameUI : MonoBehaviour
 
         if (currentScannerX >= hitBoxStart && currentScannerX <= hitBoxEnd)
         {
-            // 🛠️ 성공: 스택 적립 및 녹색등
+            // 성공: 스택 적립 및 녹색등
             _cycleSuccessCount++;
             TriggerVisualFeedback(successColor);
         }
         else
         {
-            // 🛠️ 실패: 리스크 없이 빨간등만 점등하고 지나감
+            // 실패: 리스크 없이 빨간등만 점등하고 지나감
             TriggerVisualFeedback(failColor);
         }
     }
