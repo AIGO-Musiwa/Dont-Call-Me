@@ -388,7 +388,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e57a42340b87584885328f0269e014a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleAudioTrigger
-  soundMappings: []
+  soundMappings:
+  - soundType: 9
+    audioEvent: {fileID: 0}
+  - soundType: 10
+    audioEvent: {fileID: 0}
   minDistance: 2
   maxDistance: 4
 --- !u!65 &6456771007060828792
