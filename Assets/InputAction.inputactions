@@ -68,6 +68,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "MinigameInput",
+                    "type": "Button",
+                    "id": "92bd20c2-a3a6-4c3d-9e16-27062dfc2796",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -233,6 +242,17 @@
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
                     "action": "ZoomInput",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e69216dc-0120-4b47-8348-2ca40a5af6de",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MinigameInput",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
