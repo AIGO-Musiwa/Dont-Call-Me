@@ -13,6 +13,11 @@ public class PlayerLookView : MonoBehaviour
     [SerializeField] private float capturedEyeHeight = 0.45f;
     [SerializeField] private float lightRootOffset = 0.3f;
 
+    // 🛠️ 추가된 카메라 스무딩 부품
+    [Header("카메라 스무딩 (Camera Smoothing)")]
+    [SerializeField] private float heightSmoothTime = 0.2f; // 전환에 걸리는 시간 (0.2초 추천)
+    private float _heightVelocity; // SmoothDamp가 내부적으로 사용할 현재 속도
+
     private PlayerController _controller;
     private PlayerKCCMotor _motor;
 
@@ -34,7 +39,7 @@ public class PlayerLookView : MonoBehaviour
         if (!IsReady())
             return;
 
-        if (SettingsManager.IsOpen) return;
+        if (SettingsManager.IsOpen && _controller.HasInputAuthority) return;
 
         ApplySharedLookPose();
         ApplyAuthorityOnlyPresentation();
@@ -75,7 +80,16 @@ public class PlayerLookView : MonoBehaviour
     private void ApplyCameraHolderHeight()
     {
         Vector3 localPos = cameraHolder.localPosition;
-        localPos.y = GetCurrentEyeHeight();
+        float targetHeight = GetCurrentEyeHeight();
+
+        // 🛠️ Mathf.SmoothDamp를 사용해 현재 높이에서 목표 높이로 부드럽게 이동
+        localPos.y = Mathf.SmoothDamp(
+            localPos.y,           // 현재 위치
+            targetHeight,         // 목표 위치
+            ref _heightVelocity,  // 현재 속도 (엔진이 알아서 계산함)
+            heightSmoothTime      // 도달하는 데 걸리는 시간 (인스펙터에서 조절)
+        );
+
         cameraHolder.localPosition = localPos;
     }
 
@@ -108,6 +122,7 @@ public class PlayerLookView : MonoBehaviour
 
         if (hasInputAuthority)
         {
+            if (SettingsManager.IsOpen) return;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
