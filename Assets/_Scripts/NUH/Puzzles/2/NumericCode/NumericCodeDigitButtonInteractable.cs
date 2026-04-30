@@ -46,6 +46,8 @@ public class NumericCodeDigitButtonInteractable : MonoBehaviour, IInteractable, 
         if (actor.NetRightHandItem != null)
             actor.ServerDropRightHandItem();
 
+        //TODO_Sound - 숫자 코드 버튼 입력
+
         ownerPuzzle.OnDigitPressed(interactableId);
     }
 

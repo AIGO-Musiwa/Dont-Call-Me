@@ -211,6 +211,8 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         ReagentType current = GetNetSlotValue(slotIndex);
         SetNetSlotValue(slotIndex, GetPreviousReagentType(current));
 
+        //TODO_Sound - 시약 슬롯 좌우 변경
+
         Log($"현재 슬롯 좌측 변경 | slot={slotIndex} | value={GetNetSlotValue(slotIndex)}");
     }
 
@@ -226,6 +228,8 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         ReagentType current = GetNetSlotValue(slotIndex);
         SetNetSlotValue(slotIndex, GetNextReagentType(current));
 
+        //TODO_Sound - 시약 슬롯 좌우 변경
+
         Log($"현재 슬롯 우측 변경 | slot={slotIndex} | value={GetNetSlotValue(slotIndex)}");
     }
 
@@ -238,6 +242,8 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             return;
 
         SetNetSlotLocked(NetEditingSlotIndex, true);
+
+        //TODO_Sound - 시약 슬롯 선택 확정
 
         if (NetEditingSlotIndex < recipeSlotCount - 1)
         {
@@ -299,6 +305,8 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         if (!CanStartCraft())
             return;
 
+        //TODO_Sound - 시약 제조 시작 버튼
+
         ResetCraftState();
         _craftRoutine = StartCoroutine(CoStartCraftProcess());
 
@@ -315,6 +323,9 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         for (int number = countdownStartNumber; number >= 1; number--)
         {
             NetCountdownNumber = number;
+
+            //TODO_Sound - 시약 제조 카운트다운 틱
+
             yield return new WaitForSeconds(countdownStepSeconds);
         }
 
@@ -329,6 +340,9 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
                 yield break;
 
             NetCurrentProgressIndex = step;
+
+            //TODO_Sound - 시약 프로그레스 한 칸 진행
+
             yield return new WaitForSeconds(progressStepInterval);
         }
 
@@ -370,6 +384,15 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
         SetProgressActionState(NetCurrentProgressIndex - 1, ToProgressActionState(actionType));
 
+        if (actionType == ReagentActionType.Heat)
+        {
+            //TODO_Sound - 시약 가열 입력
+        }
+        else if (actionType == ReagentActionType.Cool)
+        {
+            //TODO_Sound - 시약 냉각 입력
+        }
+
         Log($"행동 입력 기록 | step={NetCurrentProgressIndex} | action={actionType}");
     }
 
@@ -398,6 +421,8 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         bool isCorrectRecipe = IsRecipeCorrect();
         bool isCorrectActions = AreActionInputsCorrect();
         bool isCorrectResult = isCorrectRecipe && isCorrectActions;
+
+        //TODO_Sound - 시약 제조 완료
 
         SpawnCraftResultItem(isCorrectResult);
 
