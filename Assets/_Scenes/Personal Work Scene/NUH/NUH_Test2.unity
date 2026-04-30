@@ -32413,8 +32413,8 @@ MonoBehaviour:
   puzzleDefinitionDatabase: {fileID: 11400000, guid: 82172da5a5c1cb740bfbee49d415cb5e, type: 2}
   puzzleProgressManager: {fileID: 255740975}
   roundSeedManager: {fileID: 255740976}
-  aZoneSlots: {fileID: 552456496}
-  bZoneSlots: {fileID: 1070809009}
+  aZoneCatalog: {fileID: 0}
+  bZoneCatalog: {fileID: 0}
   stage1SelectCount: 3
   stage2SelectCount: 0
   autoSpawnOnSpawned: 1
@@ -40431,6 +40431,7 @@ MonoBehaviour:
   escapedImage: {fileID: 0}
   deadImage: {fileID: 0}
   hostMark: {fileID: 0}
+  characterFaceImage: {fileID: 0}
   localPlayerColor: {r: 1, g: 0.85, b: 0.2, a: 1}
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &328518257
@@ -40864,7 +40865,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 960cbc44b519d8741862728f852e0072, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PuzzlePlacementSlot
-  slotId: 
 --- !u!1 &331178097
 GameObject:
   m_ObjectHideFlags: 0
@@ -64241,6 +64241,7 @@ MonoBehaviour:
   escapedImage: {fileID: 0}
   deadImage: {fileID: 0}
   hostMark: {fileID: 0}
+  characterFaceImage: {fileID: 0}
   localPlayerColor: {r: 1, g: 0.85, b: 0.2, a: 1}
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!43 &497227488
@@ -71578,21 +71579,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395cee6ed5048464190c747104736262, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZonePuzzleSlotSet
-  zone: 0
-  stage1PuzzleSlots:
-  - {fileID: 1553632071}
-  - {fileID: 591654979}
-  - {fileID: 331122828}
-  stage1HintSlots:
-  - {fileID: 1927515668}
-  - {fileID: 1671836068}
-  - {fileID: 1031704364}
-  - {fileID: 1097461040}
-  stage2PuzzleSlots: []
-  stage2HintSlots: []
-  stage3PuzzleSlots:
-  - {fileID: 0}
-  stage3HintSlots: []
 --- !u!43 &555277176
 Mesh:
   m_ObjectHideFlags: 0
@@ -76846,7 +76832,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 960cbc44b519d8741862728f852e0072, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PuzzlePlacementSlot
-  slotId: 
 --- !u!4 &591717746 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3180198994713569532, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
@@ -86192,7 +86177,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 960cbc44b519d8741862728f852e0072, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PuzzlePlacementSlot
-  slotId: 
 --- !u!1001 &667446797
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -87584,36 +87568,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8771917180656288188, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 687722844}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
 --- !u!4 &687722842 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3180198994713569532, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
   m_PrefabInstance: {fileID: 687722841}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &687722843 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8771917180656288188, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
-  m_PrefabInstance: {fileID: 687722841}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &687722844
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 687722843}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 79b62af432d35bf4eb8c3c0b054abf06, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FlickeringLight
-  minIntensity: 2
-  maxIntensity: 7
-  flickerSpeed: 10
 --- !u!1 &690461217
 GameObject:
   m_ObjectHideFlags: 0
@@ -92628,7 +92589,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8013a287481084b40a00850523cba51b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintPlacementSlot
-  slotId: 
 --- !u!4 &736934130
 Transform:
   m_ObjectHideFlags: 0
@@ -117231,7 +117191,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8013a287481084b40a00850523cba51b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintPlacementSlot
-  slotId: 
 --- !u!4 &904809586
 Transform:
   m_ObjectHideFlags: 0
@@ -128503,8 +128462,8 @@ Transform:
   m_GameObject: {fileID: 990629379}
   serializedVersion: 2
   m_LocalRotation: {x: -1, y: 0, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 15.169, y: 15.169, z: 15.169}
+  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalScale: {x: 6, y: 6, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -131791,7 +131750,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8013a287481084b40a00850523cba51b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintPlacementSlot
-  slotId: 
 --- !u!43 &1032596590
 Mesh:
   m_ObjectHideFlags: 0
@@ -135525,21 +135483,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395cee6ed5048464190c747104736262, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZonePuzzleSlotSet
-  zone: 1
-  stage1PuzzleSlots:
-  - {fileID: 665865594}
-  - {fileID: 1732896656}
-  - {fileID: 1992235661}
-  stage1HintSlots:
-  - {fileID: 1865344479}
-  - {fileID: 1122666956}
-  - {fileID: 904809585}
-  - {fileID: 736934129}
-  stage2PuzzleSlots: []
-  stage2HintSlots: []
-  stage3PuzzleSlots:
-  - {fileID: 0}
-  stage3HintSlots: []
 --- !u!1 &1072421723
 GameObject:
   m_ObjectHideFlags: 0
@@ -138903,7 +138846,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8013a287481084b40a00850523cba51b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintPlacementSlot
-  slotId: 
 --- !u!43 &1097684753
 Mesh:
   m_ObjectHideFlags: 0
@@ -142057,7 +141999,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8013a287481084b40a00850523cba51b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintPlacementSlot
-  slotId: 
 --- !u!43 &1124521620
 Mesh:
   m_ObjectHideFlags: 0
@@ -194653,6 +194594,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkDebugStarter
   runnerPrefab: {fileID: 5485668934217040620, guid: e0417ef891fc9684fa0ad78a2fa7d358, type: 3}
+  characterRegistry: {fileID: 0}
   sessionName: DevlepTestHyun
   testNickname: TestPlayer
   playerDataPrefab: {fileID: 3058198935618079336, guid: 86f272d8fc5284641be8e46d38a00118, type: 3}
@@ -210261,7 +210203,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 960cbc44b519d8741862728f852e0072, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PuzzlePlacementSlot
-  slotId: 
 --- !u!1001 &1553755546
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -213664,36 +213605,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8771917180656288188, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1588615090}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
 --- !u!4 &1588615088 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3180198994713569532, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
   m_PrefabInstance: {fileID: 1588615087}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1588615089 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8771917180656288188, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
-  m_PrefabInstance: {fileID: 1588615087}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1588615090
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1588615089}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 79b62af432d35bf4eb8c3c0b054abf06, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FlickeringLight
-  minIntensity: 2
-  maxIntensity: 7
-  flickerSpeed: 10
 --- !u!1 &1591151098
 GameObject:
   m_ObjectHideFlags: 0
@@ -214595,36 +214513,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8771917180656288188, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1609193381}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
 --- !u!4 &1609193379 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3180198994713569532, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
   m_PrefabInstance: {fileID: 1609193378}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1609193380 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8771917180656288188, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
-  m_PrefabInstance: {fileID: 1609193378}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1609193381
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1609193380}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 79b62af432d35bf4eb8c3c0b054abf06, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FlickeringLight
-  minIntensity: 2
-  maxIntensity: 7
-  flickerSpeed: 10
 --- !u!1 &1609554534
 GameObject:
   m_ObjectHideFlags: 0
@@ -214680,6 +214575,7 @@ MonoBehaviour:
   escapedImage: {fileID: 0}
   deadImage: {fileID: 0}
   hostMark: {fileID: 0}
+  characterFaceImage: {fileID: 0}
   localPlayerColor: {r: 1, g: 0.85, b: 0.2, a: 1}
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!43 &1609762909
@@ -216833,8 +216729,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a837aec69daf35c4b8b6ff9409b50345, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MicLevelUI
-  micGauge: {fileID: 1316611123}
-  dBLabel: {fileID: 1438840172}
+  direction: 0
+  levelBar: {fileID: 0}
+  markerWhisper: {fileID: 0}
+  markerNormal: {fileID: 0}
+  markerLoud: {fileID: 0}
   colorSafe: {r: 0, g: 1, b: 0, a: 1}
   colorAlert: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   colorCritical: {r: 1, g: 0, b: 0, a: 1}
@@ -219471,7 +219370,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8013a287481084b40a00850523cba51b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintPlacementSlot
-  slotId: 
 --- !u!1001 &1671932619
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -227840,7 +227738,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 960cbc44b519d8741862728f852e0072, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PuzzlePlacementSlot
-  slotId: 
 --- !u!43 &1740647483
 Mesh:
   m_ObjectHideFlags: 0
@@ -241571,7 +241468,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8013a287481084b40a00850523cba51b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintPlacementSlot
-  slotId: 
 --- !u!4 &1867567221 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 470138, guid: dc8f3955c063af240afd23143f496335, type: 3}
@@ -251028,7 +250924,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8013a287481084b40a00850523cba51b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintPlacementSlot
-  slotId: 
 --- !u!1 &1929371897
 GameObject:
   m_ObjectHideFlags: 0
@@ -252484,6 +252379,7 @@ MonoBehaviour:
   timelineCardPrefab: {fileID: 0}
   returnButton: {fileID: 401285651}
   overlayController: {fileID: 0}
+  characterRegistry: {fileID: 0}
 --- !u!1 &1952727044
 GameObject:
   m_ObjectHideFlags: 0
@@ -254863,6 +254759,7 @@ MonoBehaviour:
   escapedImage: {fileID: 0}
   deadImage: {fileID: 0}
   hostMark: {fileID: 0}
+  characterFaceImage: {fileID: 0}
   localPlayerColor: {r: 1, g: 0.85, b: 0.2, a: 1}
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1964576989
@@ -260148,7 +260045,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 960cbc44b519d8741862728f852e0072, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PuzzlePlacementSlot
-  slotId: 
 --- !u!1001 &1993401633
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -267196,7 +267092,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 104d1804d2ade22429360fd285f526a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZoneDistributor
-  playerPrefab: {fileID: 3346838686624773243, guid: d9783d6e3fbc61c40890232bf4169261, type: 3}
+  characterRegistry: {fileID: 0}
   zoneASpawnPoint: {fileID: 875406339}
   zoneBSpawnPoint: {fileID: 641139814}
   roundSeedManager: {fileID: 255740976}
@@ -273987,6 +273883,8 @@ MonoBehaviour:
   spectatorOrbitCamera: {fileID: 1099315828}
   lookAction: {fileID: -5630151704836100654, guid: e8da5280c7347af4195ae9f3d9e7af3a, type: 3}
   zoomAction: {fileID: 5187656620827309004, guid: e8da5280c7347af4195ae9f3d9e7af3a, type: 3}
+  previousTargetAction: {fileID: 0}
+  nextTargetAction: {fileID: 0}
   horizontalSpeed: 0.2
   verticalSpeed: 0.15
   defaultVerticalAngle: 15
