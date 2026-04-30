@@ -1,5 +1,4 @@
 using UnityEngine;
-using static UnityEditorInternal.VersionControl.ListControl;
 
 /// <summary>
 /// 단일 메쉬 구조에 맞게 최적화된 애니메이션 동기화 모터.

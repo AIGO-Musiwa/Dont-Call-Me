@@ -136,6 +136,8 @@ public class InputHandler : MonoBehaviour
 
     private void Update()
     {
+        if (SettingsManager.IsOpen) return;
+
         _moveInput = moveAction.action.ReadValue<Vector2>(); // 현재 이동 입력 갱신
 
         Vector2 currentFrameLook = lookAction.action.ReadValue<Vector2>() * _mouseSensitivity; // 현재 프레임 마우스 델타 읽기
