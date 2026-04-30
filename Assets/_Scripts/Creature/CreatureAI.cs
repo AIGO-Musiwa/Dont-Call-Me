@@ -710,8 +710,7 @@ public class CreatureAI : NetworkBehaviour
         if (myZoneLightManager != null) myZoneLightManager.SetCaptureDarkout(true);
 
         //포획 시 해당 구역의 구출 구역 문 강제 폐쇄
-        RescueZoneDoor rescueDoor = RescueZoneDoor.GetDoor(myZone);
-        if (rescueDoor != null) rescueDoor.CloseDoor();
+        RescueZoneDoor.CloseAllDoorsInZone(myZone);
     }
 
     private void UpdateCaptureState()

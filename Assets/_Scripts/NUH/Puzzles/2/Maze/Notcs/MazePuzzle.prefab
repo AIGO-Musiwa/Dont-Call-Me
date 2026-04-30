@@ -279,9 +279,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 27087349668931270}
-  - component: {fileID: 4884292669885944343}
   m_Layer: 0
-  m_Name: MonitorRoot
+  m_Name: DefualtRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -295,7 +294,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1128248622749231304}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0.043}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -305,55 +304,8 @@ Transform:
   - {fileID: 2626071207152182458}
   - {fileID: 2152966159047799911}
   - {fileID: 4193491129532324129}
-  m_Father: {fileID: 8580273212609871996}
+  m_Father: {fileID: 7645300279906446804}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4884292669885944343
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1128248622749231304}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f9ab200173401cf43bdddb6f8b3b3c5c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MazePuzzleView
-  cellTransforms:
-  - {fileID: 6675116994235652623}
-  - {fileID: 7459054546572901948}
-  - {fileID: 6987666398489062103}
-  - {fileID: 8439104149647263908}
-  - {fileID: 6596227929033247779}
-  - {fileID: 8186594682956739693}
-  - {fileID: 1666934922831868011}
-  - {fileID: 2946383012627828176}
-  - {fileID: 484242688859269306}
-  - {fileID: 663134038742794988}
-  - {fileID: 105572011132333853}
-  - {fileID: 7037913598995456138}
-  - {fileID: 3112081133442113597}
-  - {fileID: 3288034791961837359}
-  - {fileID: 3331685131527338007}
-  - {fileID: 5115101060628823310}
-  - {fileID: 1755074196518308628}
-  - {fileID: 753445414454695009}
-  - {fileID: 280879404123983402}
-  - {fileID: 400960325499746209}
-  - {fileID: 1946442555269780092}
-  - {fileID: 2114863799856651419}
-  - {fileID: 6756464935840053745}
-  - {fileID: 2807117862168309566}
-  - {fileID: 1013384207532975826}
-  playerPiece: {fileID: 297666187543034840}
-  targetMarker: {fileID: 4006702564355106904}
-  playerPieceOffset: 0.001
-  targetMarkerOffset: 0.002
-  monitorRoot: {fileID: 1128248622749231304}
-  solvedRoot: {fileID: 7429592793955252321}
-  stage3HintRoot: {fileID: 5643615228561078939}
-  stage3HintDisplay: {fileID: 7114615387961181486}
-  enableDebugLog: 1
 --- !u!1 &1153308495450752124
 GameObject:
   m_ObjectHideFlags: 0
@@ -796,7 +748,7 @@ SpriteRenderer:
   m_SortingOrder: -10
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: c5898bc31918b784bbe2e82e573671f5, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.6981132, g: 0.6981132, b: 0.6981132, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -887,7 +839,7 @@ SpriteRenderer:
   m_SortingOrder: -1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: c5898bc31918b784bbe2e82e573671f5, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.6981132, g: 0.6981132, b: 0.6981132, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -1568,9 +1520,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 27087349668931270}
-  - {fileID: 7753981635591396065}
-  - {fileID: 6098382603155428224}
+  - {fileID: 7645300279906446804}
   - {fileID: 5255336730859075106}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1638,7 +1588,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PuzzleSpawnEntry
   progressTarget: {fileID: 8353994368641408984}
-  stage2ScreenRoot: {fileID: 1128248622749231304}
+  stage2ScreenRoot: {fileID: 7222458301379540827}
 --- !u!114 &8353994368641408984
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1657,7 +1607,8 @@ MonoBehaviour:
   countForStage1Progress: 1
   _NetIsSolved:
     _value: 0
-  mazeView: {fileID: 4884292669885944343}
+  audioModule: {fileID: 0}
+  mazeView: {fileID: 2659212128155537630}
   showStage3HintImmediately: 1
   enableDebugLog: 1
 --- !u!1 &3043120729120639462
@@ -3424,7 +3375,7 @@ Transform:
   - {fileID: 3097182242294414146}
   - {fileID: 1607211685907626409}
   - {fileID: 8886626869009058851}
-  m_Father: {fileID: 8580273212609871996}
+  m_Father: {fileID: 7645300279906446804}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7114615387961181486
 MonoBehaviour:
@@ -3991,6 +3942,88 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &7222458301379540827
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7645300279906446804}
+  - component: {fileID: 2659212128155537630}
+  m_Layer: 0
+  m_Name: Monitor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7645300279906446804
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7222458301379540827}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 27087349668931270}
+  - {fileID: 7753981635591396065}
+  - {fileID: 6098382603155428224}
+  m_Father: {fileID: 8580273212609871996}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2659212128155537630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7222458301379540827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9ab200173401cf43bdddb6f8b3b3c5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MazePuzzleView
+  cellTransforms:
+  - {fileID: 6675116994235652623}
+  - {fileID: 7459054546572901948}
+  - {fileID: 6987666398489062103}
+  - {fileID: 8439104149647263908}
+  - {fileID: 6596227929033247779}
+  - {fileID: 8186594682956739693}
+  - {fileID: 1666934922831868011}
+  - {fileID: 2946383012627828176}
+  - {fileID: 484242688859269306}
+  - {fileID: 663134038742794988}
+  - {fileID: 105572011132333853}
+  - {fileID: 7037913598995456138}
+  - {fileID: 3112081133442113597}
+  - {fileID: 3288034791961837359}
+  - {fileID: 3331685131527338007}
+  - {fileID: 5115101060628823310}
+  - {fileID: 1755074196518308628}
+  - {fileID: 753445414454695009}
+  - {fileID: 280879404123983402}
+  - {fileID: 400960325499746209}
+  - {fileID: 1946442555269780092}
+  - {fileID: 2114863799856651419}
+  - {fileID: 6756464935840053745}
+  - {fileID: 2807117862168309566}
+  - {fileID: 1013384207532975826}
+  playerPiece: {fileID: 297666187543034840}
+  targetMarker: {fileID: 4006702564355106904}
+  playerPieceOffset: 0.001
+  targetMarkerOffset: 0.002
+  monitorRoot: {fileID: 1128248622749231304}
+  solvedRoot: {fileID: 7429592793955252321}
+  stage3HintRoot: {fileID: 5643615228561078939}
+  stage3HintDisplay: {fileID: 7114615387961181486}
+  enableDebugLog: 1
 --- !u!1 &7267477211216843886
 GameObject:
   m_ObjectHideFlags: 0
@@ -4330,7 +4363,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8580273212609871996}
+  m_Father: {fileID: 7645300279906446804}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7447105734546576321
 GameObject:

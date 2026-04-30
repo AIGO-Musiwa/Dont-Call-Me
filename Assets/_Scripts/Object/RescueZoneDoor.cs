@@ -8,7 +8,7 @@ public class RescueZoneDoor : NetworkBehaviour
     public Zone myZone;
 
     [Header("문 작동 설정")]
-    public Vector3 openRatation = new Vector3(0, 90, 0);
+    public Vector3 openRotation = new Vector3(0, 90, 0);
     public float openSpeed = 5f;
 
     [Header("오디오 선택")]
@@ -26,17 +26,19 @@ public class RescueZoneDoor : NetworkBehaviour
     private bool isInitialForcedOpen = true;
 
     //크리처의 문 제어를 위한 정적 딕셔너리
-    private static Dictionary<Zone, RescueZoneDoor> doors = new Dictionary<Zone, RescueZoneDoor>();
+    private static Dictionary<Zone, List<RescueZoneDoor>> doors = new Dictionary<Zone, List<RescueZoneDoor>>();
 
     public override void Spawned()
     {
         //딕셔너리에 자신을 등록
-        doors[myZone] = this;
-        
+        if (!doors.ContainsKey(myZone)) doors[myZone] = new List<RescueZoneDoor>();
+        if (!doors[myZone].Contains(this)) doors[myZone].Add(this);
+
         closedRotation = transform.localRotation;
 
         //설정된 각도만큼 더해진 회전값을 '열림' 상태로 사전 계산
-        targetOpenRotation = closedRotation * Quaternion.Euler(openRatation);
+        closedRotation = transform.localRotation;
+        targetOpenRotation = closedRotation * Quaternion.Euler(openRotation);
 
         //게임 시작 시 호스트가 문을 기본적으로 '열림' 상태로 설정
         transform.localRotation = targetOpenRotation;
@@ -48,7 +50,7 @@ public class RescueZoneDoor : NetworkBehaviour
     //객체 소멸 시 딕셔너리에서 제거
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
-        if (doors.ContainsKey(myZone)) doors.Remove(myZone);
+        if (doors.ContainsKey(myZone) && doors[myZone].Contains(this)) doors.Remove(myZone);
     }
 
     public override void Render()
@@ -93,13 +95,6 @@ public class RescueZoneDoor : NetworkBehaviour
         }
     }
 
-    //외부에서 구역별 문 인스턴스를 찾기 위한 정적 함수
-    public static RescueZoneDoor GetDoor(Zone zone)
-    {
-        doors.TryGetValue(zone, out RescueZoneDoor door);
-        return door;
-    }
-
     //문 열리는 소리를 모든 클라이언트에서 재생
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void RPC_PlayDoorSound()
@@ -109,36 +104,48 @@ public class RescueZoneDoor : NetworkBehaviour
             audioSource.PlayOneShot(doorOpenSound);
         }
     }
+    
+    //구출 구역 내에 있는 모든 문을 열음
+    public static void OpenAllDoorsInZone(Zone zone)
+    {
+        if (doors.TryGetValue(zone, out List<RescueZoneDoor> zoneDoors))
+        {
+            foreach (var door in zoneDoors) door.OpenDoor();
+            Debug.Log($"[RescueZoneDoor] {zone}의 모든 문({zoneDoors.Count}개)이 동시에 개방됩니다.");
+        }
+    }
+
+    //구출 구역 내에 있는 모든 문을 닫음
+    public static void CloseAllDoorsInZone(Zone zone)
+    {
+        if (doors.TryGetValue(zone, out List<RescueZoneDoor> zoneDoors))
+        {
+            foreach (var door in zoneDoors) door.CloseDoor();
+            Debug.Log($"[RescueZoneDoor] {zone}의 모든 문({zoneDoors.Count}개)이 닫힙니다.");
+        }
+    }
+
+    public static void EmitFailNoise(Zone zone, Vector3 position)
+    {
+        SoundEmitter.EmitToEventBus(SoundChannel.Walkie, 150f, position, 0f, zone);
+        Debug.Log($"[RescueZoneDoor] 퍼즐 오답. 크리처를 유인하는 150dB 소음이 발생했습니다.");
+    }
 
     //인스펙터에서 임시로 테스트해 볼 수 있는 디버그 버튼
     [ContextMenu("Debug/강제로 문 열기 (테스트)")]
     private void DebugForceOpen()
     {
         if (!Application.isPlaying) return;
+        if (Object == null || !Object.IsValid) return;
 
-        if (Object == null || !Object.IsValid)
-        {
-            Debug.LogWarning($"[RescueZoneDoor] {myZone} 문이 아직 네트워크에 연결되지 않았습니다.");
-            return;
-        }
-
-        if (HasStateAuthority)
-        {
-            Debug.Log($"[RescueZoneDoor] (방장 권한 확인) 강제 개방을 실행합니다.");
-            OpenDoor();
-        }
-        else
-        {
-            Debug.Log($"[RescueZoneDoor] (참여자 권한) 서버에 강제 개방 RPC를 요청합니다.");
-            RPC_RequestOpenDoor();
-        }
+        if (HasStateAuthority) OpenDoor();
+        else RPC_RequestOpenDoor();
     }
 
     [ContextMenu("Debug/강제로 문 닫기 (테스트)")]
     private void DebugForceClose()
     {
         if (!Application.isPlaying) return;
-
         if (Object != null && Object.IsValid)
         {
             if (HasStateAuthority) CloseDoor();
@@ -146,17 +153,9 @@ public class RescueZoneDoor : NetworkBehaviour
         }
     }
 
-    //클라이언트의 테스트 버튼 클릭을 받아주는 서버 전용 RPC
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    private void RPC_RequestOpenDoor()
-    {
-        Debug.Log($"[RescueZoneDoor] 클라이언트의 RPC 요청을 서버가 수신했습니다. 문을 개방합니다.");
-        OpenDoor();
-    }
+    private void RPC_RequestOpenDoor() => OpenDoor();
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    private void RPC_RequestCloseDoor()
-    {
-        CloseDoor();
-    }
+    private void RPC_RequestCloseDoor() => CloseDoor();
 }
