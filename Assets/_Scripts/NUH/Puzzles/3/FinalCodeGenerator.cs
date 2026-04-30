@@ -76,7 +76,7 @@ public static class FinalCodeAnswerGenerator
 
         // 1. 최종 정답 6자리 생성
         for (int i = 0; i < FinalCodeLength; i++)
-            data.FinalDigits[i] = rng.NextInt(0, 10); // 0~9, 중복 허용
+            data.FinalDigits[i] = rng.NextInt(1, 10); // 1~9, 중복 허용
 
         // 2. 진짜 힌트 쌍의 공개 마스크 생성
         bool[] trueAMask = BuildRandomRevealMask(rng);     // A 진짜 힌트 공개 패턴
@@ -349,7 +349,7 @@ public static class FinalCodeAnswerGenerator
         FinalCodeAnswerData data = new FinalCodeAnswerData(); // 결과 컨테이너
 
         for (int i = 0; i < FinalCodeLength; i++)
-            data.FinalDigits[i] = rng.NextInt(0, 10);
+            data.FinalDigits[i] = rng.NextInt(1, 10);
 
         bool[] aMask = new bool[FinalCodeLength] { true, false, true, false, true, false };  // 진짜 A 패턴
         bool[] bMask = new bool[FinalCodeLength] { false, true, false, true, false, true };  // 진짜 B 패턴
