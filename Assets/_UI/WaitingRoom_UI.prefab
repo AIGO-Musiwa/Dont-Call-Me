@@ -1953,6 +1953,7 @@ GameObject:
   - component: {fileID: 4125728964718618953}
   - component: {fileID: 7200598851523391522}
   - component: {fileID: 9084505353107134038}
+  - component: {fileID: 6386772656370925276}
   m_Layer: 0
   m_Name: Mike
   m_TagString: Untagged
@@ -2007,16 +2008,31 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: 89a7b4782771c4149abc1b453a76572a, type: 3}
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6386772656370925276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1234826090990997566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f6238c2167b5e74d8d273663544b061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSlotLevelMeter
+  levelBar: {fileID: 9084505353107134038}
+  smoothSpeed: 10
+  sampleSize: 256
 --- !u!1 &1332235717885782174
 GameObject:
   m_ObjectHideFlags: 0
@@ -2733,8 +2749,8 @@ MonoBehaviour:
   filledPanel: {fileID: 1651979404674019670}
   nicknameText: {fileID: 947367736297498053}
   readyText: {fileID: 7633410805632045286}
-  micIcon: {fileID: 3058885435423795308}
   hostBadge: {fileID: 1790680108990581859}
+  levelMeter: {fileID: 3943116117291390818}
 --- !u!1 &1715146718600699111
 GameObject:
   m_ObjectHideFlags: 0
@@ -2832,8 +2848,8 @@ MonoBehaviour:
   filledPanel: {fileID: 1715146718600699111}
   nicknameText: {fileID: 8848594951956064803}
   readyText: {fileID: 1470334040349053999}
-  micIcon: {fileID: 9084505353107134038}
   hostBadge: {fileID: 3036228755708337841}
+  levelMeter: {fileID: 6386772656370925276}
 --- !u!1 &1724054878168207569
 GameObject:
   m_ObjectHideFlags: 0
@@ -3411,8 +3427,8 @@ MonoBehaviour:
   filledPanel: {fileID: 2082662101259094282}
   nicknameText: {fileID: 2771368397249664399}
   readyText: {fileID: 4630362378706964569}
-  micIcon: {fileID: 6432235733252776293}
   hostBadge: {fileID: 6357503125847655841}
+  levelMeter: {fileID: 4357912368515581365}
 --- !u!1 &2108795140533524416
 GameObject:
   m_ObjectHideFlags: 0
@@ -5417,6 +5433,7 @@ GameObject:
   - component: {fileID: 3490304517760588035}
   - component: {fileID: 2741206248276963271}
   - component: {fileID: 2056601938343674242}
+  - component: {fileID: 5714112472947883577}
   m_Layer: 0
   m_Name: Mike
   m_TagString: Untagged
@@ -5471,16 +5488,31 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: 89a7b4782771c4149abc1b453a76572a, type: 3}
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5714112472947883577
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3182968006484748987}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f6238c2167b5e74d8d273663544b061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSlotLevelMeter
+  levelBar: {fileID: 2056601938343674242}
+  smoothSpeed: 10
+  sampleSize: 256
 --- !u!1 &3186049684211766627
 GameObject:
   m_ObjectHideFlags: 0
@@ -5750,6 +5782,7 @@ GameObject:
   - component: {fileID: 1199959173254179536}
   - component: {fileID: 8341801682666526677}
   - component: {fileID: 3058885435423795308}
+  - component: {fileID: 3943116117291390818}
   m_Layer: 0
   m_Name: Mike
   m_TagString: Untagged
@@ -5804,16 +5837,31 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: 89a7b4782771c4149abc1b453a76572a, type: 3}
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &3943116117291390818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3282714306932526206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f6238c2167b5e74d8d273663544b061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSlotLevelMeter
+  levelBar: {fileID: 3058885435423795308}
+  smoothSpeed: 10
+  sampleSize: 256
 --- !u!1 &3288079872917307216
 GameObject:
   m_ObjectHideFlags: 0
@@ -12692,6 +12740,7 @@ GameObject:
   - component: {fileID: 2308614240595144619}
   - component: {fileID: 1074054363265611846}
   - component: {fileID: 6432235733252776293}
+  - component: {fileID: 4357912368515581365}
   m_Layer: 0
   m_Name: Mike
   m_TagString: Untagged
@@ -12746,16 +12795,31 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: 89a7b4782771c4149abc1b453a76572a, type: 3}
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4357912368515581365
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6514545309178756612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f6238c2167b5e74d8d273663544b061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSlotLevelMeter
+  levelBar: {fileID: 6432235733252776293}
+  smoothSpeed: 10
+  sampleSize: 256
 --- !u!1 &6657275539448702794
 GameObject:
   m_ObjectHideFlags: 0
@@ -15664,8 +15728,8 @@ MonoBehaviour:
   filledPanel: {fileID: 7913925713408080990}
   nicknameText: {fileID: 470196823190263239}
   readyText: {fileID: 1189411106210629212}
-  micIcon: {fileID: 2056601938343674242}
   hostBadge: {fileID: 8712159218093590890}
+  levelMeter: {fileID: 5714112472947883577}
 --- !u!1 &8001150870454955099
 GameObject:
   m_ObjectHideFlags: 0
