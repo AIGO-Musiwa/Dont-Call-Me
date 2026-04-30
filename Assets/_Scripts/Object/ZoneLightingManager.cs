@@ -16,7 +16,13 @@ public class ZoneLightingManager : NetworkBehaviour
     public Color act3LightColor = Color.red;
 
     [Tooltip("3막 진입 시 변경될 목표 밝기")]
-    public float act3LightIntensity = 5f;
+    public float act3LightIntensity = 25f;
+
+    [Header("3막 사이렌 연출 설정")]
+    [Tooltip("사이렌이 깜빡이는 속도")]
+    public float sirenBlinkSpeed = 5.5f;
+    [Tooltip("사이렌 깜빡임의 최소 밝기")]
+    public float sirenMinIntensity = 0f;
 
     //수집된 조명들의 원본 데이터를 기억할 구조체
     private class LightData
@@ -86,8 +92,15 @@ public class ZoneLightingManager : NetworkBehaviour
             //3막 상태일 경우 모든 조명을 설정된 색상과 밝기로 변경
             else if (IsAct3Active)
             {
-                data.light.color = Color.Lerp(data.light.color, act3LightColor, Time.deltaTime * 2f);
-                data.light.intensity = Mathf.Lerp(data.light.intensity, act3LightIntensity, Time.deltaTime * 2f);
+                //3막 사이렌 연출: 밝기가 시간에 따라 깜박이는 효과 추가
+                float pulse = (Mathf.Sin(Time.time * sirenBlinkSpeed) + 1f) / 2f; //0~1 사이의 펄스 값
+
+                //최소 밝기와 최대 밝기 사이를 펄스 값에 따라 변화
+                float currentTargetIntensity = Mathf.Lerp(sirenMinIntensity, act3LightIntensity, pulse);
+
+                data.light.color = Color.Lerp(data.light.color, act3LightColor, Time.deltaTime * 5f);
+                //data.light.intensity = Mathf.Lerp(data.light.intensity, currentTargetIntensity, Time.deltaTime * 2f);
+                data.light.intensity = currentTargetIntensity;
             }
 
             //평상시 원래 설정된 색상과 밝기로 복구

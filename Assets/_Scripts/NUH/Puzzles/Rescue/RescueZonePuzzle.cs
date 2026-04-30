@@ -256,6 +256,9 @@ public class RescueZonePuzzle : NetworkBehaviour
         //if (stageManager != null)
         //    stageManager.ReportRescuePuzzleSolved(puzzleZone); // StageManager에 성공 보고
 
+        //퍼즐 성공 시 구제구역 문 열기
+        RescueZoneDoor.OpenAllDoorsInZone(puzzleZone);
+
         Log($"구제구역 퍼즐 성공 | Zone={puzzleZone}");
     }
 
@@ -274,6 +277,9 @@ public class RescueZonePuzzle : NetworkBehaviour
         NetInputCount = 0;
 
         NetFailEffectPlaying = false;
+
+        //퍼즐 실패 시 크리처 보호 시스템 가동
+        RescueZoneDoor.EmitFailNoise(puzzleZone, transform.position);
 
         Log($"구제구역 퍼즐 실패 | Zone={puzzleZone}");
     }
