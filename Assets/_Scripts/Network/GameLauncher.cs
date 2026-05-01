@@ -35,6 +35,9 @@ public class GameLauncher : MonoBehaviour
 
     public event Action<NetworkRunner> OnRunnerCreated;                 // Runner 생성 시 발행
 
+    public event Action OnSceneLoadStarted;
+    public event Action OnGameReady;
+
     // ── 내부 ──────────────────────────────────────────────
     private bool _intentionalShutdown;                  // 본인이 직접 종료했는지 확인
     private FusionCallbackHandler _callbackHandler;     // Fusion 콜백 핸들러
@@ -264,6 +267,8 @@ public class GameLauncher : MonoBehaviour
         _callbackHandler.OnShutdownEvent += HandleShutdown;
         _callbackHandler.OnDisconnectedEvent += HandleDisconnected;
         _callbackHandler.OnConnectFailedEvent += HandleConnectFailed;
+
+        _callbackHandler.OnSceneLoadStartEvent += HandleSceneLoadStart;
     }
 
     private void UnsubscribeCallbacks()
@@ -274,6 +279,8 @@ public class GameLauncher : MonoBehaviour
         _callbackHandler.OnShutdownEvent -= HandleShutdown;
         _callbackHandler.OnDisconnectedEvent -= HandleDisconnected;
         _callbackHandler.OnConnectFailedEvent -= HandleConnectFailed;
+
+        _callbackHandler.OnSceneLoadStartEvent -= HandleSceneLoadStart;
     }
 
     #endregion
@@ -364,6 +371,14 @@ public class GameLauncher : MonoBehaviour
     {
         Debug.LogError($"[GameLauncher] 연결 거부: {reason}");
         OnJoinFailed?.Invoke(GetJoinFailMessage(reason));
+    }
+
+    private void HandleSceneLoadStart()
+    => OnSceneLoadStarted?.Invoke();
+
+    public void NotifyGameReady()
+    {
+        OnGameReady?.Invoke();
     }
 
     #endregion
