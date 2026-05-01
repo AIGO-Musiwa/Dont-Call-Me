@@ -28,6 +28,9 @@ public class ResultUI : MonoBehaviour
     [Header("오버레이 컨트롤러")]
     [SerializeField] private ResultOverlayController overlayController;
 
+    [Header("캐릭터 레지스트리")]
+    [SerializeField] private CharacterprefabRegistry characterRegistry;
+
     private bool isActive;
 
     private void Awake()
@@ -68,6 +71,8 @@ public class ResultUI : MonoBehaviour
 
             // IsHost는 PlayerData에서 읽음
             bool isHost = false;
+            int characterIndex = -1;
+
             if (runner != null)
             {
                 foreach (var player in runner.ActivePlayers)
@@ -76,16 +81,23 @@ public class ResultUI : MonoBehaviour
                     if (data != null && data.SlotIndex == result.SlotIndex)
                     {
                         isHost = data.IsHost;
+                        characterIndex = data.CharacterIndex;
                         break;
                     }
                 }
             }
 
+            // CharactgerIndex로 얼굴 스프라이트 가져오기
+            Sprite faceSprite = characterIndex >= 0
+                ? characterRegistry?.GetFaceSprite(characterIndex)
+                : null;
+
             playerSlots[result.SlotIndex].SetPlayer(
                 result.Nickname,
                 result.FinalState,
                 result.IsLocalPlayer,
-                isHost
+                isHost,
+                faceSprite
                 );
 
             if (result.FinalState == PlayerState.Escaped)

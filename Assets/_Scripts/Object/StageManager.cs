@@ -1,4 +1,5 @@
 using Fusion;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -39,6 +40,9 @@ public class StageManager : NetworkBehaviour
     [SerializeField] private GameObject zoneB_StairB_Top;    // ZoneB B계단 상단 차단벽 (3F-2F)
     [SerializeField] private GameObject zoneB_StairB_Bottom; // ZoneB B계단 하단 차단벽 (2F-1F)
 
+    [Header("관전 대기실 (Dead Room)")]    
+    [SerializeField] private Transform deadRespawnPoint;
+
     [Header("디버그")]
     [SerializeField] private bool enableDebugLog = true; // 디버그 로그 출력 여부
 
@@ -46,9 +50,24 @@ public class StageManager : NetworkBehaviour
     [Networked] private NetworkBool NetZoneAStage1Completed { get; set; } // ZoneA Stage1 완료 승인 여부
     [Networked] private NetworkBool NetZoneBStage1Completed { get; set; } // ZoneB Stage1 완료 승인 여부
 
-    // [추가] Zone별 Stage3 완료 상태
+    //Zone별 Stage3 완료 상태
     [Networked] private NetworkBool NetZoneAStage3Completed { get; set; } // ZoneA Stage3 완료 여부
     [Networked] private NetworkBool NetZoneBStage3Completed { get; set; } // ZoneB Stage3 완료 여부
+
+    //탈출 버튼 동시 입력 관련 네트워크 변수
+    [Networked] public NetworkBool IsEscapeButtonExposed { get; private set; }
+    [Networked] public NetworkBool IsZoneAEscapeButtonExposed { get; private set; } // ZoneA 탈출 버튼 노출 여부
+    [Networked] public NetworkBool IsZoneBEscapeButtonExposed { get; private set; } // ZoneB 탈출 버튼 노출 여부
+    [Networked] private NetworkBool IsZoneAEscapePressed { get; set; }
+    [Networked] private NetworkBool IsZoneBEscapePressed { get; set; }
+    [Networked] private TickTimer EscapeInputTimer { get; set; }
+
+    //텔레포트가 이미 완료된 플레이어들을 기억하여 무한 워프를 방지하는 로컬 셋
+    private HashSet<NetworkId> _teleportedPlayers = new HashSet<NetworkId>();
+
+    //옵저버 시스템 고장 방지를 위한 3초 지연 타이머 딕셔너리
+    private Dictionary<NetworkId, TickTimer> _deadTeleportTimers = new Dictionary<NetworkId, TickTimer>();
+    private float _findRespawnTimer = 0f;
 
     public override void Spawned()
     {
@@ -63,11 +82,113 @@ public class StageManager : NetworkBehaviour
             NetZoneAStage3Completed = false; // ZoneA Stage3 완료 플래그 초기화
             NetZoneBStage3Completed = false; // ZoneB Stage3 완료 플래그 초기화
 
+            IsZoneAEscapeButtonExposed = false; // ZoneA 버튼 비노출
+            IsZoneBEscapeButtonExposed = false; // ZoneB 버튼 비노출
+            IsZoneAEscapePressed = false;       // ZoneA 입력 상태 초기화
+            IsZoneBEscapePressed = false;       // ZoneB 입력 상태 초기화
+            EscapeInputTimer = TickTimer.None;  // 동시 입력 타이머 초기화
+
             SetAllStairBlocksActive(false); // 시작 시 계단 차단벽 전부 비활성화
             SetStage3DoorOpen(Zone.ZoneA, false); // ZoneA 3단계 진입 문 닫기
             SetStage3DoorOpen(Zone.ZoneB, false); // ZoneB 3단계 진입 문 닫기
         }
     }
+
+    public override void FixedUpdateNetwork()
+    {
+        if (!HasStateAuthority) return;
+
+        //동시 입력 타이머 처리
+        if (EscapeInputTimer.IsRunning)
+        {
+            //양쪽 모두 입력 완료 시 탈출(3막) 발동
+            if (IsZoneAEscapePressed && IsZoneBEscapePressed)
+            {
+                EscapeInputTimer = TickTimer.None;
+                TriggerAct3();
+            }
+
+            //시간 초과 시 입력 초기화
+            else if (EscapeInputTimer.Expired(Runner))
+            {
+                IsZoneAEscapePressed = false;
+                IsZoneBEscapePressed = false;
+                EscapeInputTimer = TickTimer.None;
+                Log("탈출 버튼 동시 입력 시간 초과, 입력을 초기화합니다.");
+            }
+        }
+
+        //알림을 받은 플레이어들만 모아서 지연 텔레포트 처리
+        ProcessPendingTeleports();
+    }
+
+    #region 죽은 플레이어 강제 전송
+    /// <summary>
+    /// PlayerController에서 사망/탈출 이벤트 발생 시 워프 대상 위치로 이동시키는 함수. 
+    /// </summary>
+
+    public void RequestTeleportToDeadRoom(PlayerController player)
+    {
+        if (!HasStateAuthority) return;
+        if (player == null || !player.Object.IsValid) return;
+
+        NetworkId playerId = player.Object.Id;
+
+        //아직 워프되지 않았고, 타이머도 돌고 있지 않다면
+        if (!_teleportedPlayers.Contains(playerId) && !_deadTeleportTimers.ContainsKey(playerId))
+        {
+            //옵저버 시스템 전환을 기다려주기 위해 타이머 시작
+            _deadTeleportTimers[playerId] = TickTimer.CreateFromSeconds(Runner, 1.0f);
+            Log($"[{player.gameObject.name}] 사망/탈출 이벤트 수신! 옵저버 전환을 위해 1초 후 DeadRoom으로 이동합니다.");
+        }
+    }
+
+    private void ProcessPendingTeleports()
+    {
+        if (_deadTeleportTimers.Count == 0) return;
+
+        if (deadRespawnPoint == null)
+        {
+            _findRespawnTimer += Runner.DeltaTime;
+            if (_findRespawnTimer > 1.0f)
+            {
+                _findRespawnTimer = 0f;
+                GameObject respawnObject = GameObject.Find("Dead_Respawn");
+                if (respawnObject != null) deadRespawnPoint = respawnObject.transform;
+            }
+
+            //찾지 못했다면 강제 이동 보류
+            if (deadRespawnPoint == null) return;
+        }
+
+        //2. 3초 타이머가 만료된 플레이어 선별
+        List<NetworkId> readyToTeleport = new List<NetworkId>();
+        foreach (var kvp in _deadTeleportTimers)
+        {
+            if (kvp.Value.Expired(Runner)) readyToTeleport.Add(kvp.Key);
+        }
+
+        //실제 텔레포트 실행
+        foreach (var playerId in readyToTeleport)
+        {
+            _deadTeleportTimers.Remove(playerId);
+            _teleportedPlayers.Add(playerId);
+
+            if (Runner.TryFindObject(playerId, out NetworkObject playerObj))
+            {
+                PlayerController player = playerObj.GetComponent<PlayerController>();
+                if (player != null)
+                {
+                    if (player.KCCMotor != null) player.KCCMotor.WarpToPose(deadRespawnPoint.position, deadRespawnPoint.rotation);
+                    else player.transform.SetPositionAndRotation(deadRespawnPoint.position, deadRespawnPoint.rotation);
+
+                    Log($"[{player.gameObject.name}] DeadRoom으로 강제 이동 완료.");
+                }
+            }        
+        }
+    }
+
+    #endregion
 
     #region Stage1 완료 -> Stage2 해금 / Stage3 문 개방
 
@@ -188,6 +309,7 @@ public class StageManager : NetworkBehaviour
                 return;
 
             NetZoneAStage3Completed = true; // ZoneA Stage3 완료 기록
+            IsZoneAEscapeButtonExposed = true;  // ZoneA 탈출 버튼 노출
             Log("ZoneA Stage3 완료 보고 수신");
         }
         else
@@ -196,13 +318,9 @@ public class StageManager : NetworkBehaviour
                 return;
 
             NetZoneBStage3Completed = true; // ZoneB Stage3 완료 기록
+            IsZoneBEscapeButtonExposed = true;  // ZoneB 탈출 버튼 노출
             Log("ZoneB Stage3 완료 보고 수신");
         }
-
-        // 현재 규칙:
-        // Stage3 최종 퍼즐을 어느 한 Zone이라도 해결하면 즉시 3막 진입
-        if (!IsAct3Active)
-            TriggerAct3();
     }
 
     #endregion
@@ -212,12 +330,36 @@ public class StageManager : NetworkBehaviour
     /// <summary>
     /// 3막(Act3)을 발동한다.
     /// </summary>
+    
+    public void TryPressEscapeButton(Zone zone)
+    {
+        if (!HasStateAuthority) return;
+        if (IsAct3Active) return;
+
+        if (zone == Zone.ZoneA) IsZoneAEscapePressed = true;
+        if (zone == Zone.ZoneB) IsZoneBEscapePressed = true;
+
+        //타이머가 돌고 있지 않으면 0.5초 타이머 시간 (동시 입력 판정)
+        if (!EscapeInputTimer.IsRunning)
+        {
+            EscapeInputTimer = TickTimer.CreateFromSeconds(Runner, 0.5f);
+            Log($"{zone} 탈출 버튼 입력! 0.5초 대기 시작");
+        }
+    }
+
     public void TriggerAct3()
     {
         if (!HasStateAuthority || IsAct3Active)
             return;
 
         IsAct3Active = true;
+
+        // 버튼 재입력 방지
+        IsZoneAEscapeButtonExposed = false;
+        IsZoneBEscapeButtonExposed = false;
+        IsZoneAEscapePressed = false;
+        IsZoneBEscapePressed = false;
+        EscapeInputTimer = TickTimer.None;
 
         CreatureAI[] allCreature = FindObjectsByType<CreatureAI>(FindObjectsSortMode.None);
         foreach (CreatureAI creature in allCreature)
@@ -314,6 +456,30 @@ public class StageManager : NetworkBehaviour
         ReportZoneStage1Completed(Zone.ZoneB);
 
         Log("디버그 | 양쪽 Zone Stage2 해금 + Stage3 문 개방 강제 적용");
+    }
+
+    [ContextMenu("Debug/3단계 완료 강제 승인 (탈출 버튼 노출)")]
+    private void DebugForceExposeEscapeButton()
+    {
+        if (!Application.isPlaying)
+        {
+            LogWarning("플레이 모드에서만 실행 가능합니다.");
+            return;
+        }
+
+        if (!HasStateAuthority)
+        {
+            LogWarning("상태 권한이 있는 서버(호스트)에서만 실행 가능합니다.");
+            return;
+        }
+
+        NetZoneAStage3Completed = true;
+        NetZoneBStage3Completed = true;
+
+        //아직 3막이 아니면 탈출 버튼 강제 노출 적용
+        if (!IsAct3Active) IsEscapeButtonExposed = true;        
+
+        Log("디버그 | 양쪽 Zone Stage3 완료 강제 승인 및 탈출 버튼 노출");
     }
 
     [ContextMenu("Debug/3막(Act 3) 강제 진입")]

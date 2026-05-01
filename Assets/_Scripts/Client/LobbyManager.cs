@@ -21,6 +21,7 @@ public class LobbyManager : MonoBehaviour
 
     [Header("방정보")]
     [SerializeField] private TextMeshProUGUI roomCodeText;
+    [SerializeField] private TextMeshProUGUI playerCountText;
 
     [Header("방 코드 복사")]
     [SerializeField] private Button copyRoomCodeButton;
@@ -134,6 +135,8 @@ public class LobbyManager : MonoBehaviour
         // 슬롯 해제
         if (_playerRefToSlot.TryGetValue(player, out var slotIndex))
         {
+            LobbyCharacterViewer.Instance?.OnPlayerLeft(slotIndex);
+
             _slots[slotIndex] = null;
             _playerRefToSlot.Remove(player);
         }
@@ -162,6 +165,8 @@ public class LobbyManager : MonoBehaviour
             }
         }
         RefreshSlots();
+
+        LobbyCharacterViewer.Instance?.RebuildFromExistingPlayerData();
 
         // 슬롯 바인딩 완료 후 오버레이 표시
         if (ResultPayload.Pending != null && resultOverlay != null)
@@ -249,6 +254,9 @@ public class LobbyManager : MonoBehaviour
         _slots[data.SlotIndex] = data;
         _playerRefToSlot[player] = data.SlotIndex;
 
+        if (data.CharacterIndex >= 0)
+            LobbyCharacterViewer.Instance?.OnCharacterAssigned(data.SlotIndex, data.CharacterIndex);
+
         RefreshSlots();
     }
 
@@ -261,6 +269,10 @@ public class LobbyManager : MonoBehaviour
             else
                 playerSlots[i].SetEmpty();           
         }
+
+        int count = _slots.Count(s => s != null);
+        if (playerCountText != null)
+            playerCountText.text = $"플레이어 ({count}/{Constants.MAX_PLAYERS})";
     }
 
     private void UpdateStartButton()

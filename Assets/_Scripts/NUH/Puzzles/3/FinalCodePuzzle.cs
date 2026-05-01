@@ -39,7 +39,6 @@ public class FinalCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private bool _hasAnswerSeed; // 시드 적용 완료 여부
     private bool _isFailRoutineRunning; // 실패 연출 코루틴 실행 중 여부
     private NetworkObject _spawnedKeycard; // 이미 생성된 키카드 참조
-    private Zone _puzzleZone; // 스폰 매니저가 주입하는 실제 소속 Zone
 
     [Networked, OnChangedRender(nameof(OnInputStateChanged))]
     private int NetInputCount { get; set; } // 현재 입력된 숫자 개수
@@ -62,15 +61,6 @@ public class FinalCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
         if (IsSolved)
             ApplySolvedPresentation();
-    }
-
-    /// <summary>
-    /// 스폰 매니저가 이 최종 퍼즐의 소속 Zone을 주입한다.
-    /// </summary>
-    public void SetSpawnZone(Zone zone)
-    {
-        _puzzleZone = zone;
-        Log($"소속 Zone 설정 완료 | zone={_puzzleZone}");
     }
 
     /// <summary>
@@ -406,7 +396,7 @@ public class FinalCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         bool shouldSpawnMaster = false;
 
         if (StageManager.Instance != null)
-            shouldSpawnMaster = StageManager.Instance.ShouldSpawnMasterKeycardForZone(_puzzleZone);
+            shouldSpawnMaster = StageManager.Instance.ShouldSpawnMasterKeycardForZone(SpawnZone);
 
         NetworkObject rewardPrefab = shouldSpawnMaster ? masterKeycardPrefab : normalKeycardPrefab;
 
@@ -430,7 +420,7 @@ public class FinalCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
         _spawnedKeycard = spawned;
 
-        Log($"키카드 생성 완료 | zone={_puzzleZone} | master={shouldSpawnMaster}");
+        Log($"키카드 생성 완료 | zone={SpawnZone} | master={shouldSpawnMaster}");
     }
 
     private void Log(string message)

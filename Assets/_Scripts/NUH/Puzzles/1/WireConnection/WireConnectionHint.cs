@@ -56,11 +56,11 @@ public class WireConnectionHint : MonoBehaviour, IPuzzleSeedReceiver
         return socketColor switch
         {
             WireSocketColor.Red => Color.red,
-            WireSocketColor.Orange => Color.orange,
+            WireSocketColor.DarkOrange => new Color(1f, 0.55f, 0f),
             WireSocketColor.Yellow => Color.yellow,
             WireSocketColor.Green => Color.green,
             WireSocketColor.Blue => Color.blue,
-            WireSocketColor.Navy => Color.navyBlue,
+            WireSocketColor.DarkGray => new Color(0.25f, 0.25f, 0.25f),
             WireSocketColor.Purple => Color.purple,
             WireSocketColor.White => Color.white,
             WireSocketColor.Black => Color.black,

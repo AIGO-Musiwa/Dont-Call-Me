@@ -8,6 +8,8 @@ public class FusionCallbackHandler : INetworkRunnerCallbacks
 {
     public static FusionCallbackHandler Current { get; private set; }
 
+    public bool IsDebugSession { get; set; } = false;
+
     public FusionCallbackHandler()
     {
         Current = this;
@@ -20,6 +22,9 @@ public class FusionCallbackHandler : INetworkRunnerCallbacks
     public event Action<NetDisconnectReason> OnDisconnectedEvent;
     public event Action<NetConnectFailedReason> OnConnectFailedEvent;
     public event Action<NetworkRunner, NetworkInput> OnInputEvent;
+    
+    public event Action OnSceneLoadStartEvent;
+    public event Action OnSceneLoadDoneEvent;
 
     // ── INetworkRunnerCallbacks 구현 ──────────────────────
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
@@ -51,6 +56,12 @@ public class FusionCallbackHandler : INetworkRunnerCallbacks
     public void OnConnectRequest(NetworkRunner runner,
             NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
     {
+        if (IsDebugSession)
+        {
+            request.Accept();
+            return;
+        }
+
         // 게임 실행중 입장 거부
         if (GameSessionManager.Instance != null)
         {
@@ -61,6 +72,13 @@ public class FusionCallbackHandler : INetworkRunnerCallbacks
         request.Accept();
     }
 
+    public void OnSceneLoadStart(NetworkRunner runner)
+        => OnSceneLoadStartEvent?.Invoke();
+
+    public void OnSceneLoadDone(NetworkRunner runner)
+        => OnSceneLoadDoneEvent?.Invoke();
+
+
     // ── 빈 구현 ───────────────────────────────────────────
     public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
     public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
@@ -70,8 +88,7 @@ public class FusionCallbackHandler : INetworkRunnerCallbacks
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
     public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
-    public void OnSceneLoadDone(NetworkRunner runner) { }
-    public void OnSceneLoadStart(NetworkRunner runner) { }
+
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) { }
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
 

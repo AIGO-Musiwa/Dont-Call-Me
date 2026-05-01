@@ -31,6 +31,21 @@ public static class Constants
     // ── Setting 키워드 ────────────────────────────────────
     // PlayerPrefs에 저장할 때 사용할 키워드
     public const string SENSITIVITY_KEY = "MouseSensitivity";
+
+    public const string KEY_MASTER= "Vol_Master";
+    public const string KEY_BGM = "Vol_BGM";
+    public const string KEY_SFX = "Vol_SFX";
+    public const string KEY_GLOBAL_RECEIVE_VOLUME = "Voice_GlobalReceive";     // 음성 수신 볼륨 키
+
+    public const string KEY_RESOLUTION_INDEX = "Display_ResolutionIndex";
+    public const string KEY_WINDOW_MODE = "Display_WindowMode";
+    public const string KEY_BRIGHTNESS = "Display_Brightness";
+
+    public const string KEY_MIC_GAIN = "Mic_Gain";
+
+    // 밝기 범위 (EV 단위)
+    public const float BRIGHTNESS_MIN = -2f;
+    public const float BRIGHTNESS_MAX = 2f;
 }
 
 // ── 씬 이름 (Build Settings의 씬 이름과 반드시 일치) ────

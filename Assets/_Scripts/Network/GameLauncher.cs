@@ -1,9 +1,9 @@
 using Fusion;
 using Fusion.Sockets;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -16,6 +16,9 @@ public class GameLauncher : MonoBehaviour
     [Header("Fusion 프리팹")]
     [SerializeField] private NetworkRunner networkRunnerPrefab;
     [SerializeField] private NetworkObject playerLobbyDataPrefab;
+
+    [Header("캐릭터 설정")]
+    [SerializeField] private CharacterprefabRegistry characterRegistry;
 
     // ── 외부 접근 ─────────────────────────────────────────
     public NetworkRunner Runner { get; private set; }
@@ -30,6 +33,9 @@ public class GameLauncher : MonoBehaviour
     public event Action<NetworkRunner, PlayerRef> OnPlayerJoinedEvent;  // 플레이어 입장 (LobbyManagert에서 구독)
     public event Action<NetworkRunner, PlayerRef> OnPlayerLeftEvent;    // 플레이어 퇴장 (LobbyManager에서 구독)
 
+    public event Action OnSceneLoadStarted;
+    public event Action OnGameReady;
+
     // ── 내부 ──────────────────────────────────────────────
     private bool _intentionalShutdown;                  // 본인이 직접 종료했는지 확인
     private FusionCallbackHandler _callbackHandler;     // Fusion 콜백 핸들러
@@ -37,6 +43,9 @@ public class GameLauncher : MonoBehaviour
 
     // 서버에서만 사용하는 슬롯  추적
     private readonly Dictionary<PlayerRef, int> _playerSlots = new();
+
+    // 배정 가능한 캐릭터 인덱스 풀 (Host 전용)
+    private readonly List<int> _availableCharacterIndices = new();
 
     #region Unity LifeCycle
 
@@ -89,6 +98,7 @@ public class GameLauncher : MonoBehaviour
         await Runner.Shutdown();
         Runner = null;
         _playerSlots.Clear();
+        _availableCharacterIndices.Clear();
     }
 
     // 게임 종료 후 대기실로 복귀
@@ -158,6 +168,9 @@ public class GameLauncher : MonoBehaviour
             Runner = null;
         }
 
+        // 캐릭터 풀 초기화
+        InitCharacterPool();
+
         _callbackHandler = new FusionCallbackHandler();
         SubscribeCallbacks();
 
@@ -216,6 +229,30 @@ public class GameLauncher : MonoBehaviour
 
     #endregion
 
+    #region 캐릭터 풀 관리
+
+    private void InitCharacterPool()
+    {
+        _availableCharacterIndices.Clear();
+
+        int count = characterRegistry != null
+            ? characterRegistry.Count
+            : Constants.MAX_PLAYERS;
+
+        if (count == 0)
+        {
+            Debug.LogWarning("[GameLauncher] CharacterPrefabRegistry에 등록된 캐릭터가 없습니다.");
+            return;
+        }
+
+        for (int i = 0; i < count; i++)
+            _availableCharacterIndices.Add(i);
+
+        Debug.Log($"[GameLauncher] 캐릭터 풀 초기화 | 캐릭터 수={count}");
+    }
+
+    #endregion
+
     #region 콜백 구독/해제
 
     private void SubscribeCallbacks()
@@ -225,6 +262,8 @@ public class GameLauncher : MonoBehaviour
         _callbackHandler.OnShutdownEvent += HandleShutdown;
         _callbackHandler.OnDisconnectedEvent += HandleDisconnected;
         _callbackHandler.OnConnectFailedEvent += HandleConnectFailed;
+
+        _callbackHandler.OnSceneLoadStartEvent += HandleSceneLoadStart;
     }
 
     private void UnsubscribeCallbacks()
@@ -235,6 +274,8 @@ public class GameLauncher : MonoBehaviour
         _callbackHandler.OnShutdownEvent -= HandleShutdown;
         _callbackHandler.OnDisconnectedEvent -= HandleDisconnected;
         _callbackHandler.OnConnectFailedEvent -= HandleConnectFailed;
+
+        _callbackHandler.OnSceneLoadStartEvent -= HandleSceneLoadStart;
     }
 
     #endregion
@@ -249,6 +290,8 @@ public class GameLauncher : MonoBehaviour
             runner.SetPlayerObject(player, obj);
             DontDestroyOnLoad(obj.gameObject);
 
+            var data = obj.GetComponent<PlayerData>();
+
             // 첫 번째 빈 슬롯 할당
             for (int i = 0; i < Constants.MAX_PLAYERS; i++)
             {
@@ -259,6 +302,19 @@ public class GameLauncher : MonoBehaviour
                     break;
                 }
             }   
+            if (_availableCharacterIndices.Count > 0)
+            {
+                int pick = UnityEngine.Random.Range(0, _availableCharacterIndices.Count);
+                int characterIndex = _availableCharacterIndices[pick];
+                _availableCharacterIndices.RemoveAt(pick);
+                data.CharacterIndex = characterIndex;
+
+                Debug.Log($"[GameLauncher] 캐릭터 배정 | Player={player} | SlotIndex={data.SlotIndex} | CharacterIndex={characterIndex}");
+            }
+            else
+            {
+                Debug.LogWarning($"[GameLauncher] 배정 가능한 캐릭터 인덱스 없음 | Player={player}");
+            }
         }
         OnPlayerJoinedEvent?.Invoke(runner, player);
     }
@@ -269,7 +325,17 @@ public class GameLauncher : MonoBehaviour
         {
             var obj = runner.GetPlayerObject(player);
             if (obj != null)
+            {
+                // 캐릭터 인덱스 풀 반환
+                var data = obj.GetComponent<PlayerData>();
+                if (data != null && data.CharacterIndex >= 0)
+                {
+                    _availableCharacterIndices.Add(data.CharacterIndex);
+                    Debug.Log($"[GameLauncher] 캐릭터 인덱스 반환 | Player={player} | CharacterIndex={data.CharacterIndex}");
+                }
+
                 runner.Despawn(obj);
+            }
 
             _playerSlots.Remove(player);
         }
@@ -300,6 +366,14 @@ public class GameLauncher : MonoBehaviour
     {
         Debug.LogError($"[GameLauncher] 연결 거부: {reason}");
         OnJoinFailed?.Invoke(GetJoinFailMessage(reason));
+    }
+
+    private void HandleSceneLoadStart()
+    => OnSceneLoadStarted?.Invoke();
+
+    public void NotifyGameReady()
+    {
+        OnGameReady?.Invoke();
     }
 
     #endregion
@@ -343,6 +417,12 @@ public class GameLauncher : MonoBehaviour
     internal void SetDevPlayerDataPrefab(NetworkObject prefab)
     {
         playerLobbyDataPrefab = prefab;
+    }
+
+    internal void SetDevCharacterRegistry(CharacterprefabRegistry registry)
+    {
+        characterRegistry = registry;
+        InitCharacterPool();
     }
 
     #endregion

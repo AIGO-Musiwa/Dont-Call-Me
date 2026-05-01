@@ -61,6 +61,12 @@ public enum PuzzleStage
     Stage3,
 }
 
+public enum PlacementSlotUsageType
+{
+    HintOnly = 0,       // 힌트만 배치 가능
+    PuzzleOrHint = 1    // 퍼즐 / 힌트 모두 배치 가능
+}
+
 // ── 크리처 ────────────────────────────────────────────────
 
 public enum CreatureState
@@ -104,6 +110,31 @@ public enum ItemType
     Reagent,            // 시약 퍼즐
 }
 
+/// <summary>
+/// 게임 내 모든 오브젝트가 공유하는 범용 사운드 신호 규격
+/// </summary>
+public enum SoundType
+{
+    // [퍼즐 공통]
+    Success,        // 정답/클리어
+    Fail,           // 오답/실패
+
+    // [조작계]
+    InteractLight,  // 가벼운 터치, 다이얼 1칸
+    InteractHeavy,  // 묵직한 레버 당김
+    Connect,        // 전선 꽂음
+    Disconnect,     // 전선 뽑음
+
+    // [기계 작동]
+    MechanicalMove, // 문 열림, 기어 돌아감
+    BeepSmall,      // 힌트 전구 개별 점등
+    BeepLarge,      // 힌트 전구 전체 점등
+
+    // [라디오 전용]
+    RadioRepair,    // 수리 중 나는 소리 (드라이버 돌리는 소리 등)
+    RadioActive     // 라디오 작동 소리 (음악, 방송 소리 등)
+}
+
 // ── 무전기 ────────────────────────────────────────────────
 
 public enum  WalkieState
@@ -133,6 +164,13 @@ public enum LightPatternPanelVisualState : byte
     SolvedGreen = 3
 }
 
+public enum ViewRole
+{
+    HintBulb = 0,    // 힌트 전구
+    PuzzleLamp = 1,  // 퍼즐 상태 램프
+    PanelPad = 2     // 입력 패드
+}
+
 public enum RotationDirection
 {
     Left,
@@ -142,11 +180,11 @@ public enum RotationDirection
 public enum WireSocketColor
 {
     Red = 0,
-    Orange = 1,
+    DarkOrange = 1,
     Yellow = 2,
     Green = 3,
     Blue = 4,
-    Navy = 5,
+    DarkGray = 5,
     Purple = 6,
     White = 7,
     Black = 8
@@ -212,6 +250,14 @@ public enum EscapeRoute
     Rooftop,            // 옥상
 }
 
+// 탈출 상호작용 종류
+public enum EscapeInteractType
+{
+    EscapeButton,       // 3단계 퍼즐 방에 있는 3막 진입용 동시 입력 버튼
+    FrontDoor,          // 1층 정문 탈출구
+    RooftopDoor         // 3층 옥상 탈출구
+}
+
 // ── 게임 전체 ────────────────────────────────────────────
 
 // 게임 진행 상태 (클리어/실패는 별도 처리)
@@ -219,4 +265,13 @@ public enum GameState
 {
     Loading = 0,        // 모든 클라이언트 로딩 완료 대기
     Playing = 1         // 게임 진행 중
+}
+
+// ── UI ──────────────────────────────────────────────────
+
+// 마이크 레벨 게이지
+public enum GaugeDirection
+{
+    Horizontal,
+    Vertical
 }

@@ -156,10 +156,16 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!GetInput(out PlayerNetworkInput input))
             return;                                                      // 입력 없으면 종료
 
-        KCCMotor.Simulate(input, NetMovementLocked, NetLookLocked);      // 이동/시야 시뮬레이션
+        if (!(SettingsManager.IsOpen && HasInputAuthority))
+            KCCMotor.Simulate(input, NetMovementLocked, NetLookLocked);   // 이동/시야 시뮬레이션
 
-        if (HasInputAuthority && SpectatorController != null && IsSpectatorState())
-            SpectatorController.TickSpectatorInput(input);               // 관전 상태 입력 처리
+        // 관전 상태에서는 일반 상호작용 / Hold 상호작용 / 무전기 PTT를 처리하지 않는다.
+        // 관전 카메라 대상 전환은 PlayerSpectatorController.LateUpdate()에서 로컬 입력으로 처리한다.
+        if (HasInputAuthority && IsSpectatorState())
+        {
+            _prevWalkiePressed = false;                                  // 관전 진입 시 PTT 엣지 상태 초기화
+            return;
+        }
 
         bool interactPressedThisTick = input.Buttons.IsSet(InputButtons.InteractPressed); // 이번 tick 눌림 순간 입력
         bool interactHeldThisTick = input.Buttons.IsSet(InputButtons.InteractHeld);       // 이번 tick 유지 입력
@@ -196,6 +202,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
             !_prevWalkiePressed)
         {
             _prevWalkiePressed = true;
+
             if (GetHeldWalkieTalkie() != null)
                 RPC_RequestPTT(true);
         }
@@ -205,6 +212,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
                  _prevWalkiePressed)
         {
             _prevWalkiePressed = false;
+
             if (GetHeldWalkieTalkie() != null)
                 RPC_RequestPTT(false);
         }
@@ -843,6 +851,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
         MovePlayerToWorldPose(NetCaptureAnchorPosition, NetCaptureAnchorRotation); // 구조 구역으로 이동
 
+        SetInputLock(true, false);                                        // 이동 잠금, 시야는 허용
+
         float remainSeconds = Mathf.Max(0f, rescueBaseTimeSeconds - NetAftereffectPercent); // 남은 구조 가능 시간 계산
         NetCaptureExpireTimer = TickTimer.CreateFromSeconds(Runner, remainSeconds); // 사망 타이머 시작
     }
@@ -934,6 +944,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureExpireTimer = TickTimer.None;                           // 사망 타이머 종료
         NetMovementLocked = true;                                         // 이동 잠금
         NetLookLocked = true;                                             // 시야 잠금
+
+        // 사망 시 관전 룸으로 이동 요청
+        StageManager.Instance?.RequestTeleportToDeadRoom(this);
     }
 
     public void ServerEnterEscaped()
@@ -954,6 +967,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureExpireTimer = TickTimer.None;                           // 사망 타이머 종료
         NetMovementLocked = true;                                         // 이동 잠금
         NetLookLocked = true;                                             // 시야 잠금
+
+        // 탈출 시 관전 룸으로 이동 요청
+        StageManager.Instance?.RequestTeleportToDeadRoom(this);
     }
 
     public bool ServerTryPickupLeftHand(ItemObject item)
@@ -1261,21 +1277,26 @@ public class PlayerController : NetworkBehaviour, IInteractable
             holdInteractable.OnHoldInteract(this, holdDeltaTime);         // Hold 대상이면 수리 등 지속 상호작용 실행
     }
 
+    // 🛠️ [수신 단자 개조] 클라이언트에서 모아둔 성공 횟수(successCount)를 받음
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    public void RPC_ProcessMinigameSuccess()
+    public void RPC_ProcessMinigameSuccess(int successCount)
     {
-        if (NetPlayerState != PlayerState.Captured)
-            return;                                                       // 포획 상태가 아니면 무시
+        if (NetPlayerState != PlayerState.Captured || successCount <= 0)
+            return;
 
-        NetAftereffectPercent = Mathf.Max(0f, NetAftereffectPercent - 3.0f); // 후유증 3% 감소
+        // 🛠️ 1% * 성공 횟수만큼 방출량을 계산
+        float reductionValue = 1.0f * successCount;
+
+        NetAftereffectPercent = Mathf.Max(0f, NetAftereffectPercent - reductionValue);
 
         if (NetCaptureExpireTimer.IsRunning)
         {
-            float currentRemaining = NetCaptureExpireTimer.RemainingTime(Runner).GetValueOrDefault(0); // 현재 남은 시간 계산
-            NetCaptureExpireTimer = TickTimer.CreateFromSeconds(Runner, currentRemaining + 3.0f);       // 남은 시간 3초 증가
+            float currentRemaining = NetCaptureExpireTimer.RemainingTime(Runner).GetValueOrDefault(0);
+            // 🛠️ 삭감된 만큼 생존 시간도 비례해서 연장!
+            NetCaptureExpireTimer = TickTimer.CreateFromSeconds(Runner, currentRemaining + reductionValue);
         }
 
-        Debug.Log($"[미니게임] 서버 동기화 완료! 후유증 3% 삭감. 현재 후유증: {NetAftereffectPercent}%");
+        Debug.Log($"<color=cyan>[미니게임 결산]</color> 1사이클 완료! {successCount}회 성공하여 후유증 {reductionValue}% 삭감. 현재: {NetAftereffectPercent}%");
     }
 
     #region 게임 종료 이벤트 확인용 RPC

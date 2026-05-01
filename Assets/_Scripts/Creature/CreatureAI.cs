@@ -710,8 +710,7 @@ public class CreatureAI : NetworkBehaviour
         if (myZoneLightManager != null) myZoneLightManager.SetCaptureDarkout(true);
 
         //포획 시 해당 구역의 구출 구역 문 강제 폐쇄
-        RescueZoneDoor rescueDoor = RescueZoneDoor.GetDoor(myZone);
-        if (rescueDoor != null) rescueDoor.CloseDoor();
+        RescueZoneDoor.CloseAllDoorsInZone(myZone);
     }
 
     private void UpdateCaptureState()
@@ -728,6 +727,7 @@ public class CreatureAI : NetworkBehaviour
         }
 
         //플레이어가 크리처를 바라보게 강제 회전
+        if(currentCapturedPlayer.NetCapturePhase == CapturePhase.Transition)
         ForcePlayerLookAtCreature(currentCapturedPlayer);
 
         //포획 타이머 증가
