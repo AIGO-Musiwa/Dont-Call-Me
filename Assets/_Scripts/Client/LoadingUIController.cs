@@ -12,17 +12,18 @@ public class LoadingUIController : MonoBehaviour
 
     private Coroutine _progressCoroutine;
 
-    private void Start()
+    private void OnEnable()
     {
+        if (GameLauncher.Instance == null) return;
         GameLauncher.Instance.OnSceneLoadStarted += ShowLoadingUI;
-        GameLauncher.Instance.OnSceneLoadFinished += HideLoadingUI;
+        GameLauncher.Instance.OnGameReady += HideLoadingUI;
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         if (GameLauncher.Instance == null) return;
         GameLauncher.Instance.OnSceneLoadStarted -= ShowLoadingUI;
-        GameLauncher.Instance.OnSceneLoadFinished -= HideLoadingUI;
+        GameLauncher.Instance.OnGameReady -= HideLoadingUI;
     }
 
     // 로딩 시작 ─────────────────────────────────────────
@@ -53,6 +54,14 @@ public class LoadingUIController : MonoBehaviour
             SetProgress(Mathf.Min(progress, 0.9f));
             yield return null;
         }
+
+        while (progress < 0.99f)
+        {
+            progress += Time.deltaTime * 0.02f; // 매우 느리게
+            SetProgress(Mathf.Min(progress, 0.99f));
+            yield return null;
+        }
+
     }
 
     // 완료 시 100%로 채우고 패널 닫기 ────────────────────
@@ -66,7 +75,7 @@ public class LoadingUIController : MonoBehaviour
             yield return null;
         }
 
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(0.5f);
         loadingPanel.SetActive(false);
     }
 

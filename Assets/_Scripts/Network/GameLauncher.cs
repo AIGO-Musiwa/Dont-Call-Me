@@ -36,7 +36,7 @@ public class GameLauncher : MonoBehaviour
     public event Action<NetworkRunner> OnRunnerCreated;                 // Runner 생성 시 발행
 
     public event Action OnSceneLoadStarted;
-    public event Action OnSceneLoadFinished;
+    public event Action OnGameReady;
 
     // ── 내부 ──────────────────────────────────────────────
     private bool _intentionalShutdown;                  // 본인이 직접 종료했는지 확인
@@ -269,7 +269,6 @@ public class GameLauncher : MonoBehaviour
         _callbackHandler.OnConnectFailedEvent += HandleConnectFailed;
 
         _callbackHandler.OnSceneLoadStartEvent += HandleSceneLoadStart;
-        _callbackHandler.OnSceneLoadDoneEvent += HandleSceneLoadDone;
     }
 
     private void UnsubscribeCallbacks()
@@ -282,7 +281,6 @@ public class GameLauncher : MonoBehaviour
         _callbackHandler.OnConnectFailedEvent -= HandleConnectFailed;
 
         _callbackHandler.OnSceneLoadStartEvent -= HandleSceneLoadStart;
-        _callbackHandler.OnSceneLoadDoneEvent -= HandleSceneLoadDone;
     }
 
     #endregion
@@ -378,8 +376,10 @@ public class GameLauncher : MonoBehaviour
     private void HandleSceneLoadStart()
     => OnSceneLoadStarted?.Invoke();
 
-    private void HandleSceneLoadDone()
-        => OnSceneLoadFinished?.Invoke();
+    public void NotifyGameReady()
+    {
+        OnGameReady?.Invoke();
+    }
 
     #endregion
 
