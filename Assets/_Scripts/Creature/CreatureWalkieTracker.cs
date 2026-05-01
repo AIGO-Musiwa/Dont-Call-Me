@@ -18,7 +18,6 @@ public class CreatureWalkieTracker : MonoBehaviour
     private bool isAct3 = false;
 
     // 로그 중복 방지용
-    private float _lastLoggedCost = -1f;
     private const float LogInterval = 1f;
     private float _logTimer = 0f;
 
@@ -34,7 +33,6 @@ public class CreatureWalkieTracker : MonoBehaviour
         currentWalkieCost = 0f;
 
         currentWalkieCost = 0f;
-        _lastLoggedCost = -1f;
         _logTimer = 0f;
     }
 
