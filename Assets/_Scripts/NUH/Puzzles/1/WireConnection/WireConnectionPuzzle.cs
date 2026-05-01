@@ -179,6 +179,7 @@ public class WireConnectionPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             : default;
 
         //TODO_Sound - 전선 좌측 소켓 선택
+        if (audioModule != null) audioModule.PlaySound(SoundType.InteractLight);
 
         RefreshSelectionView();
         Log($"좌측 선택 | left = {leftIndex}");
@@ -218,6 +219,7 @@ public class WireConnectionPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         SyncCachedConnectionsFromNetwork();
 
         //TODO_Sound - 전선 연결 생성
+        if (audioModule != null) audioModule.PlaySound(SoundType.Connect);
 
         RefreshConnectionsView();
 
@@ -252,6 +254,7 @@ public class WireConnectionPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         SyncCachedConnectionsFromNetwork();
 
         //TODO_Sound - 전선 연결 해제
+        if (audioModule != null) audioModule.PlaySound(SoundType.Disconnect);
 
         RefreshConnectionsView();
 
@@ -280,6 +283,7 @@ public class WireConnectionPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         HandleJudgePressVisual(NetJudgePressSerial);
 
         //TODO_Sound - 전선 Confirm 레버 조작
+        if (audioModule != null) audioModule.PlaySound(SoundType.MechanicalMove);
 
         for (int leftIndex = 0; leftIndex < socketCount; leftIndex++)
         {

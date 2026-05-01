@@ -23,7 +23,7 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     [SerializeField] private bool countForStage1Progress = true; // 1단계 진행도 집계 대상인지 여부
 
     [Header("사운드 모듈")]
-    [SerializeField] protected MultiAudioTrigger audioModule; // 공통 성공/실패 사운드 모듈
+    [SerializeField] public MultiAudioTrigger audioModule; // 공통 성공/실패 사운드 모듈
 
     [Networked, OnChangedRender(nameof(OnSolvedStateChangedRender))]
     public NetworkBool NetIsSolved { get; private set; } // 퍼즐 최종 클리어 여부 네트워크 동기화 값
