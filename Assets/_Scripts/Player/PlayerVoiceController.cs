@@ -25,7 +25,7 @@ public class PlayerVoiceController : NetworkBehaviour
         if (playerController == null || !HasInputAuthority) return;
 
         // PlayerPrefs에서 globalVolume 불러오기
-        globalVolume = PlayerPrefs.GetFloat(SettingsManager.KeyGlobalReceiveVolume, 1f);
+        globalVolume = PlayerPrefs.GetFloat(Constants.KEY_GLOBAL_RECEIVE_VOLUME, 1f);
 
         VoiceManager.Instance?.SwitchToGameMode(playerController.NetZone);
     }

@@ -33,8 +33,6 @@ public class GameLauncher : MonoBehaviour
     public event Action<NetworkRunner, PlayerRef> OnPlayerJoinedEvent;  // 플레이어 입장 (LobbyManagert에서 구독)
     public event Action<NetworkRunner, PlayerRef> OnPlayerLeftEvent;    // 플레이어 퇴장 (LobbyManager에서 구독)
 
-    public event Action<NetworkRunner> OnRunnerCreated;                 // Runner 생성 시 발행
-
     public event Action OnSceneLoadStarted;
     public event Action OnGameReady;
 
@@ -180,9 +178,6 @@ public class GameLauncher : MonoBehaviour
         Runner.name = "NetworkRunner";
         Runner.AddCallbacks(_callbackHandler);
         DontDestroyOnLoad(Runner.gameObject);
-
-        // Runner 생성 완료 이벤트 발행
-        OnRunnerCreated?.Invoke(Runner);
 
         var inputHandler = Runner.GetComponent<InputHandler>();
         if (inputHandler != null)
