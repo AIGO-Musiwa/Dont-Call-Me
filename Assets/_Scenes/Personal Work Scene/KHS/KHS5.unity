@@ -24,9 +24,9 @@ RenderSettings:
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 3
-  m_SubtractiveShadowColor: {r: 0.5188679, g: 0.5188679, b: 0.5188679, a: 1}
-  m_SkyboxMaterial: {fileID: 0}
+  m_AmbientMode: 0
+  m_SubtractiveShadowColor: {r: 1, g: 1, b: 1, a: 1}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -23765,7 +23765,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RescueZoneDoor
   myZone: 0
-  openRatation: {x: 0, y: 90, z: 0}
+  openRotation: {x: 0, y: 90, z: 0}
   openSpeed: 5
   audioSource: {fileID: 0}
   doorOpenSound: {fileID: 0}
@@ -24761,7 +24761,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &160565060
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29199,7 +29199,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3803839711681771849, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3803839711681771849, guid: a8ed42023383cbb4387bdf36d2647b39, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -71575,7 +71575,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &526154919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -74102,7 +74102,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &550518426
 Transform:
   m_ObjectHideFlags: 0
@@ -85325,7 +85325,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &625205547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -87195,6 +87195,10 @@ PrefabInstance:
     - target: {fileID: 3783085538886505271, guid: 16f2c8a8df69c0843baa7d4799a96209, type: 3}
       propertyPath: m_Name
       value: HUD_Canvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 3783085538886505271, guid: 16f2c8a8df69c0843baa7d4799a96209, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5563037612098261896, guid: 16f2c8a8df69c0843baa7d4799a96209, type: 3}
       propertyPath: m_Pivot.x
@@ -94912,7 +94916,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &685610494
 Transform:
   m_ObjectHideFlags: 0
@@ -97937,7 +97941,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &714970889
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -105311,6 +105315,119 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 924698465}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &754571267
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 754571271}
+  - component: {fileID: 754571270}
+  - component: {fileID: 754571269}
+  - component: {fileID: 754571268}
+  m_Layer: 0
+  m_Name: Plane
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!64 &754571268
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 754571267}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &754571269
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 754571267}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &754571270
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 754571267}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &754571271
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 754571267}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &755827968
 PrefabInstance:
@@ -116757,7 +116874,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &839947817
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -120977,7 +121094,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &877385387
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -137614,7 +137731,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1004330684
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -150429,6 +150546,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: DeadRoom
       objectReference: {fileID: 0}
+    - target: {fileID: 1915755610865278121, guid: 647e2ba5982bf9c4ab4069a0958e21bc, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7338127208019238260, guid: 647e2ba5982bf9c4ab4069a0958e21bc, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.0119
@@ -159149,7 +159270,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1109936991
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -163197,7 +163318,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1139075361
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -165134,7 +165255,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1159682986
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -188978,7 +189099,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1322572316
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -208082,7 +208203,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RescueZoneDoor
   myZone: 0
-  openRatation: {x: 0, y: 90, z: 0}
+  openRotation: {x: 0, y: 90, z: 0}
   openSpeed: 5
   audioSource: {fileID: 0}
   doorOpenSound: {fileID: 0}
@@ -237335,7 +237456,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1629534844
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -252968,7 +253089,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1728080496
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -255377,7 +255498,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1742432602
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -256400,7 +256521,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RescueZoneDoor
   myZone: 0
-  openRatation: {x: 0, y: 90, z: 0}
+  openRotation: {x: 0, y: 90, z: 0}
   openSpeed: 5
   audioSource: {fileID: 0}
   doorOpenSound: {fileID: 0}
@@ -262517,6 +262638,8 @@ MonoBehaviour:
   allLightsRoot: {fileID: 1084461773}
   act3LightColor: {r: 1, g: 0, b: 0, a: 1}
   act3LightIntensity: 5
+  sirenBlinkSpeed: 5.5
+  sirenMinIntensity: 0
   _IsCaptureDarkout:
     _value: 0
   _IsAct3Active:
@@ -263608,7 +263731,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &1788548192
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -269966,6 +270089,8 @@ MonoBehaviour:
   allLightsRoot: {fileID: 600161645}
   act3LightColor: {r: 1, g: 0, b: 0, a: 1}
   act3LightIntensity: 5
+  sirenBlinkSpeed: 5.5
+  sirenMinIntensity: 0
   _IsCaptureDarkout:
     _value: 0
   _IsAct3Active:
@@ -270980,7 +271105,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RescueZoneDoor
   myZone: 0
-  openRatation: {x: 0, y: 90, z: 0}
+  openRotation: {x: 0, y: 90, z: 0}
   openSpeed: 5
   audioSource: {fileID: 0}
   doorOpenSound: {fileID: 0}
@@ -304174,7 +304299,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2019078095
 Transform:
   m_ObjectHideFlags: 0
@@ -325123,6 +325248,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: RadioSetPoints
       objectReference: {fileID: 0}
+    - target: {fileID: 6098309416498887311, guid: 8a6707283556eab4ea7b302395cdf6bd, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -339517,3 +339646,4 @@ SceneRoots:
   - {fileID: 1788548195}
   - {fileID: 2141165484}
   - {fileID: 630552150}
+  - {fileID: 754571271}
