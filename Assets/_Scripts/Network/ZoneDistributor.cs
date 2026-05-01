@@ -193,7 +193,15 @@ public class ZoneDistributor : NetworkBehaviour
             _playerRoleMap[playerRef] = role;
 
             Log($"배치 완료 | Player={playerRef} | SlotIndex={data.SlotIndex} | Zone={zone} | Role={role}");
+
+            Rpc_NotifyGameReady();
         }
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_NotifyGameReady()
+    {
+        GameLauncher.Instance?.NotifyGameReady();
     }
 
     // 배치 완료 후 각 플레이어에게 같은 구역 팀원 NetworkId 전달
