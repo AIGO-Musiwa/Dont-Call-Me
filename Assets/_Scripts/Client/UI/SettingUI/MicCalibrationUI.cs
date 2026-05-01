@@ -104,7 +104,7 @@ public class MicCalibrationUI : MonoBehaviour
     {
         if (micGainSlider == null) return;
 
-        float saved = PlayerPrefs.GetFloat(SettingsManager.KeyMicGain, 1f);
+        float saved = PlayerPrefs.GetFloat(Constants.KEY_MIC_GAIN, 1f);
         micGainSlider.minValue = 0f;
         micGainSlider.maxValue = 2f;
         micGainSlider.value = saved;
@@ -153,7 +153,7 @@ public class MicCalibrationUI : MonoBehaviour
     {
         ApplyGain(value);
         UpdateGainLabel(value);
-        PlayerPrefs.SetFloat(SettingsManager.KeyMicGain, value);
+        PlayerPrefs.SetFloat(Constants.KEY_MIC_GAIN, value);
     }
 
     private void UpdateGainLabel(float value)
@@ -229,7 +229,7 @@ public class MicCalibrationUI : MonoBehaviour
             ApplyGain(newGain);
             micGainSlider.value = newGain;
             UpdateGainLabel(newGain);
-            PlayerPrefs.SetFloat(SettingsManager.KeyMicGain, newGain);
+            PlayerPrefs.SetFloat(Constants.KEY_MIC_GAIN, newGain);
 
             SetStatusText($"설정 완료! 게인: {newGain:F2}x (평균: {avgdBFS:F1} dBFS)");
             Debug.Log($"[MicCalibrationUI] 캘리브레이션 완료 → avgdBFS={avgdBFS:F1}, newGain={newGain:F2}");
@@ -262,7 +262,7 @@ public class MicCalibrationUI : MonoBehaviour
 
     #region 내부 유틸
     
-    // 입력 차닺ㄴ 패널
+    // 입력 차단 패널
     private void SetBlockPanel(bool active)
     {
         if (blockPanel != null)

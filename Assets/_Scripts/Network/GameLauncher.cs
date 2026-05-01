@@ -33,7 +33,8 @@ public class GameLauncher : MonoBehaviour
     public event Action<NetworkRunner, PlayerRef> OnPlayerJoinedEvent;  // 플레이어 입장 (LobbyManagert에서 구독)
     public event Action<NetworkRunner, PlayerRef> OnPlayerLeftEvent;    // 플레이어 퇴장 (LobbyManager에서 구독)
 
-    public event Action<NetworkRunner> OnRunnerCreated;                 // Runner 생성 시 발행
+    public event Action OnSceneLoadStarted;
+    public event Action OnGameReady;
 
     // ── 내부 ──────────────────────────────────────────────
     private bool _intentionalShutdown;                  // 본인이 직접 종료했는지 확인
@@ -178,9 +179,6 @@ public class GameLauncher : MonoBehaviour
         Runner.AddCallbacks(_callbackHandler);
         DontDestroyOnLoad(Runner.gameObject);
 
-        // Runner 생성 완료 이벤트 발행
-        OnRunnerCreated?.Invoke(Runner);
-
         var inputHandler = Runner.GetComponent<InputHandler>();
         if (inputHandler != null)
         {
@@ -264,6 +262,8 @@ public class GameLauncher : MonoBehaviour
         _callbackHandler.OnShutdownEvent += HandleShutdown;
         _callbackHandler.OnDisconnectedEvent += HandleDisconnected;
         _callbackHandler.OnConnectFailedEvent += HandleConnectFailed;
+
+        _callbackHandler.OnSceneLoadStartEvent += HandleSceneLoadStart;
     }
 
     private void UnsubscribeCallbacks()
@@ -274,6 +274,8 @@ public class GameLauncher : MonoBehaviour
         _callbackHandler.OnShutdownEvent -= HandleShutdown;
         _callbackHandler.OnDisconnectedEvent -= HandleDisconnected;
         _callbackHandler.OnConnectFailedEvent -= HandleConnectFailed;
+
+        _callbackHandler.OnSceneLoadStartEvent -= HandleSceneLoadStart;
     }
 
     #endregion
@@ -364,6 +366,14 @@ public class GameLauncher : MonoBehaviour
     {
         Debug.LogError($"[GameLauncher] 연결 거부: {reason}");
         OnJoinFailed?.Invoke(GetJoinFailMessage(reason));
+    }
+
+    private void HandleSceneLoadStart()
+    => OnSceneLoadStarted?.Invoke();
+
+    public void NotifyGameReady()
+    {
+        OnGameReady?.Invoke();
     }
 
     #endregion

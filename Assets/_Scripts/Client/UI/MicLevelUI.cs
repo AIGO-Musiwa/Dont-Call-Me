@@ -150,7 +150,7 @@ public class MicLevelUI : MonoBehaviour
         // 무음 판정
         if (rms < silenceThreshold) return -96f;
 
-        float gain = PlayerPrefs.GetFloat(SettingsManager.KeyMicGain, 1f);
+        float gain = PlayerPrefs.GetFloat(Constants.KEY_MIC_GAIN, 1f);
         rms = Mathf.Clamp(rms * gain, 0f, 1f);
 
         return 20f * Mathf.Log10(rms);

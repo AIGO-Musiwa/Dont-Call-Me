@@ -2,21 +2,27 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SettingsUI : MonoBehaviour
+public class ControlSettingUI : MonoBehaviour
 {
-
     // 감도 조절 슬라이더랑 숫자
     [SerializeField] private Slider sensitivitySlider;
     [SerializeField] private TextMeshProUGUI sensitivityText;
 
+    // 슬라이더 범위 — 중간값(1.0)이 기본 감도
+    private const float SensitivityMin = 0f;
+    private const float SensitivityMax = 2f;
+    private const float SensitivityDefault = 1f;
+
     private void Start()
     {
         // 1. 게임을 켤 때 저장된 감도 값이 있는지 확인, 없으면 기본값 1.0f
-        float savedSensitivity = PlayerPrefs.GetFloat(Constants.SENSITIVITY_KEY, 1.0f);
+        float savedSensitivity = PlayerPrefs.GetFloat(Constants.SENSITIVITY_KEY, SensitivityDefault);
 
         // 2. 불러온 값을 슬라이더의 현재 값에 반영
         if (sensitivitySlider != null)
         {
+            sensitivitySlider.minValue = SensitivityMin;
+            sensitivitySlider.maxValue = SensitivityMax;
             sensitivitySlider.value = savedSensitivity;
 
             // 3. 슬라이더의 값이 변경될 때마다 OnSensitivityChanged 함수가 자동으로 실행되게 연결

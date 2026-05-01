@@ -2,20 +2,15 @@ using Fusion;
 using Photon.Realtime;
 using Photon.Voice.Unity;
 using UnityEngine;
+using static Unity.Collections.Unicode;
 
 public class VoiceManager : MonoBehaviour
 {
     public static VoiceManager Instance { get; private set; }
 
-    // 마이크 입력 음량의 기준값
-    [Header("발화 감지 임계값 (0.001 ~ 0.1")]
-    [SerializeField][Range(0.001f, 0.1f)] private float speakingThreshold = 0.02f;
-
     // ── 내부 ──────────────────────────────────────────────
-    private PlayerData localData;
     private Recorder recorder;
     private VoiceConnection voiceConnection;
-    private bool wasSpeaking;
 
     // 보이스 그룹
     private byte pendingGroup = 0;
@@ -58,21 +53,7 @@ public class VoiceManager : MonoBehaviour
 
     private void Update()
     {
-        UpdateLobbyMicIcon();
         TryApplyPendingGroup();
-    }
-
-    private void UpdateLobbyMicIcon()
-    {
-        if (localData == null || recorder == null) return;
-
-        float level = recorder.LevelMeter?.CurrentAvgAmp ?? 0f;
-        bool isSpeaking = level > speakingThreshold;
-
-        if (isSpeaking == wasSpeaking) return;
-
-        wasSpeaking = isSpeaking;
-        localData.Rpc_SetMicActive(isSpeaking);
     }
 
     // Voice 룸 입장 대기 후 그룹 적용
@@ -102,22 +83,49 @@ public class VoiceManager : MonoBehaviour
     // 로컬 플레이어 데이터 등록 및 Voice 룸에 연결
     public void RegisterLocalPlayer(PlayerData data)
     {
-        localData = data;
         FetchComponents();
-
-        // 저장된 마이크 장치 적용
         ApplySavedMicDevice();
-
+        InitializeWebRtcDsp();  // 저장된 마이크 장치 적용
         SwitchToLobbyMode();
     }
 
     // 방 퇴장 시 상태 초기화
     public void Unregister()
     {
-        localData = null;
         recorder = null;
         voiceConnection = null;
-        wasSpeaking = false;
+    }
+
+    #endregion
+
+    #region WebRtc DSP 초기화
+
+    private void InitializeWebRtcDsp()
+    {
+        var runner = GameLauncher.Instance?.Runner ?? FindAnyObjectByType<NetworkRunner>();
+        if (runner == null)
+        {
+            Debug.LogWarning("[VoiceManager] InitializeWebRtcDsp: NetworkRunner를 찾지 못했습니다.");
+            return;
+        }
+
+        var webRtcDsp = runner.GetComponent<WebRtcAudioDsp>();
+
+        if (webRtcDsp == null)
+            webRtcDsp = FindAnyObjectByType<WebRtcAudioDsp>();
+
+        if (webRtcDsp == null)
+        {
+            Debug.LogWarning("[SettingsManager] WebRtcAudioDsp를 찾지 못했습니다.");
+            return;
+        }
+
+        webRtcDsp.NoiseSuppression = true;      // 노이즈 억제
+        webRtcDsp.AEC = true;                   // 에코 억제
+        webRtcDsp.HighPass = true;              // 저주파 잡음 제거
+        webRtcDsp.AGC = false;                  // 자동 볼륨 조절
+
+        Debug.Log("[SettingsManager] WebRtcAudioDsp 초기화 완료 (NS: ON, AEC: ON, AGC: OFF)");
     }
 
     #endregion
