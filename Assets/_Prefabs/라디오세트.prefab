@@ -11,8 +11,6 @@ GameObject:
   - component: {fileID: 8439912082380284665}
   - component: {fileID: 1787610431057149904}
   - component: {fileID: 3646274107322584187}
-  - component: {fileID: 320409133055180208}
-  - component: {fileID: 3471356287084576588}
   - component: {fileID: 8200261537932407607}
   m_Layer: 0
   m_Name: "\uB77C\uB514\uC624\uC138\uD2B8"
@@ -94,47 +92,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &320409133055180208
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6433562241908590328}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc03bff2870decd4fa8610f2d1bfe12b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Radio
-  glassController: {fileID: 2119650611141539460}
-  audioModule: {fileID: 7991528676488813438}
-  maxRepairTime: 10
-  lureDuration: 20
-  safetyLockTime: 1.5
-  repairSounddB: 41
-  radioLureSounddB: 47
-  radioSoundInterval: 0.5
-  _CurrentState: 0
-  _RepairProgress: 0
---- !u!114 &3471356287084576588
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6433562241908590328}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 1092256400
-  ObjectInterest: 1
-  Flags: 262145
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 320409133055180208}
-  ForceRemoteRenderTimeframe: 0
 --- !u!65 &8200261537932407607
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -257,6 +214,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 9159537069380098256, guid: a7dbdd508737b0d49b444c4263d812f1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6456771007060828792}
+    - targetCorrespondingSourceObject: {fileID: 9159537069380098256, guid: a7dbdd508737b0d49b444c4263d812f1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6958670415850949404}
+    - targetCorrespondingSourceObject: {fileID: 9159537069380098256, guid: a7dbdd508737b0d49b444c4263d812f1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 934657075213611228}
   m_SourcePrefab: {fileID: 100100000, guid: a7dbdd508737b0d49b444c4263d812f1, type: 3}
 --- !u!114 &2119650611141539460 stripped
 MonoBehaviour:
@@ -416,3 +379,44 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.5, y: 0.3, z: 0.2}
   m_Center: {x: 0, y: 0.13320939, z: 0.00601444}
+--- !u!114 &6958670415850949404
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9135324703235666776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc03bff2870decd4fa8610f2d1bfe12b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Radio
+  glassController: {fileID: 2119650611141539460}
+  audioModule: {fileID: 7991528676488813438}
+  maxRepairTime: 10
+  lureDuration: 20
+  safetyLockTime: 1.5
+  repairSounddB: 41
+  radioLureSounddB: 47
+  radioSoundInterval: 0.5
+  _CurrentState: 0
+  _RepairProgress: 0
+--- !u!114 &934657075213611228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9135324703235666776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 1092256400
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 0}
+  ForceRemoteRenderTimeframe: 0
