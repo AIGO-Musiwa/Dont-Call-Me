@@ -29,17 +29,12 @@ public class PlayerKCCMotor : MonoBehaviour
 
     private bool _initialized;
 
-    // [기존 코드 주석 처리] 
-    // 퓨전의 롤백 시 과거로 돌아가지 못해 탭댄스 버그를 유발하던 일반 변수.
-    // private bool _isCrouching; 
-
     public SimpleKCC KCC => _simpleKCC;
 
-    // [기존 코드 주석 처리]
-    // public bool IsCrouching => _isCrouching;
-
-    // [수정 사항] 이제 컨트롤러의 네트워크 변수를 직접 참조. 
-    // 엔진이 시간을 되돌려도 이 값은 완벽하게 과거 상태로 복구됨.
+    /// <summary>
+    /// 현재 실제 crouch 상태.
+    /// NetIsCrouching은 입력 crouch뿐 아니라 Desk 은신 강제 crouch까지 포함한다.
+    /// </summary>
     public bool IsCrouching => _controller != null && _controller.NetIsCrouching;
 
     public float StandHeight => standHeight;
@@ -60,11 +55,8 @@ public class PlayerKCCMotor : MonoBehaviour
         if (_simpleKCC != null)
         {
             _simpleKCC.SetGravity(Physics.gravity.y * gravityMultiplier);
-            _simpleKCC.SetHeight(standHeight);
+            ApplyKCCHeight(false); // 시작은 서 있는 높이
         }
-
-        // [기존 코드 주석 처리] 더 이상 로컬 변수를 사용하지 않음
-        // _isCrouching = false; 
 
         _initialized = true;
     }
@@ -79,11 +71,10 @@ public class PlayerKCCMotor : MonoBehaviour
             return;
 
         if (!lookLocked)
-        {
             ApplyLook(input);
-        }
 
         bool canMove = CanMove(movementLocked);
+
         UpdateCrouchState(input, canMove);
         ApplyMove(input, canMove);
     }
@@ -124,6 +115,22 @@ public class PlayerKCCMotor : MonoBehaviour
     }
 
     /// <summary>
+    /// 은신 상태 변경 직후 KCC 높이를 즉시 다시 맞추고 싶을 때 사용한다.
+    /// 현재는 Desk 은신이면 crouch height, 그 외에는 stand height로 맞춘다.
+    /// 필요하면 PlayerController.ServerEnterHide / ServerExitHide에서 호출할 수 있다.
+    /// </summary>
+    public void RefreshCrouchHeightFromHideState()
+    {
+        if (!_initialized || _simpleKCC == null || _controller == null)
+            return;
+
+        bool forcedCrouch = IsForcedCrouchByState();
+
+        _controller.NetIsCrouching = forcedCrouch;
+        ApplyKCCHeight(forcedCrouch);
+    }
+
+    /// <summary>
     /// 0~360도 각도를 -180~180 범위의 signed 각도로 변환한다.
     /// </summary>
     private float NormalizeSignedAngle(float angle)
@@ -149,29 +156,47 @@ public class PlayerKCCMotor : MonoBehaviour
 
     /// <summary>
     /// 상태와 입력을 기준으로 crouch 여부와 KCC 높이를 갱신한다.
+    /// 
+    /// 입력 crouch:
+    /// - 이동 가능한 Normal 상태에서 Ctrl을 누를 때
+    /// 
+    /// 강제 crouch:
+    /// - 책상 은신 상태일 때
+    /// - 이동은 잠겨 있어도 collider는 낮아져야 한다.
     /// </summary>
     private void UpdateCrouchState(PlayerNetworkInput input, bool canMove)
     {
-        bool wantsCrouch = canMove && input.Buttons.IsSet(InputButtons.Crouch);
+        bool inputCrouch = canMove && input.Buttons.IsSet(InputButtons.Crouch);
+        bool forcedCrouch = IsForcedCrouchByState();
 
-        /* [기존 코드 주석 처리] 
-         * 퓨전의 재시뮬레이션 과정에서 이 if문이 엇갈리며 덜덜거림을 유발했음.
-        if (wantsCrouch != _isCrouching)
-        {
-            _isCrouching = wantsCrouch;
-            _simpleKCC.SetHeight(_isCrouching ? crouchHeight : standHeight);
-        }
-        */
+        bool shouldCrouch = inputCrouch || forcedCrouch;
 
-        // [수정 사항] 네트워크 변수에 다이렉트로 상태 주입.
-        // 엔진 차원에서 관리가 되므로 매 프레임 덮어씌워도 엇갈리지 않음.
         if (_controller != null)
-        {
-            _controller.NetIsCrouching = wantsCrouch;
-        }
+            _controller.NetIsCrouching = shouldCrouch;
 
-        // 콜라이더 높이 조절 (매 틱 호출해도 SimpleKCC 내부적으로 최적화 방어 코드가 있어 안전함)
-        _simpleKCC.SetHeight(IsCrouching ? crouchHeight : standHeight);
+        ApplyKCCHeight(shouldCrouch);
+    }
+
+    /// <summary>
+    /// 현재 플레이어 상태상 강제로 crouch height를 써야 하는지 반환한다.
+    /// </summary>
+    private bool IsForcedCrouchByState()
+    {
+        if (_controller == null)
+            return false;
+
+        return _controller.NetHideState == HideState.Desk;
+    }
+
+    /// <summary>
+    /// 실제 SimpleKCC 높이를 적용한다.
+    /// </summary>
+    private void ApplyKCCHeight(bool isCrouching)
+    {
+        if (_simpleKCC == null)
+            return;
+
+        _simpleKCC.SetHeight(isCrouching ? crouchHeight : standHeight);
     }
 
     /// <summary>
@@ -222,12 +247,6 @@ public class PlayerKCCMotor : MonoBehaviour
     /// </summary>
     private float GetCurrentSpeed(PlayerNetworkInput input)
     {
-        /* [기존 코드 주석 처리] 
-        if (_isCrouching)
-            return crouchSpeed;
-        */
-
-        // [수정 사항] 네트워크 프로퍼티로 판별
         if (IsCrouching)
             return crouchSpeed;
 
