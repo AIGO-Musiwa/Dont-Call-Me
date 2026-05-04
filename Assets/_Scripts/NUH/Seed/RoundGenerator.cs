@@ -11,15 +11,16 @@ using UnityEngine;
 /// - Stage1 : 1,2층 선호 + 몰림 페널티 + 3층 약한 보정
 /// - Stage2 : 층 동일 선호 + 몰림 페널티
 /// - 퍼즐 먼저 배치하고, 남은 방에 힌트를 배치
+/// - 힌트는 1차로 방 중복 없이 배치하고, 실패 시 2차로 방 중복 허용 배치
 /// - Stage3 퍼즐은 Zone별 고정 위치 사용
 /// - Stage3 힌트는 월드에 스폰하지 않음
 /// </summary>
 public static class RoundGenerator
 {
-    private const int PuzzleSeedSalt = 1001; // 퍼즐 배치용 파생 시드 salt
-    private const int PlayerSeedSalt = 2001; // 플레이어 배정용 파생 시드 salt
-    private const int AnswerSeedSalt = 3001; // 퍼즐 정답 생성용 파생 시드 salt
-    private const int FinalCodeSeedSalt = 9001; // FinalCode 전용 salt
+    private const int PuzzleSeedSalt = 1001;     // 퍼즐 배치용 파생 시드 salt
+    private const int PlayerSeedSalt = 2001;     // 플레이어 배정용 파생 시드 salt
+    private const int AnswerSeedSalt = 3001;     // 퍼즐 정답 생성용 파생 시드 salt
+    private const int FinalCodeSeedSalt = 9001;  // FinalCode 전용 salt
 
     /// <summary>
     /// Zone별 Room 배치 컨텍스트.
@@ -135,7 +136,8 @@ public static class RoundGenerator
         PlaceStage2Puzzles(result, rng, zoneAContext, zoneAStage2Defs); // ZoneA Stage2 퍼즐 배치
         PlaceStage2Puzzles(result, rng, zoneBContext, zoneBStage2Defs); // ZoneB Stage2 퍼즐 배치
 
-        // 힌트는 퍼즐 배치가 끝난 후, 반대 Zone의 남은 방에 배치
+        // 힌트는 퍼즐 배치가 끝난 후, 반대 Zone에 배치
+        // 1차는 방 중복 금지, 2차는 방 중복 허용
         PlaceHintsForPlacedPuzzles(result, rng, Zone.ZoneA, PuzzleStage.Stage1, zoneBContext); // ZoneA Stage1 퍼즐의 힌트는 ZoneB에 배치
         PlaceHintsForPlacedPuzzles(result, rng, Zone.ZoneB, PuzzleStage.Stage1, zoneAContext); // ZoneB Stage1 퍼즐의 힌트는 ZoneA에 배치
         PlaceHintsForPlacedPuzzles(result, rng, Zone.ZoneA, PuzzleStage.Stage2, zoneBContext); // ZoneA Stage2 퍼즐의 힌트는 ZoneB에 배치
@@ -325,7 +327,15 @@ public static class RoundGenerator
     }
 
     /// <summary>
-    /// 이미 배치된 퍼즐들의 힌트를 반대 Zone의 남은 Room에 배치한다.
+    /// 이미 배치된 퍼즐들의 힌트를 반대 Zone에 배치한다.
+    /// 
+    /// 1차:
+    /// - 방 중복 금지
+    /// - 기존 방당 1개 우선 규칙 유지
+    /// 
+    /// 2차:
+    /// - 1차 실패 시 방 중복 허용
+    /// - 단, 슬롯 중복은 계속 금지
     /// </summary>
     private static void PlaceHintsForPlacedPuzzles(
         RoundGenerationResult result,
@@ -338,6 +348,7 @@ public static class RoundGenerator
             return;
 
         List<RoundGenerationResult.PuzzleSpawnPlan> plans = result.GetPlansByZone(sourcePuzzleZone); // source Zone 퍼즐 계획 목록
+
         for (int i = 0; i < plans.Count; i++)
         {
             RoundGenerationResult.PuzzleSpawnPlan puzzlePlan = plans[i];
@@ -357,34 +368,92 @@ public static class RoundGenerator
                 if (hintDefinition == null || hintDefinition.HintPrefab == null)
                     continue;
 
-                RoomPlacementGroup hintRoom = PickBestHintRoom(targetHintContext, rng, stage); // 힌트를 놓을 Room 선택
-                if (hintRoom == null)
+                bool placed = TryPlaceHintPlan(
+                    puzzlePlan,
+                    hintDefinition,
+                    targetHintContext,
+                    rng,
+                    stage,
+                    false); // 1차: 방 중복 금지
+
+                if (placed)
                     continue;
 
-                PlacementSlotMeta hintSlot = hintRoom.GetRandomAvailableHintSlotPreferHintOnly(rng); // 힌트 슬롯 선택
-                if (hintSlot == null)
-                    continue;
+                placed = TryPlaceHintPlan(
+                    puzzlePlan,
+                    hintDefinition,
+                    targetHintContext,
+                    rng,
+                    stage,
+                    true); // 2차: 방 중복 허용
 
-                hintRoom.MarkRoomOccupied(hintSlot); // 방 + 슬롯 점유 확정
-
-                // 힌트도 해당 Stage의 층 분포에 포함시켜서 몰림을 줄임
-                if (stage == PuzzleStage.Stage1)
-                    targetHintContext.Stage1Distribution.AddPlaced(hintRoom.Floor);
-                else if (stage == PuzzleStage.Stage2)
-                    targetHintContext.Stage2Distribution.AddPlaced(hintRoom.Floor);
-
-                puzzlePlan.HintPlans.Add(new RoundGenerationResult.HintSpawnPlan
+                if (!placed)
                 {
-                    HintId = hintDefinition.HintId,
-                    HintPrefab = hintDefinition.HintPrefab,
-                    HintDefinition = hintDefinition,
-                    TargetRoom = hintRoom,
-                    TargetSlot = hintSlot,
-                    HintPositionOffset = hintDefinition.HintPositionOffset,
-                    HintRotationOffset = hintDefinition.HintRotationOffset
-                });
+                    Debug.LogWarning(
+                        $"[RoundGenerator] 힌트 배치 실패 | " +
+                        $"SourceZone={sourcePuzzleZone} | " +
+                        $"TargetZone={(targetHintContext.Catalog != null ? targetHintContext.Catalog.Zone.ToString() : "None")} | " +
+                        $"Stage={stage} | " +
+                        $"PuzzleId={definition.PuzzleId} | " +
+                        $"HintId={hintDefinition.HintId}");
+                }
             }
         }
+    }
+
+    /// <summary>
+    /// 힌트 1개를 실제로 배치하고 HintSpawnPlan을 추가한다.
+    /// 
+    /// ignoreRoomOccupancy가 false면 기존 규칙처럼 빈 방만 사용한다.
+    /// ignoreRoomOccupancy가 true면 이미 사용된 방도 허용하되, 슬롯은 비어 있어야 한다.
+    /// </summary>
+    private static bool TryPlaceHintPlan(
+        RoundGenerationResult.PuzzleSpawnPlan puzzlePlan,
+        PuzzleDefinition.HintDefinition hintDefinition,
+        ZonePlacementContext targetHintContext,
+        SeedRandom rng,
+        PuzzleStage stage,
+        bool ignoreRoomOccupancy)
+    {
+        if (puzzlePlan == null || hintDefinition == null || targetHintContext == null || rng == null)
+            return false;
+
+        RoomPlacementGroup hintRoom = PickBestHintRoom(
+            targetHintContext,
+            rng,
+            stage,
+            ignoreRoomOccupancy); // 힌트를 놓을 Room 선택
+
+        if (hintRoom == null)
+            return false;
+
+        PlacementSlotMeta hintSlot = hintRoom.GetRandomAvailableHintSlotPreferHintOnly(
+            rng,
+            ignoreRoomOccupancy); // 힌트 슬롯 선택
+
+        if (hintSlot == null)
+            return false;
+
+        hintRoom.MarkRoomOccupied(hintSlot); // 방 + 슬롯 점유 확정
+
+        // 힌트도 해당 Stage의 층 분포에 포함시켜서 몰림을 줄임
+        if (stage == PuzzleStage.Stage1)
+            targetHintContext.Stage1Distribution.AddPlaced(hintRoom.Floor);
+        else if (stage == PuzzleStage.Stage2)
+            targetHintContext.Stage2Distribution.AddPlaced(hintRoom.Floor);
+
+        puzzlePlan.HintPlans.Add(new RoundGenerationResult.HintSpawnPlan
+        {
+            HintId = hintDefinition.HintId,
+            HintPrefab = hintDefinition.HintPrefab,
+            HintDefinition = hintDefinition,
+            TargetRoom = hintRoom,
+            TargetSlot = hintSlot,
+            HintPositionOffset = hintDefinition.HintPositionOffset,
+            HintRotationOffset = hintDefinition.HintRotationOffset
+        });
+
+        return true;
     }
 
     /// <summary>
@@ -394,7 +463,8 @@ public static class RoundGenerator
     private static RoomPlacementGroup PickBestRoomForStage1(
         ZonePlacementContext context,
         SeedRandom rng,
-        bool usePuzzleSlots)
+        bool usePuzzleSlots,
+        bool ignoreRoomOccupancy = false)
     {
         if (context == null || rng == null)
             return null;
@@ -407,17 +477,17 @@ public static class RoundGenerator
             if (room == null)
                 continue;
 
-            if (room.IsOccupied())
+            if (!ignoreRoomOccupancy && room.IsOccupied())
                 continue;
 
             if (usePuzzleSlots)
             {
-                if (!room.HasAvailablePuzzleSlot())
+                if (!room.HasAvailablePuzzleSlot(ignoreRoomOccupancy))
                     continue;
             }
             else
             {
-                if (!room.HasAvailableHintSlot())
+                if (!room.HasAvailableHintSlot(ignoreRoomOccupancy))
                     continue;
             }
 
@@ -433,7 +503,8 @@ public static class RoundGenerator
     private static RoomPlacementGroup PickBestRoomForStage2(
         ZonePlacementContext context,
         SeedRandom rng,
-        bool usePuzzleSlots)
+        bool usePuzzleSlots,
+        bool ignoreRoomOccupancy = false)
     {
         if (context == null || rng == null)
             return null;
@@ -446,17 +517,17 @@ public static class RoundGenerator
             if (room == null)
                 continue;
 
-            if (room.IsOccupied())
+            if (!ignoreRoomOccupancy && room.IsOccupied())
                 continue;
 
             if (usePuzzleSlots)
             {
-                if (!room.HasAvailablePuzzleSlot())
+                if (!room.HasAvailablePuzzleSlot(ignoreRoomOccupancy))
                     continue;
             }
             else
             {
-                if (!room.HasAvailableHintSlot())
+                if (!room.HasAvailableHintSlot(ignoreRoomOccupancy))
                     continue;
             }
 
@@ -473,13 +544,14 @@ public static class RoundGenerator
     private static RoomPlacementGroup PickBestHintRoom(
         ZonePlacementContext context,
         SeedRandom rng,
-        PuzzleStage stage)
+        PuzzleStage stage,
+        bool ignoreRoomOccupancy)
     {
         if (stage == PuzzleStage.Stage1)
-            return PickBestRoomForStage1(context, rng, false);
+            return PickBestRoomForStage1(context, rng, false, ignoreRoomOccupancy);
 
         if (stage == PuzzleStage.Stage2)
-            return PickBestRoomForStage2(context, rng, false);
+            return PickBestRoomForStage2(context, rng, false, ignoreRoomOccupancy);
 
         return null;
     }
@@ -496,7 +568,7 @@ public static class RoundGenerator
         if (candidates == null || candidates.Count == 0 || rng == null || distribution == null)
             return null;
 
-        float totalWeight = 0f;                     // 전체 누적 가중치
+        float totalWeight = 0f;                    // 전체 누적 가중치
         List<float> weights = new List<float>();   // 후보별 가중치 목록
 
         for (int i = 0; i < candidates.Count; i++)
@@ -558,7 +630,7 @@ public static class RoundGenerator
         int min = distribution.GetMinCount();        // 가장 적게 배치된 층의 개수
 
         float crowdPenalty = Mathf.Max(0, current - min) * 0.45f; // 많이 몰렸을수록 감점
-        float emptyThirdFloorBonus = 0f;                           // 3층 비어 있을 때 보정값
+        float emptyThirdFloorBonus = 0f;                          // 3층 비어 있을 때 보정값
 
         if (floor == 3 && distribution.TotalPlaced >= 2 && distribution.GetCount(3) == 0)
             emptyThirdFloorBonus = 0.35f; // 3층이 너무 오래 비면 약하게 띄워줌
