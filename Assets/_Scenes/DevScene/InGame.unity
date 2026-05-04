@@ -46920,6 +46920,58 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 319815946}
   m_Mesh: {fileID: 6217673487165757016, guid: ea37902f755bff04fad8f30a9100e717, type: 3}
+--- !u!1 &321266068
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 321266069}
+  - component: {fileID: 321266070}
+  m_Layer: 0
+  m_Name: Z-22
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &321266069
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 321266068}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -18.2, y: 3.5, z: 14.6}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1403331852}
+  m_Father: {fileID: 859439915}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &321266070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 321266068}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f81801d5c49d2447bec144e97af2689, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomPlacementGroup
+  roomId: B_3F_Z22
+  zone: 1
+  floor: 3
+  slots:
+  - {fileID: 1403331853}
+  autoCollectSlots: 1
+  enableDebugLog: 0
 --- !u!1 &323431615
 GameObject:
   m_ObjectHideFlags: 0
@@ -125813,6 +125865,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1238996658}
+  - {fileID: 321266069}
   - {fileID: 1058748348}
   - {fileID: 1209562501}
   - {fileID: 677301235}
@@ -136181,7 +136234,6 @@ GameObject:
   - component: {fileID: 940602865}
   - component: {fileID: 940602869}
   - component: {fileID: 940602868}
-  - component: {fileID: 940602867}
   - component: {fileID: 940602866}
   m_Layer: 0
   m_Name: PuzzleSpawnManager
@@ -136225,20 +136277,6 @@ MonoBehaviour:
   - {fileID: 940602869}
   - {fileID: 940602868}
   ForceRemoteRenderTimeframe: 0
---- !u!114 &940602867
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 940602864}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 694fc09084104da4bbe75c8de66341b9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PuzzleProgressManager
-  stageManager: {fileID: 1411772237}
-  enableDebugLog: 1
 --- !u!114 &940602868
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -136268,10 +136306,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PuzzleSpawnManager
   puzzleDefinitionDatabase: {fileID: 11400000, guid: 82172da5a5c1cb740bfbee49d415cb5e, type: 2}
-  puzzleProgressManager: {fileID: 940602867}
+  puzzleProgressManager: {fileID: 1285269307}
   roundSeedManager: {fileID: 940602868}
   aZoneCatalog: {fileID: 600161648}
-  bZoneCatalog: {fileID: 0}
+  bZoneCatalog: {fileID: 1842441696}
   stage1SelectCount: 3
   stage2SelectCount: 3
   autoSpawnOnSpawned: 1
@@ -211309,6 +211347,54 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1 &1403331851
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1403331852}
+  - component: {fileID: 1403331853}
+  m_Layer: 0
+  m_Name: 2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1403331852
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1403331851}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.3, y: -3, z: -5.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 321266069}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1403331853
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1403331851}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff4562cdfc099b541a177fbc3c6988f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlacementSlotMeta
+  slotId: 2
+  usageType: 1
+  anchor: {fileID: 0}
+  enableDebugLog: 0
 --- !u!1 &1405950143
 GameObject:
   m_ObjectHideFlags: 0
@@ -286085,10 +286171,11 @@ MonoBehaviour:
   - {fileID: 1238996659}
   - {fileID: 1058748349}
   - {fileID: 1209562502}
+  - {fileID: 321266070}
   - {fileID: 677301236}
   - {fileID: 963027173}
   autoCollectRooms: 1
-  stage3FixedPuzzleSlot: {fileID: 337985086}
+  stage3FixedPuzzleSlot: {fileID: 1403331853}
   enableDebugLog: 0
 --- !u!114 &1842441697
 MonoBehaviour:
