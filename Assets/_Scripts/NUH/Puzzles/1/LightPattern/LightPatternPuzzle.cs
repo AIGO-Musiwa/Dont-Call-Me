@@ -116,6 +116,7 @@ public class LightPatternPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             return;
 
         //TODO_Sound - 전구 패턴 패널 입력
+        if (audioModule != null) audioModule.PlaySound(SoundType.InteractLight);
 
         int expectedPanelIndex = _answerSequence[NetCurrentStep];
 

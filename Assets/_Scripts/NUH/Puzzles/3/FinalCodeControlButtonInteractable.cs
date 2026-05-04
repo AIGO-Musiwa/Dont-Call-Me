@@ -73,6 +73,10 @@ public class FinalCodeControlButtonInteractable : MonoBehaviour, IInteractable, 
         }
 
         //TODO_Sound - 최종 코드 지우기 버튼 입력
+        if (ownerPuzzle != null && ownerPuzzle.audioModule != null)
+        {
+            ownerPuzzle.audioModule.PlaySound(SoundType.InteractLight);
+        }
 
         ownerPuzzle.OnBackspacePressed();
 
