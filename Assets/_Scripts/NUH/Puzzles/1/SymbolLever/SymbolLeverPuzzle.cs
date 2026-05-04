@@ -165,6 +165,7 @@ public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         }
 
         //TODO_Sound - 문양 레버 조작
+        if (audioModule != null) audioModule.PlaySound(SoundType.InteractHeavy);
 
         int inputSymbolId = _leverSymbolIds[interactableId];
         int expectedSymbolId = _answerSequence[NetCurrentStep];

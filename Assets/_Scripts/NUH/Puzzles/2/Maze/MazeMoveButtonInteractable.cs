@@ -51,6 +51,10 @@ public class MazeMoveButtonInteractable : MonoBehaviour, IInteractable, IChildPu
             actor.ServerDropRightHandItem(); // 오른손 아이템 들고 있으면 먼저 드랍
 
         //TODO_Sound - 미로 방향 버튼 입력
+        if (ownerPuzzle != null && ownerPuzzle.audioModule != null)
+        {
+            ownerPuzzle.audioModule.PlaySound(SoundType.InteractLight);
+        }
 
         ownerPuzzle.TryMove(moveDirection); // 퍼즐에 이동 방향 전달
     }
