@@ -8056,6 +8056,8 @@ GameObject:
   - component: {fileID: 6749697780668509138}
   - component: {fileID: 4419566562472043222}
   - component: {fileID: 7721428359773747900}
+  - component: {fileID: 2483098501731079089}
+  - component: {fileID: 6708459796500928344}
   m_Layer: 0
   m_Name: ReagentCraftPuzzle
   m_TagString: Untagged
@@ -8163,7 +8165,7 @@ MonoBehaviour:
   promptWhenHoldingItem: "\uC624\uB978\uC190 \uC544\uC774\uD15C \uB0B4\uB824\uB193\uACE0
     \uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
   countForStage1Progress: 1
-  audioModule: {fileID: 0}
+  audioModule: {fileID: 6708459796500928344}
   _NetIsSolved:
     _value: 0
   craftView: {fileID: 1791206325549575615}
@@ -8193,6 +8195,130 @@ MonoBehaviour:
   spawnEntry: {fileID: 6749697780668509138}
   hideUntilStageUnlocked: 1
   enableDebugLog: 1
+--- !u!82 &2483098501731079089
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8801102005179248560}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &6708459796500928344
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8801102005179248560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e57a42340b87584885328f0269e014a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MultiAudioTrigger
+  soundMappings:
+  - soundType: 0
+    audioEvent: {fileID: 11400000, guid: 8060b18ca503ff04c9490875414e58fa, type: 2}
+  - soundType: 1
+    audioEvent: {fileID: 11400000, guid: fccabf6751d0b9d40b1967169a67dbb8, type: 2}
+  - soundType: 2
+    audioEvent: {fileID: 11400000, guid: f5ddac5ac5a9ec144ae1e2ccf4a4b40c, type: 2}
+  - soundType: 3
+    audioEvent: {fileID: 11400000, guid: f5ddac5ac5a9ec144ae1e2ccf4a4b40c, type: 2}
+  - soundType: 7
+    audioEvent: {fileID: 11400000, guid: a9057d436ece65a4096efce346b8a9e0, type: 2}
+  - soundType: 6
+    audioEvent: {fileID: 11400000, guid: c4b88182c19c88a499284f71e57f3017, type: 2}
+  minDistance: 1
+  maxDistance: 20
 --- !u!1 &8958762138637592842
 GameObject:
   m_ObjectHideFlags: 0
