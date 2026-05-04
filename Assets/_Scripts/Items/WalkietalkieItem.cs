@@ -12,6 +12,9 @@ public class WalkieTalkieItem : ItemObject
     [Header("무전 음성 감쇠 설정")]
     [SerializeField] private float walkieVoiceMinDistance = 2f;
 
+    [Header("무전 음성 방향성 설정")]
+    [SerializeField, Range(0f, 1f)] private float walkiePanRange = 0.8f;
+
     // ─── 네트워크 변수 ───────────────────────────────
     [Networked, OnChangedRender(nameof(OnZoneAssigned))]
     public Zone NetZone { get; set; }       // 무전기가 속한 구역
@@ -56,9 +59,10 @@ public class WalkieTalkieItem : ItemObject
     {
         // 🛠️ [안전 차단기 추가] 퓨전 네트워크 전원이 들어오기 전에는 볼륨 조절 모터 가동 중지!
         if (Object == null || !Object.IsValid) return;
-
         UpdateWalkieVoiceVolume();
     }
+
+    // 외부 주입 없을 때 초기 fallback으로 
 
     // ────────────────────────────────────────────────
 
@@ -106,7 +110,7 @@ public class WalkieTalkieItem : ItemObject
 
         //PTT 종료 시 Speaker 볼륨 초기화
         if (NetWalkieState != WalkieState.RX)
-            ResetSenderVolumes();
+            ResetSenderVolumesAndPan();
     }
 
     // 화이트 노이즈 재생 여부를 현재 상태 + 근접 여부로 결정
@@ -204,7 +208,7 @@ public class WalkieTalkieItem : ItemObject
         PlayerRef activeSender = WalkieTalkieManager.Instance?.GetActiveSender() ?? PlayerRef.None;
         if (activeSender == PlayerRef.None)
         {
-            ResetSenderVolumes();
+            ResetSenderVolumesAndPan();
             return;
         }
 
@@ -213,34 +217,45 @@ public class WalkieTalkieItem : ItemObject
             bool isHolder = localPc.GetHeldWalkieTalkie() == this;
             if (!isHolder && !localPc.NetIsNearReceiver)
             {
-                ResetSenderVolumes();
+                ResetSenderVolumesAndPan();
                 return;
             }
         }
 
-        // AudioListener 위치 기준 감쇠
-        Vector3 listenerPos = listenerTransform != null
-            ? listenerTransform.position
-            : localPc.transform.position;
+        Transform panOrigin = listenerTransform;
+        if (panOrigin == null)
+        {
+            AudioListener listener = localPc.GetComponentInChildren<AudioListener>();
+            panOrigin = listener != null ? listener.transform : localPc.transform;
+        }
 
         // 로컬 플레이어와 수신 무전기 사이 거리 계산
-        float dist = Vector3.Distance(listenerPos, transform.position);
+        float dist = Vector3.Distance(panOrigin.position, transform.position);
 
         // Logarithmic 감쇠
         float volume = dist >= Constants.WALKIE_RANGE
             ? 0f
             : Mathf.Clamp01(walkieVoiceMinDistance / Mathf.Max(dist, walkieVoiceMinDistance));
 
+        // 무전기 위치 기준 panStereo 계산
+        float pan = VoicePanCalculator.Calculate(listenerTransform, transform.position, walkiePanRange);
+
         foreach (var audioSource in senderZoneAudioSources)
         {
-            if (audioSource != null) audioSource.volume = volume;
+            if (audioSource == null) continue;
+            audioSource.volume = volume;
+            audioSource.panStereo = pan;
         }
     }
 
-    private void ResetSenderVolumes()
+    private void ResetSenderVolumesAndPan()
     {
         foreach (var audioSource in senderZoneAudioSources)
-            if (audioSource != null) audioSource.volume = 1f;
+        {
+            if (audioSource == null) continue;
+            audioSource.volume = 1f;
+            audioSource.panStereo = 0f;
+        }
     }
 
     // ─── 오버라이드 ──────────────────────────────────

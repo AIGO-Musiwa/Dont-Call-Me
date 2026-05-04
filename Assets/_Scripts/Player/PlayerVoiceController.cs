@@ -9,6 +9,19 @@ public class PlayerVoiceController : NetworkBehaviour
     [SerializeField] private float minDistance = 5f;
     [SerializeField] private float maxDistance = 10f;
 
+    [Header("근접 음성 방향성 설정")]
+    [SerializeField, Range(0f, 1f)] private float proximityPanRange = 0.8f;
+
+    [Header("벽 감쇠 설정")]
+    [Tooltip("벽/지형 레이어 마스크 -> 이것만 벽으로 인식")]
+    [SerializeField] private LayerMask obstructionMask;
+
+    [Tooltip("벽 1개당 볼륨 배율")]
+    [SerializeField, Range(0f, 1f)] private float perWallAttenuation = 0.75f;
+
+    [Tooltip("감쇠를 적용할 최대 벽 개수")]
+    [SerializeField] private int maxWallCount = 3;
+
     // 같은 구역 팀원 캐시
     private PlayerController teammatePc;
     private AudioSource teammateAudioSource;
@@ -26,6 +39,13 @@ public class PlayerVoiceController : NetworkBehaviour
 
         // PlayerPrefs에서 globalVolume 불러오기
         globalVolume = PlayerPrefs.GetFloat(Constants.KEY_GLOBAL_RECEIVE_VOLUME, 1f);
+
+        // 자식 AudioListener 탐색
+        AudioListener listener = GetComponentInChildren<AudioListener>();
+        if (listener != null)
+            listenerTransform = listener.transform;
+        else
+            Debug.LogWarning("[PlayerVoiceController] 자식에서 AudioListener를 찾지 못했습니다.");
 
         VoiceManager.Instance?.SwitchToGameMode(playerController.NetZone);
     }
@@ -51,7 +71,15 @@ public class PlayerVoiceController : NetworkBehaviour
             ? 0f
             : Mathf.Clamp01(minDistance / Mathf.Max(dist, minDistance));
 
-        teammateAudioSource.volume = globalVolume * distanceVolume;
+        // 벽 감쇠 계산
+        float obstructionMultiplier = VoiceObstructionDetector.GetObstructionMultiplier(
+            transform.position, teammatePc.transform.position, obstructionMask, perWallAttenuation, maxWallCount);
+
+        // 최종 볼륨 계산
+        teammateAudioSource.volume = globalVolume * distanceVolume * obstructionMultiplier;
+
+        // 좌우 방향성
+        teammateAudioSource.panStereo = VoicePanCalculator.Calculate(transform, teammatePc.transform.position, proximityPanRange);
     }
 
     private void UpdateSpectatorVolume()
@@ -63,7 +91,12 @@ public class PlayerVoiceController : NetworkBehaviour
         // 관전 대상 AudioSource -> globalVolume 적용
         AudioSource targetAudio = target.GetComponent<AudioSource>();
         if (targetAudio != null)
+        {
             targetAudio.volume = globalVolume;
+
+            // 좌우 방향성
+            targetAudio.panStereo = VoicePanCalculator.Calculate(listenerTransform, target.transform.position, proximityPanRange);
+        }
 
         // 관전 대상 팀원 찾기
         PlayerController teammate = FindTeammateOf(target);
@@ -78,7 +111,14 @@ public class PlayerVoiceController : NetworkBehaviour
             ? 0f
             : Mathf.Clamp01(minDistance / Mathf.Max(dist, minDistance));
 
-        teammateAudio.volume = globalVolume * distanceVolume;
+        // 벽 감쇠
+        float obstructionMultiplier = VoiceObstructionDetector.GetObstructionMultiplier(
+            listenerTransform.position, teammate.transform.position, obstructionMask, perWallAttenuation, maxWallCount);
+
+        teammateAudio.volume = globalVolume * distanceVolume * obstructionMultiplier;
+
+        // 좌우 방향성
+        teammateAudio.panStereo = VoicePanCalculator.Calculate(listenerTransform, teammate.transform.position, proximityPanRange);
     }
 
     // spectatingTarget과 같은 구역이면서 살아있는 팀원 반환
