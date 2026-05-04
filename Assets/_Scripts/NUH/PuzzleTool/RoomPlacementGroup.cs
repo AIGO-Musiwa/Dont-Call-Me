@@ -10,6 +10,10 @@ using UnityEngine;
 /// - 방 점유 여부 판단
 /// - 퍼즐 배치 가능한 슬롯 / 힌트 배치 가능한 슬롯 제공
 /// - 자식 PlacementSlotMeta 자동 수집
+/// 
+/// 변경점
+/// - 힌트 2차 배치를 위해 방 점유 상태를 무시하고 남은 슬롯만 검사할 수 있는 옵션 추가
+/// - 슬롯 단위 점유는 PlacementSlotMeta가 계속 담당
 /// </summary>
 public class RoomPlacementGroup : MonoBehaviour
 {
@@ -161,10 +165,13 @@ public class RoomPlacementGroup : MonoBehaviour
 
     /// <summary>
     /// 현재 이 방에 퍼즐 배치 가능한 슬롯이 하나라도 있는지 반환한다.
+    /// 
+    /// ignoreRoomOccupancy가 true면 방 점유 여부는 무시하고,
+    /// 슬롯 단위 점유 여부만 기준으로 검사한다.
     /// </summary>
-    public bool HasAvailablePuzzleSlot()
+    public bool HasAvailablePuzzleSlot(bool ignoreRoomOccupancy = false)
     {
-        if (_occupiedAtRuntime)
+        if (_occupiedAtRuntime && !ignoreRoomOccupancy)
             return false;
 
         for (int i = 0; i < slots.Count; i++)
@@ -182,10 +189,13 @@ public class RoomPlacementGroup : MonoBehaviour
 
     /// <summary>
     /// 현재 이 방에 힌트 배치 가능한 슬롯이 하나라도 있는지 반환한다.
+    /// 
+    /// ignoreRoomOccupancy가 true면 방 점유 여부는 무시하고,
+    /// 슬롯 단위 점유 여부만 기준으로 검사한다.
     /// </summary>
-    public bool HasAvailableHintSlot()
+    public bool HasAvailableHintSlot(bool ignoreRoomOccupancy = false)
     {
-        if (_occupiedAtRuntime)
+        if (_occupiedAtRuntime && !ignoreRoomOccupancy)
             return false;
 
         for (int i = 0; i < slots.Count; i++)
@@ -204,11 +214,11 @@ public class RoomPlacementGroup : MonoBehaviour
     /// <summary>
     /// 현재 방에서 퍼즐 배치 가능한 슬롯 목록을 반환한다.
     /// </summary>
-    public List<PlacementSlotMeta> GetAvailablePuzzleSlots()
+    public List<PlacementSlotMeta> GetAvailablePuzzleSlots(bool ignoreRoomOccupancy = false)
     {
         List<PlacementSlotMeta> result = new();
 
-        if (_occupiedAtRuntime)
+        if (_occupiedAtRuntime && !ignoreRoomOccupancy)
             return result;
 
         for (int i = 0; i < slots.Count; i++)
@@ -229,11 +239,11 @@ public class RoomPlacementGroup : MonoBehaviour
     /// <summary>
     /// 현재 방에서 힌트 배치 가능한 슬롯 목록을 반환한다.
     /// </summary>
-    public List<PlacementSlotMeta> GetAvailableHintSlots()
+    public List<PlacementSlotMeta> GetAvailableHintSlots(bool ignoreRoomOccupancy = false)
     {
         List<PlacementSlotMeta> result = new();
 
-        if (_occupiedAtRuntime)
+        if (_occupiedAtRuntime && !ignoreRoomOccupancy)
             return result;
 
         for (int i = 0; i < slots.Count; i++)
@@ -254,12 +264,12 @@ public class RoomPlacementGroup : MonoBehaviour
     /// <summary>
     /// 현재 방에서 퍼즐 배치 가능한 슬롯 중 1개를 시드 랜덤으로 반환한다.
     /// </summary>
-    public PlacementSlotMeta GetRandomAvailablePuzzleSlot(SeedRandom rng)
+    public PlacementSlotMeta GetRandomAvailablePuzzleSlot(SeedRandom rng, bool ignoreRoomOccupancy = false)
     {
         if (rng == null)
             return null;
 
-        List<PlacementSlotMeta> candidates = GetAvailablePuzzleSlots();
+        List<PlacementSlotMeta> candidates = GetAvailablePuzzleSlots(ignoreRoomOccupancy);
         if (candidates.Count == 0)
             return null;
 
@@ -269,16 +279,20 @@ public class RoomPlacementGroup : MonoBehaviour
 
     /// <summary>
     /// 현재 방에서 힌트 배치 가능한 슬롯 중 1개를 시드 랜덤으로 반환한다.
+    /// 
     /// 규칙:
     /// - HintOnly 슬롯 우선
     /// - 없으면 PuzzleOrHint 슬롯 사용
+    /// - ignoreRoomOccupancy가 true면 방이 이미 사용되었어도 남은 슬롯을 후보로 본다.
     /// </summary>
-    public PlacementSlotMeta GetRandomAvailableHintSlotPreferHintOnly(SeedRandom rng)
+    public PlacementSlotMeta GetRandomAvailableHintSlotPreferHintOnly(
+        SeedRandom rng,
+        bool ignoreRoomOccupancy = false)
     {
         if (rng == null)
             return null;
 
-        if (_occupiedAtRuntime)
+        if (_occupiedAtRuntime && !ignoreRoomOccupancy)
             return null;
 
         List<PlacementSlotMeta> hintOnlyCandidates = new();
@@ -316,6 +330,9 @@ public class RoomPlacementGroup : MonoBehaviour
 
     /// <summary>
     /// 방과 선택된 슬롯을 점유 상태로 만든다.
+    /// 
+    /// 이미 점유된 방에 힌트를 추가 배치하는 경우에도,
+    /// 선택된 슬롯만 추가 점유 처리된다.
     /// </summary>
     public void MarkRoomOccupied(PlacementSlotMeta chosenSlot)
     {
