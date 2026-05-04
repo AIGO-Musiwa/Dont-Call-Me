@@ -8055,6 +8055,7 @@ GameObject:
   - component: {fileID: 8299695212908459956}
   - component: {fileID: 6749697780668509138}
   - component: {fileID: 4419566562472043222}
+  - component: {fileID: 7721428359773747900}
   m_Layer: 0
   m_Name: ReagentCraftPuzzle
   m_TagString: Untagged
@@ -8162,9 +8163,9 @@ MonoBehaviour:
   promptWhenHoldingItem: "\uC624\uB978\uC190 \uC544\uC774\uD15C \uB0B4\uB824\uB193\uACE0
     \uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
   countForStage1Progress: 1
+  audioModule: {fileID: 0}
   _NetIsSolved:
     _value: 0
-  audioModule: {fileID: 0}
   craftView: {fileID: 1791206325549575615}
   analyzer: {fileID: 1186922085967362255}
   craftedItemSpawnPoint: {fileID: 2862801739463337565}
@@ -8176,6 +8177,21 @@ MonoBehaviour:
   countdownStepSeconds: 1
   progressStepInterval: 1
   showStage3HintImmediately: 1
+  enableDebugLog: 1
+--- !u!114 &7721428359773747900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8801102005179248560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56f70aaaec5cca848a72a9ed8c6d9e43, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Stage2ScreenGate
+  spawnEntry: {fileID: 6749697780668509138}
+  hideUntilStageUnlocked: 1
   enableDebugLog: 1
 --- !u!1 &8958762138637592842
 GameObject:
