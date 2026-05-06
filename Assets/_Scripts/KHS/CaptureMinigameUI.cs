@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-// using UnityEngine.InputSystem; // 🛠️ 이제 InputHandler를 거치므로 직접 InputSystem을 참조할 필요 없음
+using UnityEngine.InputSystem; // 🛠️ 이중 입력 회로를 위해 추가
 
 /// <summary>
 /// 1500px 규격 최적화 심박계 미니게임.
@@ -21,7 +21,7 @@ public class CaptureMinigameUI : MonoBehaviour
     [Header("게임 설정")]
     [SerializeField] private float totalDuration = 5.0f;     // 총 이동 시간
     [SerializeField] private int totalBeats = 5;             // 1사이클당 비트 수
-    [SerializeField] private float hitBoxWidth = 100f;       // 히트박스 가로 폭
+    [SerializeField] private float hitBoxWidth = 100f;       // 히트박스 가로 폭 (노란색 영역 크기)
 
     [Header("시각 피드백 색상")]
     [SerializeField] private Color normalColor = Color.white;
@@ -29,14 +29,17 @@ public class CaptureMinigameUI : MonoBehaviour
     [SerializeField] private Color failColor = Color.red;
 
     private PlayerController _owner;
-    private InputHandler _inputHandler; // 🛠️ [신규 부품] 로컬 플레이어의 입력 수집기
+    private InputHandler _inputHandler;
 
     private float _sessionTimer = 0f;
-    private int _currentBeatIndex = 0;
 
-    // 사이클 내 로컬 상태 트래킹
-    private bool _hasClickedThisBeat = false;
-    private int _cycleSuccessCount = 0; // 이번 사이클에서 성공한 횟수
+    // [신규 판정 시스템] 각 피크(심박)별 타격 성공 여부 기록
+    private bool[] _beatHitStatus = new bool[5];
+    private int _lastPassedBeatIndex = -1; // 지나쳐버린 마지막 비트 인덱스
+    private int _cycleSuccessCount = 0;    // 이번 사이클에서 성공한 횟수
+
+    // 🛠️ [신규 개조] 유저가 마지막으로 스위치를 누른 '구역(Interval)'을 기억하는 메모리 칩
+    private int _lastAttemptedIntervalIndex = -1;
 
     private bool _isActive = false;
 
@@ -49,10 +52,11 @@ public class CaptureMinigameUI : MonoBehaviour
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
-        // 🛠️ UI가 열릴 때, 플레이어의 InputHandler 배선을 꽂아줌
         if (_owner != null)
         {
             _inputHandler = _owner.GetComponent<InputHandler>();
+            // 배선 체크용 경고등
+            if (_inputHandler == null) Debug.LogWarning("[MinigameUI] InputHandler 부품을 찾을 수 없습니다!");
         }
 
         ResetVisuals();
@@ -62,9 +66,17 @@ public class CaptureMinigameUI : MonoBehaviour
     private void ResetSession()
     {
         _sessionTimer = 0f;
-        _currentBeatIndex = 0;
-        _hasClickedThisBeat = false;
-        _cycleSuccessCount = 0; // 사이클 초기화 시 성공 스택도 0으로 포맷
+        _cycleSuccessCount = 0;
+        _lastPassedBeatIndex = -1;
+
+        // 🛠️ 추가: 사이클이 새로 돌 때 시도권 기록도 초기화!
+        _lastAttemptedIntervalIndex = -1;
+
+        // 타격 기록 초기화
+        for (int i = 0; i < totalBeats; i++)
+        {
+            _beatHitStatus[i] = false;
+        }
 
         UpdateScannerPosition();
     }
@@ -73,8 +85,11 @@ public class CaptureMinigameUI : MonoBehaviour
     {
         if (!_isActive) return;
 
-        // 🛠️ [개조 포인트] 마우스 클릭 대신 InputHandler의 스페이스바 단타 신호를 받음!
-        if (_inputHandler != null && _inputHandler.WasMinigamePressed)
+        // 이중 입력 회로: InputHandler를 거치거나, 다이렉트로 스페이스바를 누르거나 둘 다 허용!
+        bool isSpacePressed = (_inputHandler != null && _inputHandler.ConsumeMinigameInput())
+                           || Keyboard.current.spaceKey.wasPressedThisFrame;
+
+        if (isSpacePressed)
         {
             OnClickInput();
         }
@@ -101,58 +116,109 @@ public class CaptureMinigameUI : MonoBehaviour
 
     private void UpdateSessionLogic()
     {
-        float timePerBeat = totalDuration / totalBeats;
-        int checkIndex = Mathf.FloorToInt(_sessionTimer / timePerBeat);
+        if (graphContainer == null) return;
 
-        if (checkIndex > _currentBeatIndex)
+        float widthPerBeat = graphContainer.rect.width / totalBeats;
+        float currentScannerX = scannerBar.anchoredPosition.x;
+
+        // 1. 클릭하지 않고 지나쳐버린 비트(Peak)가 있는지 검사 (무위험 실패 처리)
+        int checkingBeat = _lastPassedBeatIndex + 1;
+        if (checkingBeat < totalBeats)
         {
-            // 클릭하지 않고 비트가 지나가 버린 경우 (무위험 실패)
-            if (!_hasClickedThisBeat && _currentBeatIndex < totalBeats)
-            {
-                TriggerVisualFeedback(failColor);
-            }
+            float targetCenterX = (checkingBeat * widthPerBeat) + (widthPerBeat / 2f);
+            float hitBoxEnd = targetCenterX + (hitBoxWidth / 2f);
 
-            _currentBeatIndex = checkIndex;
-            _hasClickedThisBeat = false; // 다음 비트를 위해 클릭 권한 장전
-
-            // 1사이클(5번) 스캔이 완전히 끝남! (결산 타이밍)
-            if (_currentBeatIndex >= totalBeats)
+            // 스캐너가 판정 구역을 완전히 벗어났다면
+            if (currentScannerX > hitBoxEnd)
             {
-                if (_cycleSuccessCount > 0 && _owner != null && _owner.Object.HasInputAuthority)
+                // 근데 타격 기록이 없다면? -> 놓침!
+                if (!_beatHitStatus[checkingBeat])
                 {
-                    // 모아둔 성공 스택을 서버로 발송
-                    _owner.RPC_ProcessMinigameSuccess(_cycleSuccessCount);
+                    TriggerVisualFeedback(failColor);
                 }
-
-                // 사이클 무한 반복
-                ResetSession();
+                _lastPassedBeatIndex = checkingBeat; // 다음 비트로 검사 대상 이동
             }
+        }
+
+        // 2. 1사이클(5.0초)이 끝난 경우의 결산
+        if (_sessionTimer >= totalDuration)
+        {
+            if (_cycleSuccessCount > 0 && _owner != null && _owner.Object.HasInputAuthority)
+            {
+                _owner.RPC_ProcessMinigameSuccess(_cycleSuccessCount);
+            }
+            // 무한 반복
+            ResetSession();
         }
     }
 
     public void OnClickInput()
     {
-        // 이미 이번 비트에서 스위치를 눌렀다면 무시
-        if (!_isActive || _hasClickedThisBeat) return;
+        if (!_isActive || graphContainer == null) return;
 
-        _hasClickedThisBeat = true; // 스위치 락 온 (1비트 1클릭 제한)
+        // 🛠️ [신규 개조] 1구역 당 1번의 시도권만 부여 (연타 방지 시스템)
+        float timePerBeat = totalDuration / totalBeats;
+        int currentIntervalIndex = Mathf.FloorToInt(_sessionTimer / timePerBeat);
+
+        // 이번 구역에서 이미 버튼을 누른 적이 있다면? (연타 적발)
+        if (currentIntervalIndex == _lastAttemptedIntervalIndex)
+        {
+            TriggerVisualFeedback(failColor); // 즉시 실패 판정 피드백
+            return;                           // 아래 거리 계산 로직을 타지 않고 전원 차단
+        }
+
+        // 이번 구역의 1회 시도권 소모 기록
+        _lastAttemptedIntervalIndex = currentIntervalIndex;
+
+        // -------------------------------------------------------------
 
         float widthPerBeat = graphContainer.rect.width / totalBeats;
-        float targetCenterX = (_currentBeatIndex * widthPerBeat) + (widthPerBeat / 2f);
-        float hitBoxStart = targetCenterX - (hitBoxWidth / 2f);
-        float hitBoxEnd = targetCenterX + (hitBoxWidth / 2f);
         float currentScannerX = scannerBar.anchoredPosition.x;
 
-        if (currentScannerX >= hitBoxStart && currentScannerX <= hitBoxEnd)
+        int closestBeatIndex = -1;
+        float minDistance = float.MaxValue;
+
+        // 1. 현재 스캐너 위치에서 가장 가까운 심박 피크(목표) 찾기
+        for (int i = 0; i < totalBeats; i++)
         {
-            // 성공: 스택 적립 및 녹색등
-            _cycleSuccessCount++;
-            TriggerVisualFeedback(successColor);
+            float targetCenterX = (i * widthPerBeat) + (widthPerBeat / 2f);
+            float dist = Mathf.Abs(currentScannerX - targetCenterX);
+
+            if (dist < minDistance)
+            {
+                minDistance = dist;
+                closestBeatIndex = i;
+            }
         }
-        else
+
+        // 2. 타격 판정 진행
+        if (closestBeatIndex != -1)
         {
-            // 실패: 리스크 없이 빨간등만 점등하고 지나감
-            TriggerVisualFeedback(failColor);
+            float targetCenterX = (closestBeatIndex * widthPerBeat) + (widthPerBeat / 2f);
+            float hitBoxStart = targetCenterX - (hitBoxWidth / 2f);
+            float hitBoxEnd = targetCenterX + (hitBoxWidth / 2f);
+
+            // 스캐너가 판정 범위 안에 있을 때! (이미지의 노란색 범위)
+            if (currentScannerX >= hitBoxStart && currentScannerX <= hitBoxEnd)
+            {
+                // 아직 맞추지 않은 피크라면 성공!
+                if (!_beatHitStatus[closestBeatIndex])
+                {
+                    _beatHitStatus[closestBeatIndex] = true; // 타격 성공 도장 쾅!
+                    _cycleSuccessCount++;
+                    TriggerVisualFeedback(successColor);
+                }
+                else
+                {
+                    // 이미 맞춘 피크인데 또 누른 경우 (연타 패널티)
+                    TriggerVisualFeedback(failColor);
+                }
+            }
+            else
+            {
+                // 노란색 범위 밖, 허공(흰색 평면)에서 눌렀을 경우 (실패)
+                TriggerVisualFeedback(failColor);
+            }
         }
     }
 
