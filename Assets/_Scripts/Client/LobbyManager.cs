@@ -36,8 +36,8 @@ public class LobbyManager : MonoBehaviour
     [SerializeField] private Button exitButton;
 
     [Header("사운드")]
-    [SerializeField] private AudioClip lobbyBGM;  // 🛠️ 인스펙터에서 로비 브금 할당
-    [SerializeField] private AudioClip resultBGM; // 🛠️ 인스펙터에서 결과창 브금 할당
+    [SerializeField] private AudioEventSO lobbyBGM;  // 🛠️ AudioClip -> AudioEventSO로 변경
+    [SerializeField] private AudioEventSO resultBGM; // 🛠️ AudioClip -> AudioEventSO로 변경
 
     private GameLauncher _launcher;
     private bool _isReady;
@@ -57,16 +57,18 @@ public class LobbyManager : MonoBehaviour
             Debug.LogError("[LobbyManager] GameLauncher가 씬에 없습니다.");
             return;
         }
-        // 🛠️ 추가: Pending 데이터가 있으면 결과창, 없으면 로비 BGM 재생!
-        if (SoundManager.Instance != null)
+        // 🛠️ 수정: Pending 데이터가 있으면 결과창(단발성), 없으면 로비 BGM(무한루프) 재생!
+        if (BGMManager.Instance != null)
         {
             if (ResultPayload.Pending != null)
             {
-                SoundManager.Instance.PlayBGM(resultBGM);
+                // 타자기/도장 소리이므로 무한 반복 스위치를 끈다! (false)
+                BGMManager.Instance.PlayBGM(resultBGM, false);
             }
             else
             {
-                SoundManager.Instance.PlayBGM(lobbyBGM);
+                // 로비 BGM이므로 무한 반복 스위치를 켠다! (true)
+                BGMManager.Instance.PlayBGM(lobbyBGM, true);
             }
         }
         _launcher.OnPlayerJoinedEvent += HandlePlayerJoined;

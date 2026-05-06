@@ -73,8 +73,8 @@ public class CaptureMinigameUI : MonoBehaviour
     {
         if (!_isActive) return;
 
-        // 🛠️ [개조 포인트] 마우스 클릭 대신 InputHandler의 스페이스바 단타 신호를 받음!
-        if (_inputHandler != null && _inputHandler.WasMinigamePressed)
+        // 🛠️ [개조 포인트] 휘발성 변수 대신, '버퍼 소모형 함수'를 호출해서 스페이스바 입력을 100% 안전하게 낚아챔!
+        if (_inputHandler != null && _inputHandler.ConsumeMinigameInput())
         {
             OnClickInput();
         }
