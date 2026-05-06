@@ -527,9 +527,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 783aafc31e0c25c46a21c8c184d5c6e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WalkieTalkieNoiseFilter
-  highPassCutoff: 0.25
-  noiseAmount: 0
+  highPassCutoff: 0.5
+  carrierFrequency: 2400
+  ringModDepth: 0.5
   distortionAmount: 0.5
+  outputGain: 2.5
 --- !u!1 &2098675536719637024
 GameObject:
   m_ObjectHideFlags: 0
