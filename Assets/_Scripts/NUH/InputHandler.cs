@@ -56,7 +56,7 @@ public class InputHandler : MonoBehaviour
 
     private float _mouseSensitivity = 1.0f; //마우스 감도
 
-    private Vector2 _moveInput;            // 현재 프레임 이동 입력
+    private Vector2 _moveInput;             // 현재 프레임 이동 입력
     private Vector2 _lookInputAccumulated; // Fusion 틱 동안 누적된 시선 입력
     private float _zoomInput;              // 현재 프레임 줌 입력
 
@@ -66,8 +66,8 @@ public class InputHandler : MonoBehaviour
     /// </summary>
     public Vector2 FrameLookDelta { get; private set; } // 이번 프레임 마우스 델타
 
-    // 🛠️ 로컬 미니게임 전용 출력 단자 (단타 전용, 네트워크 전송 X)
-    public bool WasMinigamePressed { get; private set; } // 이번 프레임에 스페이스바를 누른 순간
+    // 🛠️ [신규 개조] 미니게임 전용 스페이스바 입력 버퍼 (단타 전용, 네트워크 전송 X)
+    private bool _minigamePressedBuffer;
 
     private bool _sprintPressed;   // 달리기 유지 상태
     private bool _crouchPressed;   // 앉기 유지 상태
@@ -76,6 +76,20 @@ public class InputHandler : MonoBehaviour
     private bool _walkiePressed;   // 무전기 누르고 있는 유지 상태
 
     private FusionCallbackHandler _registeredHandler; // Fusion OnInput 콜백 연결 대상
+
+    /// <summary>
+    /// 미니게임 UI에서 스페이스바 입력을 가져가는 단자.
+    /// 값을 가져감과 동시에 버퍼를 비운다(소비한다).
+    /// </summary>
+    public bool ConsumeMinigameInput()
+    {
+        if (_minigamePressedBuffer)
+        {
+            _minigamePressedBuffer = false; // 읽었으니 스위치 끔
+            return true;
+        }
+        return false;
+    }
 
     /// <summary>
     /// FusionCallbackHandler에 OnInput 콜백을 연결한다.
@@ -110,6 +124,9 @@ public class InputHandler : MonoBehaviour
         interactAction.action.canceled += OnInteractCanceled;   // 좌클릭 해제 감지
         walkieAction.action.performed += OnWalkiePerformed;     // 우클릭 눌림 감지
         walkieAction.action.canceled += OnWalkieCanceled;       // 우클릭 해제 감지
+
+        // 🛠️ [신규 개조] 미니게임 스페이스바 눌림 순간 이벤트 연결
+        minigameInput.action.performed += OnMinigamePerformed;
     }
 
     private void OnDisable()
@@ -127,6 +144,9 @@ public class InputHandler : MonoBehaviour
         interactAction.action.canceled -= OnInteractCanceled;
         walkieAction.action.performed -= OnWalkiePerformed;
         walkieAction.action.canceled -= OnWalkieCanceled;
+
+        // 🛠️ [신규 개조] 미니게임 스페이스바 눌림 순간 이벤트 해제
+        minigameInput.action.performed -= OnMinigamePerformed;
     }
 
     // SettingsUI에서 이 함수를 불러 감도를 덮어씌울 거임
@@ -134,6 +154,7 @@ public class InputHandler : MonoBehaviour
     {
         _mouseSensitivity = newSensitivity;
     }
+
     private void Start()
     {
         // 처음 시작할 때도 저장된 값을 불러오도록
@@ -154,8 +175,17 @@ public class InputHandler : MonoBehaviour
 
         _sprintPressed = sprintAction.action.IsPressed(); // 달리기 유지 상태 갱신
         _crouchPressed = crouchAction.action.IsPressed(); // 앉기 유지 상태 갱신
-        // 🛠️ 로컬 미니게임 단타 입력 읽기 (네트워크 전송 안 됨)
-        WasMinigamePressed = minigameInput.action.WasPressedThisFrame();
+
+        // ❌ 휘발성 데이터 읽기 부분 삭제 완료
+    }
+
+    /// <summary>
+    /// 스페이스바 눌린 순간 버퍼 스위치를 켠다! (미니게임용)
+    /// </summary>
+    private void OnMinigamePerformed(InputAction.CallbackContext ctx)
+    {
+        if (SettingsManager.IsOpen) return;
+        _minigamePressedBuffer = true;
     }
 
     /// <summary>
@@ -228,5 +258,4 @@ public class InputHandler : MonoBehaviour
         buttons.Set(InputButtons.Walkie, _walkiePressed);           // 무전기 유지 상태 기록
         return buttons;
     }
-
 }

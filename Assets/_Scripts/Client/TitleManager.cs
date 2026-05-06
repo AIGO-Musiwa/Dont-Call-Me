@@ -23,6 +23,9 @@ public class TitleManager : MonoBehaviour
     [SerializeField] private GameObject errorPanel;
     [SerializeField] private TextMeshProUGUI errorText;
 
+    [Header("사운드")]
+    [SerializeField] private AudioEventSO titleBGM; // 🛠️ AudioClip -> AudioEventSO로 변경
+
     private GameLauncher _launcher;
     private string confirmedNickname;       // 확정된 닉네임
 
@@ -37,7 +40,10 @@ public class TitleManager : MonoBehaviour
             Debug.LogError("[TitleUI] GameLauncher가 씬에 없습니다.");
             return;
         }
-        
+        // 🛠️ 추가: 타이틀 BGM 재생!
+        if (BGMManager.Instance != null)
+            BGMManager.Instance.PlayBGM(titleBGM);
+
         // 이벤트 구독
         _launcher.OnJoinFailed += HandleConnectionFailed;
         _launcher.OnPlayerJoinedEvent += HandlePlayerJoined;
