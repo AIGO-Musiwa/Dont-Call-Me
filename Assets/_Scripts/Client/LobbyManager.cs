@@ -35,6 +35,10 @@ public class LobbyManager : MonoBehaviour
     [SerializeField] private Button startButton;
     [SerializeField] private Button exitButton;
 
+    [Header("사운드")]
+    [SerializeField] private AudioClip lobbyBGM;  // 🛠️ 인스펙터에서 로비 브금 할당
+    [SerializeField] private AudioClip resultBGM; // 🛠️ 인스펙터에서 결과창 브금 할당
+
     private GameLauncher _launcher;
     private bool _isReady;
     private readonly PlayerData[] _slots = new PlayerData[4];
@@ -52,6 +56,18 @@ public class LobbyManager : MonoBehaviour
         {
             Debug.LogError("[LobbyManager] GameLauncher가 씬에 없습니다.");
             return;
+        }
+        // 🛠️ 추가: Pending 데이터가 있으면 결과창, 없으면 로비 BGM 재생!
+        if (SoundManager.Instance != null)
+        {
+            if (ResultPayload.Pending != null)
+            {
+                SoundManager.Instance.PlayBGM(resultBGM);
+            }
+            else
+            {
+                SoundManager.Instance.PlayBGM(lobbyBGM);
+            }
         }
         _launcher.OnPlayerJoinedEvent += HandlePlayerJoined;
         _launcher.OnPlayerLeftEvent   += HandlePlayerLeft;

@@ -39,10 +39,27 @@ public class SoundManager : MonoBehaviour
     /// <summary>
     /// 전역 BGM 재생 (중앙 방송)
     /// </summary>
-    public void PlayBGM(AudioEventSO bgmCartridge)
+    public void PlayBGM(AudioClip bgmClip)
     {
-        if (bgmCartridge == null) return;
-        bgmCartridge.Play(bgmSource);
+        // 🛠️ SO 대신 AudioClip을 직접 받는 게 구조상 유리할 수 있어!
+        if (bgmClip == null) return;
+
+        // 🛠️ 중복 재생 방지: 이미 똑같은 BGM이 틀어져 있다면 무시한다
+        if (bgmSource.isPlaying && bgmSource.clip == bgmClip) return;
+
+        bgmSource.clip = bgmClip;
+        bgmSource.Play();
+    }
+
+    /// <summary>
+    /// 전역 BGM 정지
+    /// </summary>
+    public void StopBGM()
+    {
+        if (bgmSource != null && bgmSource.isPlaying)
+        {
+            bgmSource.Stop();
+        }
     }
     private void InitializePool()
     {
