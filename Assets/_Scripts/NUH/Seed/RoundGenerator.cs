@@ -12,15 +12,15 @@ using UnityEngine;
 /// - Stage2 : 층 동일 선호 + 몰림 페널티
 /// - 퍼즐 먼저 배치하고, 남은 방에 힌트를 배치
 /// - 힌트는 1차로 방 중복 없이 배치하고, 실패 시 2차로 방 중복 허용 배치
-/// - Stage3 퍼즐은 Zone별 고정 위치 사용
+/// - Stage3 퍼즐은 Zone별 Stage3Puzzle 슬롯 사용
 /// - Stage3 힌트는 월드에 스폰하지 않음
 /// </summary>
 public static class RoundGenerator
 {
-    private const int PuzzleSeedSalt = 1001;     // 퍼즐 배치용 파생 시드 salt
-    private const int PlayerSeedSalt = 2001;     // 플레이어 배정용 파생 시드 salt
-    private const int AnswerSeedSalt = 3001;     // 퍼즐 정답 생성용 파생 시드 salt
-    private const int FinalCodeSeedSalt = 9001;  // FinalCode 전용 salt
+    private const int PuzzleSeedSalt = 1001;    // 퍼즐 배치용 파생 시드 salt
+    private const int PlayerSeedSalt = 2001;    // 플레이어 배정용 파생 시드 salt
+    private const int AnswerSeedSalt = 3001;    // 퍼즐 정답 생성용 파생 시드 salt
+    private const int FinalCodeSeedSalt = 9001; // FinalCode 전용 salt
 
     /// <summary>
     /// Zone별 Room 배치 컨텍스트.
@@ -28,7 +28,7 @@ public static class RoundGenerator
     /// </summary>
     private sealed class ZonePlacementContext
     {
-        public ZonePlacementCatalog Catalog;                       // 이 Zone의 Room 카탈로그
+        public ZonePlacementCatalog Catalog;                      // 이 Zone의 Room 카탈로그
         public List<RoomPlacementGroup> Rooms = new();            // 배치 대상 Room 목록
         public FloorDistributionState Stage1Distribution = new(); // Stage1 층 분포 상태
         public FloorDistributionState Stage2Distribution = new(); // Stage2 층 분포 상태
@@ -143,9 +143,9 @@ public static class RoundGenerator
         PlaceHintsForPlacedPuzzles(result, rng, Zone.ZoneA, PuzzleStage.Stage2, zoneBContext); // ZoneA Stage2 퍼즐의 힌트는 ZoneB에 배치
         PlaceHintsForPlacedPuzzles(result, rng, Zone.ZoneB, PuzzleStage.Stage2, zoneAContext); // ZoneB Stage2 퍼즐의 힌트는 ZoneA에 배치
 
-        // Stage3 퍼즐은 Zone별 고정 위치 plan 추가
-        AddStage3FixedPlan(result, zoneAContext, stage3Pool); // ZoneA Stage3 고정 퍼즐 추가
-        AddStage3FixedPlan(result, zoneBContext, stage3Pool); // ZoneB Stage3 고정 퍼즐 추가
+        // Stage3 퍼즐은 Zone별 Stage3Puzzle 슬롯에 plan 추가
+        AddStage3PuzzlePlan(result, zoneAContext, stage3Pool); // ZoneA Stage3 퍼즐 추가
+        AddStage3PuzzlePlan(result, zoneBContext, stage3Pool); // ZoneB Stage3 퍼즐 추가
 
         // FinalCode 데이터 생성
         result.ZoneAFinalCodeData = FinalCodeAnswerGenerator.Generate(BuildFinalCodeSeed(roundSeed, Zone.ZoneA)); // ZoneA FinalCode 데이터 생성
@@ -228,11 +228,6 @@ public static class RoundGenerator
 
     /// <summary>
     /// Stage1 퍼즐들을 Room 기반으로 배치한다.
-    /// 규칙:
-    /// - 1,2층 기본 선호 높음
-    /// - 3층은 낮은 선호도
-    /// - 이미 많이 쌓인 층은 페널티
-    /// - 3층이 계속 비면 약한 보정
     /// </summary>
     private static void PlaceStage1Puzzles(
         RoundGenerationResult result,
@@ -240,7 +235,7 @@ public static class RoundGenerator
         ZonePlacementContext context,
         List<PuzzleDefinition> definitions)
     {
-        if (context == null || definitions == null)
+        if (context == null || definitions == null || context.Catalog == null)
             return;
 
         int localIndex = 0; // Zone 내부 Stage1 퍼즐 로컬 순번
@@ -259,8 +254,8 @@ public static class RoundGenerator
             if (slot == null)
                 continue;
 
-            room.MarkRoomOccupied(slot);                             // 방 + 슬롯 점유 확정
-            context.Stage1Distribution.AddPlaced(room.Floor);        // Stage1 층 분포 갱신
+            room.MarkRoomOccupied(slot);                      // 방 + 슬롯 점유 확정
+            context.Stage1Distribution.AddPlaced(room.Floor); // Stage1 층 분포 갱신
 
             int answerSeed = BuildAnswerSeed(result.RoundSeed, context.Catalog.Zone, PuzzleStage.Stage1, localIndex); // 퍼즐 정답 시드 생성
             localIndex++;
@@ -279,9 +274,6 @@ public static class RoundGenerator
 
     /// <summary>
     /// Stage2 퍼즐들을 Room 기반으로 배치한다.
-    /// 규칙:
-    /// - 층 기본 선호도 동일
-    /// - 이미 많이 쌓인 층은 페널티
     /// </summary>
     private static void PlaceStage2Puzzles(
         RoundGenerationResult result,
@@ -289,7 +281,7 @@ public static class RoundGenerator
         ZonePlacementContext context,
         List<PuzzleDefinition> definitions)
     {
-        if (context == null || definitions == null)
+        if (context == null || definitions == null || context.Catalog == null)
             return;
 
         int localIndex = 0; // Zone 내부 Stage2 퍼즐 로컬 순번
@@ -308,8 +300,8 @@ public static class RoundGenerator
             if (slot == null)
                 continue;
 
-            room.MarkRoomOccupied(slot);                             // 방 + 슬롯 점유 확정
-            context.Stage2Distribution.AddPlaced(room.Floor);        // Stage2 층 분포 갱신
+            room.MarkRoomOccupied(slot);                      // 방 + 슬롯 점유 확정
+            context.Stage2Distribution.AddPlaced(room.Floor); // Stage2 층 분포 갱신
 
             int answerSeed = BuildAnswerSeed(result.RoundSeed, context.Catalog.Zone, PuzzleStage.Stage2, localIndex); // 퍼즐 정답 시드 생성
             localIndex++;
@@ -568,8 +560,8 @@ public static class RoundGenerator
         if (candidates == null || candidates.Count == 0 || rng == null || distribution == null)
             return null;
 
-        float totalWeight = 0f;                    // 전체 누적 가중치
-        List<float> weights = new List<float>();   // 후보별 가중치 목록
+        float totalWeight = 0f;                  // 전체 누적 가중치
+        List<float> weights = new List<float>(); // 후보별 가중치 목록
 
         for (int i = 0; i < candidates.Count; i++)
         {
@@ -610,11 +602,6 @@ public static class RoundGenerator
 
     /// <summary>
     /// Stage1 층 점수 계산.
-    /// 규칙:
-    /// - 1층/2층 기본 선호 높음
-    /// - 3층 기본 선호 낮음
-    /// - 몰린 층에는 페널티
-    /// - 3층이 계속 비어 있으면 약한 보정
     /// </summary>
     private static float EvaluateStage1FloorScore(int floor, FloorDistributionState distribution)
     {
@@ -627,7 +614,7 @@ public static class RoundGenerator
         };
 
         int current = distribution.GetCount(floor); // 현재 이 층 배치 수
-        int min = distribution.GetMinCount();        // 가장 적게 배치된 층의 개수
+        int min = distribution.GetMinCount();       // 가장 적게 배치된 층의 개수
 
         float crowdPenalty = Mathf.Max(0, current - min) * 0.45f; // 많이 몰렸을수록 감점
         float emptyThirdFloorBonus = 0f;                          // 3층 비어 있을 때 보정값
@@ -640,16 +627,13 @@ public static class RoundGenerator
 
     /// <summary>
     /// Stage2 층 점수 계산.
-    /// 규칙:
-    /// - 층 기본 선호도는 동일
-    /// - 몰린 층에는 페널티
     /// </summary>
     private static float EvaluateStage2FloorScore(int floor, FloorDistributionState distribution)
     {
         float baseScore = 1.0f; // Stage2는 모든 층 기본 선호 동일
 
         int current = distribution.GetCount(floor); // 현재 이 층 배치 수
-        int min = distribution.GetMinCount();        // 가장 적게 배치된 층의 개수
+        int min = distribution.GetMinCount();       // 가장 적게 배치된 층의 개수
 
         float crowdPenalty = Mathf.Max(0, current - min) * 0.50f; // 몰린 층 감점
 
@@ -657,10 +641,10 @@ public static class RoundGenerator
     }
 
     /// <summary>
-    /// Zone의 Stage3 고정 슬롯에 퍼즐 스폰 계획을 추가한다.
+    /// Zone의 Stage3Puzzle 슬롯에 Stage3 퍼즐 스폰 계획을 추가한다.
     /// Stage3 힌트는 월드 배치하지 않으므로 HintPlans는 비운다.
     /// </summary>
-    private static void AddStage3FixedPlan(
+    private static void AddStage3PuzzlePlan(
         RoundGenerationResult result,
         ZonePlacementContext context,
         List<PuzzleDefinition> stage3Definitions)
@@ -671,13 +655,23 @@ public static class RoundGenerator
         if (context.Catalog == null)
             return;
 
-        PlacementSlotMeta fixedSlot = context.Catalog.GetStage3FixedPuzzleSlot(); // Zone별 Stage3 고정 슬롯
-        if (fixedSlot == null)
+        PlacementSlotMeta stage3Slot = context.Catalog.GetStage3PuzzleSlot(); // Zone별 Stage3 퍼즐 슬롯
+        if (stage3Slot == null)
             return;
+
+        if (!stage3Slot.CanPlaceStage3Puzzle())
+        {
+            Debug.LogWarning(
+                $"[RoundGenerator] Stage3 퍼즐 슬롯을 사용할 수 없습니다. " +
+                $"Zone={context.Catalog.Zone} | SlotId={stage3Slot.SlotId} | UsageType={stage3Slot.UsageType}");
+            return;
+        }
 
         PuzzleDefinition definition = stage3Definitions[0]; // 현재는 Stage3 정의 1종만 사용
         if (definition == null)
             return;
+
+        stage3Slot.MarkOccupied(); // Stage3 슬롯 점유 처리
 
         result.AddPuzzlePlan(new RoundGenerationResult.PuzzleSpawnPlan
         {
@@ -685,7 +679,7 @@ public static class RoundGenerator
             Zone = context.Catalog.Zone,
             Stage = PuzzleStage.Stage3,
             TargetRoom = null, // Stage3는 Room 점유 구조에 묶지 않음
-            TargetSlot = fixedSlot,
+            TargetSlot = stage3Slot,
             AnswerSeed = BuildAnswerSeed(result.RoundSeed, context.Catalog.Zone, PuzzleStage.Stage3, 0)
         });
     }

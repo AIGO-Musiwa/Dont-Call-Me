@@ -1,35 +1,37 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// Zone 하나에 속한 전체 배치 가능한 방 목록과
-/// Stage3 고정 퍼즐 위치를 보관하는 카탈로그.
+/// Stage3 퍼즐 고정 위치를 보관하는 카탈로그.
 /// 
 /// 역할
 /// - Zone별 Room 목록 제공
 /// - 현재 사용 가능한 Room 목록 제공
 /// - 층별 Room 필터 제공
-/// - Stage3 고정 슬롯 제공
+/// - Stage3 퍼즐 고정 슬롯 제공
 /// - 자식 RoomPlacementGroup 자동 수집
 /// </summary>
 public class ZonePlacementCatalog : MonoBehaviour
 {
     [Header("Zone 정보")]
-    [SerializeField] private Zone zone;                                      // 이 카탈로그가 속한 Zone
+    [SerializeField] private Zone zone; // 이 카탈로그가 속한 Zone
 
     [Header("Room 목록")]
-    [SerializeField] private List<RoomPlacementGroup> rooms = new();         // 이 Zone에 속한 모든 Room 목록
+    [SerializeField] private List<RoomPlacementGroup> rooms = new(); // 이 Zone에 속한 모든 Room 목록
 
     [Header("자동 수집")]
-    [SerializeField] private bool autoCollectRooms = true;                   // 자식 방 자동 수집 여부
+    [SerializeField] private bool autoCollectRooms = true; // 자식 방 자동 수집 여부
 
-    [Header("Stage3 고정 슬롯")]
-    [SerializeField] private PlacementSlotMeta stage3FixedPuzzleSlot;        // Stage3 퍼즐 고정 스폰 슬롯
+    [Header("Stage3 퍼즐 슬롯")]
+    [FormerlySerializedAs("stage3FixedPuzzleSlot")]
+    [SerializeField] private PlacementSlotMeta stage3PuzzleSlot; // Stage3 퍼즐 고정 스폰 슬롯
 
     [Header("디버그")]
-    [SerializeField] private bool enableDebugLog = false;                    // 디버그 로그 출력 여부
+    [SerializeField] private bool enableDebugLog = false; // 디버그 로그 출력 여부
 
-    public Zone Zone => zone;                                                // Zone 외부 읽기용
+    public Zone Zone => zone; // Zone 외부 읽기용
 
     private void OnValidate()
     {
@@ -103,8 +105,8 @@ public class ZonePlacementCatalog : MonoBehaviour
             room.EnsureSlotsCollected(); // 각 방의 슬롯 목록도 보정
         }
 
-        SortRooms();              // 정렬 보정
-        ClearRuntimeOccupancy();  // 이전 점유 상태 초기화
+        SortRooms();             // 정렬 보정
+        ClearRuntimeOccupancy(); // 이전 점유 상태 초기화
     }
 
     /// <summary>
@@ -120,9 +122,17 @@ public class ZonePlacementCatalog : MonoBehaviour
             return false;
         }
 
-        if (stage3FixedPuzzleSlot == null)
+        if (stage3PuzzleSlot == null)
         {
-            LogWarning($"Stage3 고정 슬롯이 비어 있습니다. | Zone={zone}");
+            LogWarning($"Stage3 퍼즐 슬롯이 비어 있습니다. | Zone={zone}");
+            return false;
+        }
+
+        if (stage3PuzzleSlot.UsageType != PlacementSlotUsageType.Stage3Puzzle)
+        {
+            LogWarning(
+                $"Stage3 퍼즐 슬롯의 UsageType이 Stage3Puzzle이 아닙니다. " +
+                $"| Zone={zone} | SlotId={stage3PuzzleSlot.SlotId} | CurrentType={stage3PuzzleSlot.UsageType}");
             return false;
         }
 
@@ -363,13 +373,14 @@ public class ZonePlacementCatalog : MonoBehaviour
     /// <summary>
     /// Stage3 퍼즐 고정 슬롯을 반환한다.
     /// </summary>
-    public PlacementSlotMeta GetStage3FixedPuzzleSlot()
+    public PlacementSlotMeta GetStage3PuzzleSlot()
     {
-        return stage3FixedPuzzleSlot;
+        return stage3PuzzleSlot;
     }
 
     /// <summary>
     /// 이 Zone의 모든 Room 런타임 점유 상태를 초기화한다.
+    /// Stage3 퍼즐 슬롯은 Room 하위가 아닐 수도 있으므로 별도로 초기화한다.
     /// </summary>
     public void ClearRuntimeOccupancy()
     {
@@ -381,6 +392,9 @@ public class ZonePlacementCatalog : MonoBehaviour
 
             room.ClearRuntimeOccupancy();
         }
+
+        if (stage3PuzzleSlot != null)
+            stage3PuzzleSlot.ClearOccupied();
 
         Log("Zone 전체 Room 점유 상태 초기화 완료");
     }
