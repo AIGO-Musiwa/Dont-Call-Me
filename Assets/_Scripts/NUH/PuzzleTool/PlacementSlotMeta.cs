@@ -4,27 +4,27 @@ using UnityEngine;
 /// 방 내부의 실제 배치 가능 위치 1개를 표현하는 공통 슬롯 메타.
 /// 
 /// 역할
-/// - 이 슬롯이 힌트 전용인지, 퍼즐/힌트 공용인지 보관
+/// - 이 슬롯이 힌트 전용인지, 퍼즐/힌트 공용인지, Stage3 퍼즐 전용인지 보관
 /// - 실제 스폰 기준 위치(anchor)를 제공
 /// - 런타임 점유 여부를 관리
 /// </summary>
 public class PlacementSlotMeta : MonoBehaviour
 {
     [Header("기본 정보")]
-    [SerializeField] private string slotId;                         // 슬롯 식별용 ID
-    [SerializeField] private PlacementSlotUsageType usageType;      // 슬롯 사용 타입
+    [SerializeField] private string slotId;                    // 슬롯 식별용 ID
+    [SerializeField] private PlacementSlotUsageType usageType; // 슬롯 사용 타입
 
     [Header("스폰 기준 위치")]
-    [SerializeField] private Transform anchor;                      // 실제 스폰 위치 기준점, 비어 있으면 자기 transform 사용
+    [SerializeField] private Transform anchor; // 실제 스폰 위치 기준점, 비어 있으면 자기 transform 사용
 
     [Header("디버그")]
-    [SerializeField] private bool enableDebugLog = false;           // 디버그 로그 출력 여부
+    [SerializeField] private bool enableDebugLog = false; // 디버그 로그 출력 여부
 
-    private bool _occupiedAtRuntime;                                // 런타임 점유 여부
+    private bool _occupiedAtRuntime; // 런타임 점유 여부
 
-    public string SlotId => slotId;                                 // 슬롯 ID 외부 읽기용
-    public PlacementSlotUsageType UsageType => usageType;           // 슬롯 타입 외부 읽기용
-    public Transform Anchor => anchor != null ? anchor : transform; // anchor 우선, 비어 있으면 자기 transform 반환
+    public string SlotId => slotId;
+    public PlacementSlotUsageType UsageType => usageType;
+    public Transform Anchor => anchor != null ? anchor : transform;
 
     /// <summary>
     /// 현재 슬롯이 점유되었는지 반환한다.
@@ -35,7 +35,8 @@ public class PlacementSlotMeta : MonoBehaviour
     }
 
     /// <summary>
-    /// 현재 슬롯에 퍼즐 배치가 가능한지 반환한다.
+    /// 현재 슬롯에 Stage1/Stage2 일반 퍼즐 배치가 가능한지 반환한다.
+    /// Stage3Puzzle 슬롯은 일반 퍼즐 후보에서 제외한다.
     /// </summary>
     public bool CanPlacePuzzle()
     {
@@ -47,6 +48,7 @@ public class PlacementSlotMeta : MonoBehaviour
 
     /// <summary>
     /// 현재 슬롯에 힌트 배치가 가능한지 반환한다.
+    /// Stage3Puzzle 슬롯은 힌트 후보에서 제외한다.
     /// </summary>
     public bool CanPlaceHint()
     {
@@ -58,12 +60,24 @@ public class PlacementSlotMeta : MonoBehaviour
     }
 
     /// <summary>
+    /// 현재 슬롯에 Stage3 퍼즐 배치가 가능한지 반환한다.
+    /// Stage3Puzzle 타입만 허용한다.
+    /// </summary>
+    public bool CanPlaceStage3Puzzle()
+    {
+        if (_occupiedAtRuntime)
+            return false;
+
+        return usageType == PlacementSlotUsageType.Stage3Puzzle;
+    }
+
+    /// <summary>
     /// 런타임 점유 상태를 true로 설정한다.
     /// </summary>
     public void MarkOccupied()
     {
         _occupiedAtRuntime = true;
-        Log($"슬롯 점유됨 | SlotId={slotId}");
+        Log($"슬롯 점유됨 | SlotId={slotId} | UsageType={usageType}");
     }
 
     /// <summary>
@@ -72,7 +86,7 @@ public class PlacementSlotMeta : MonoBehaviour
     public void ClearOccupied()
     {
         _occupiedAtRuntime = false;
-        Log($"슬롯 점유 해제 | SlotId={slotId}");
+        Log($"슬롯 점유 해제 | SlotId={slotId} | UsageType={usageType}");
     }
 
     private void Log(string message)
