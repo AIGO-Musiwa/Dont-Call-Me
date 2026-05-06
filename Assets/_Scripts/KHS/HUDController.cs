@@ -52,6 +52,12 @@ public class HUDController : MonoBehaviour
         if (spectatorTargetText == null) spectatorTargetText = FindInChild<TextMeshProUGUI>("SpectatorTargetText");
         if (spectatorGuideText == null) spectatorGuideText = FindInChild<TextMeshProUGUI>("SpectatorGuideText");
 
+        // 🛠️ 인스펙터에 빈 카트리지 변수를 뚫을 필요 없이, 그냥 전원만 바로 내린다!
+        if (BGMManager.Instance != null)
+        {
+            BGMManager.Instance.StopBGM();
+        }
+
         if (deathOverlay == null)
         {
             Transform t = transform.Find("DeathOverlay");

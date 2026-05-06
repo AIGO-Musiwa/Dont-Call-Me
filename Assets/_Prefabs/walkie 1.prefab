@@ -150,6 +150,7 @@ MonoBehaviour:
   materialController: {fileID: 8460504366003122129}
   whiteNoiseSource: {fileID: 125236520022789986}
   walkieVoiceMinDistance: 2
+  walkiePanRange: 0.8
   _NetZone: 0
   _NetWalkieState: 0
 --- !u!114 &8460504366003122129
@@ -195,7 +196,7 @@ AudioSource:
   m_GameObject: {fileID: 1756438538067288}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 5430554230989911950, guid: 94a6fbf40ebbb524dabe2174f314a8ea, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 2306728772424cc46be46160a666e195, type: 3}
   m_PlayOnAwake: 0
