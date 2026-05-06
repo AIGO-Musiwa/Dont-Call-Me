@@ -24,6 +24,9 @@ public class WalkieTalkieItem : ItemObject
     // 송신자 구역 플레이어 AudioSource 캐시
     private readonly List<AudioSource> senderZoneAudioSources = new();
 
+    // 송신자 구역 플레이어 WalkieTalkieNoiseFilter 캐시
+    private readonly List<WalkieTalkieNoiseFilter> senderZoneNoiseFilters = new();
+
     private Transform listenerTransform;
 
     // ─── 초기화 ──────────────────────────────────────
@@ -71,6 +74,7 @@ public class WalkieTalkieItem : ItemObject
     private void RebuildSenderAudioSources()
     {
         senderZoneAudioSources.Clear();
+        senderZoneNoiseFilters.Clear();
 
         Zone senderZone = NetZone == Zone.ZoneA ? Zone.ZoneB : Zone.ZoneA;
         var players = WalkieTalkieManager.Instance?.GetCachedPlayers();
@@ -80,9 +84,14 @@ public class WalkieTalkieItem : ItemObject
         {
             if (pc == null) continue;
             if (pc.NetZone != senderZone) continue;
+
             AudioSource audioSource = pc.GetComponent<AudioSource>();
             if (audioSource != null)
                 senderZoneAudioSources.Add(audioSource);
+
+            WalkieTalkieNoiseFilter noiseFilter = pc.GetComponent<WalkieTalkieNoiseFilter>();
+            if (noiseFilter != null)
+                senderZoneNoiseFilters.Add(noiseFilter);
         }
     }
 
@@ -119,13 +128,20 @@ public class WalkieTalkieItem : ItemObject
         if (NetWalkieState != WalkieState.RX)
         {
             StopWhiteNoise();
+            SetNoiseFilterActive(false);
             return;
         }
 
         if (CheckHearWhiteNoisePlayer())
+        {
             PlayeWhiteNoise();
+            SetNoiseFilterActive(true);
+        }
         else
+        {
             StopWhiteNoise();
+            SetNoiseFilterActive(false);
+        }
     }
 
     // 화이트 노이즈를 들어야 하는지 판단
@@ -169,6 +185,17 @@ public class WalkieTalkieItem : ItemObject
             whiteNoiseSource.Stop();
         }
     }
+
+    // NoiseFilter 활성/비활성
+    private void SetNoiseFilterActive(bool active)
+    {
+        foreach(var filter in senderZoneNoiseFilters)
+        {
+            if (filter != null)
+                filter.SetNoiseActive(active);
+        }
+    }
+
 
     // 무전기와의 거리에 따라 소리 조절
     private void UpdateWalkieVoiceVolume()
