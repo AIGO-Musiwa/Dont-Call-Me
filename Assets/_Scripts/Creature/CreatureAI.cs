@@ -709,7 +709,7 @@ public class CreatureAI : NetworkBehaviour
         ZoneLightingManager myZoneLightManager = ZoneLightingManager.GetManager(myZone);
         if (myZoneLightManager != null) myZoneLightManager.SetCaptureDarkout(true);
 
-        //구출 구역 안에 Normal인 상태의 플레이어가 있는지 확인
+        //구출 구역 안에 Normal인 상태의 플레이어가 있는지 확인을 위한 bool 변수
         bool hasNormalPlayerInRescueZone = false;
         
         foreach (PlayerController p in PlayerController.AllPlayers)
@@ -722,11 +722,15 @@ public class CreatureAI : NetworkBehaviour
             }
         }
 
-        if (!hasNormalPlayerInRescueZone) RescueZoneDoor.CloseAllDoorsInZone(myZone);
+        if (!hasNormalPlayerInRescueZone)
+        {
+            RescueZoneDoor.CloseAllDoorsInZone(myZone);
+            Debug.Log($"<color=red>[문 닫힘 디버그]</color> 조건을 만족하는 생존자가 없어 문이 닫혔습니다!");
+        }
         else Debug.Log($"[CreatureAI] {myZone} 구출 구역에 생존자(Normal)가 있어 문을 닫지 않습니다!");
 
         //포획 시 해당 구역의 구출 구역 문 강제 폐쇄
-        RescueZoneDoor.CloseAllDoorsInZone(myZone);
+        //RescueZoneDoor.CloseAllDoorsInZone(myZone);
     }
 
     private void UpdateCaptureState()
