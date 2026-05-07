@@ -163,7 +163,7 @@ public class InputHandler : MonoBehaviour
 
     private void Update()
     {
-        if (SettingsManager.IsOpen) return;
+        if (ESCUI.IsOpen) return;
 
         _moveInput = moveAction.action.ReadValue<Vector2>(); // 현재 이동 입력 갱신
 
@@ -184,7 +184,7 @@ public class InputHandler : MonoBehaviour
     /// </summary>
     private void OnMinigamePerformed(InputAction.CallbackContext ctx)
     {
-        if (SettingsManager.IsOpen) return;
+        if (ESCUI.IsOpen) return;
         _minigamePressedBuffer = true;
     }
 
