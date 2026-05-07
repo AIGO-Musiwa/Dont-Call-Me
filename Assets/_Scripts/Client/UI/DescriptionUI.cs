@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class DescriptionUI : MonoBehaviour
 {
@@ -8,6 +9,12 @@ public class DescriptionUI : MonoBehaviour
     void Start()
     {
         descriptionPanel.SetActive(false);
+    }
+
+    private void Update()
+    {
+        if(descriptionPanel.activeSelf && Keyboard.current.escapeKey.wasPressedThisFrame)
+            CloseDescriptionPanel();
     }
 
     public void ShowDescriptionPanel()
