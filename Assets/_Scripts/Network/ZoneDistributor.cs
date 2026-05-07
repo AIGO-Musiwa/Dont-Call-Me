@@ -188,6 +188,7 @@ public class ZoneDistributor : NetworkBehaviour
             }
 
             data.PlayerControllerNetId = obj.Id;
+            data.PlayerZone = zone;
 
             _playerZoneMap[playerRef] = zone;
             _playerRoleMap[playerRef] = role;
