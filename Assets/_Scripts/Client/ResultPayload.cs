@@ -31,6 +31,7 @@ public class PlayerResultData
     public int SlotIndex { get; set; }
     public PlayerState FinalState { get; set; }
     public bool IsLocalPlayer { get; set; }
+    public Zone PlayerZone { get; set; }
 }
 
 public struct GameEventEntry : INetworkStruct
