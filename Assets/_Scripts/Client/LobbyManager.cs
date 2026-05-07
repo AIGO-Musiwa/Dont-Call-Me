@@ -290,7 +290,7 @@ public class LobbyManager : MonoBehaviour
 
         int count = _slots.Count(s => s != null);
         if (playerCountText != null)
-            playerCountText.text = $"플레이어 ({count}/{Constants.MAX_PLAYERS})";
+            playerCountText.text = $"Player ({count}/{Constants.MAX_PLAYERS})";
     }
 
     private void UpdateStartButton()
