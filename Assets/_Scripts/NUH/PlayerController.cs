@@ -1,4 +1,6 @@
 using Fusion;
+using NUnit.Framework;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -70,6 +72,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
     [Networked, OnChangedRender(nameof(OnNearSenderChanged))]
     public NetworkBool NetIsNearSender { get; set; }                     // 송신 무전기 근처 여부
+    
+    public static readonly List<PlayerController> AllPlayers = new List<PlayerController>();
 
     private int _lastInteractRequestTick = -1;                           // 마지막 일반 상호작용 요청 tick
     private bool _prevWalkiePressed;                                     // 이전 tick 무전기 입력 상태
@@ -138,6 +142,13 @@ public class PlayerController : NetworkBehaviour, IInteractable
         WalkieTalkieManager.Instance?.RegisterPlayer(this);              // 무전기 매니저에 플레이어 등록
 
         stateChangeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState); // 상태 변경 감지기 생성
+
+        if (!AllPlayers.Contains(this)) AllPlayers.Add(this);
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        if (AllPlayers.Contains(this)) AllPlayers.Remove(this);
     }
 
     public override void FixedUpdateNetwork()
