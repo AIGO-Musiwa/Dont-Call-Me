@@ -12,6 +12,7 @@ public class PlayerData : NetworkBehaviour
     [Networked] public NetworkBool IsHost {  get; set; }                // 호스트인지 확인
     [Networked] public NetworkBool IsReviewingResult {  get; set; }     // 결과 화면을 보고 있는 중인지 여부
     [Networked] public PlayerState FinalPlayerState { get; set; }       // 마지막 플레이어 상태
+    [Networked] public Zone PlayerZone { get; set; }                    // 플레이어가 배정된 존
 
     [Networked, OnChangedRender(nameof(OnCharacterIndexChanged))]
     public int CharacterIndex { get; set; } = -1;                       // 캐릭터 프리팹 인덱스
