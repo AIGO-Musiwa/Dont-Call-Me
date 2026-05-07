@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -15,8 +16,10 @@ public class ResultUI : MonoBehaviour
     [Header("통계 패널")]
     [SerializeField] private TextMeshProUGUI survivorCountText;
     [SerializeField] private TextMeshProUGUI playTimeText;
-    [SerializeField] private TextMeshProUGUI puzzlesSolvedText;
-    [SerializeField] private TextMeshProUGUI radioUsedText;
+    [SerializeField] private TextMeshProUGUI zoneAPuzzlesSolvedText;
+    [SerializeField] private TextMeshProUGUI zoneBPuzzlesSolvedText;
+    [SerializeField] private TextMeshProUGUI zoneARadioUsedText;
+    [SerializeField] private TextMeshProUGUI zoneBRadioUsedText;
 
     [Header("타임라인")]
     [SerializeField] private Transform timelineContainer;
@@ -62,12 +65,16 @@ public class ResultUI : MonoBehaviour
             slot.SetEmpty();
 
         var runner = GameLauncher.Instance?.Runner;
-
         int survivors = 0;
 
-        foreach (var result in payload.PlayerResults)
+        var orderedResults = payload.PlayerResults
+            .OrderBy(r => r.PlayerZone)
+            .ThenBy(r => r.SlotIndex)
+            .ToList();
+
+        for(int i = 0; i < orderedResults.Count && i < playerSlots.Length; i++)
         {
-            if (result.SlotIndex < 0 || result.SlotIndex >= playerSlots.Length) continue;
+            var result = orderedResults[i];
 
             // IsHost는 PlayerData에서 읽음
             bool isHost = false;
@@ -92,7 +99,7 @@ public class ResultUI : MonoBehaviour
                 ? characterRegistry?.GetFaceSprite(characterIndex)
                 : null;
 
-            playerSlots[result.SlotIndex].SetPlayer(
+            playerSlots[i].SetPlayer(
                 result.Nickname,
                 result.FinalState,
                 result.IsLocalPlayer,
@@ -108,8 +115,10 @@ public class ResultUI : MonoBehaviour
         int totalPlayers = Mathf.Max(1, payload.PlayerResults.Count);
         survivorCountText.text = $"생존자 {survivors}/{totalPlayers}";
         playTimeText.text = FormatTime(payload.Duration);
-        puzzlesSolvedText.text = $"{payload.PuzzlesSolvedZoneA}개 | {payload.PuzzlesSolvedZoneB}개";
-        radioUsedText.text = $"{payload.RadioUsedZoneA}회 | {payload.RadioUsedZoneB}회";
+        zoneAPuzzlesSolvedText.text = $"{payload.PuzzlesSolvedZoneA}";
+        zoneBPuzzlesSolvedText.text = $"{payload.PuzzlesSolvedZoneB}";
+        zoneARadioUsedText.text = $"{payload.RadioUsedZoneA}";
+        zoneBRadioUsedText.text = $"{payload.RadioUsedZoneB}";
 
         // 타임라인
         BuildTimeline(payload.TimelineLog);

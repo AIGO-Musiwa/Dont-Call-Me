@@ -60,4 +60,18 @@ public class MultiAudioTrigger : MonoBehaviour
         if (_source != null && _source.isPlaying)
             _source.Stop();
     }
+    /// <summary>
+    /// 에디터 씬(Scene) 뷰에서 오디오 도달 거리를 홀로그램으로 출력하는 장치
+    /// (오브젝트를 클릭했을 때만 보임)
+    /// </summary>
+    private void OnDrawGizmosSelected()
+    {
+        // 1. Min Distance (소리가 100%로 들리는 핵심 구역) - 붉은색
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, minDistance);
+
+        // 2. Max Distance (소리가 점점 줄어들다 완전히 사라지는 한계선) - 청록색
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, maxDistance);
+    }
 }

@@ -709,6 +709,22 @@ public class CreatureAI : NetworkBehaviour
         ZoneLightingManager myZoneLightManager = ZoneLightingManager.GetManager(myZone);
         if (myZoneLightManager != null) myZoneLightManager.SetCaptureDarkout(true);
 
+        //구출 구역 안에 Normal인 상태의 플레이어가 있는지 확인
+        bool hasNormalPlayerInRescueZone = false;
+        
+        foreach (PlayerController p in PlayerController.AllPlayers)
+        {
+            //갇히는 구역에 있고, 상태가 Normal인 플레이어가 있는지 확인
+            if (p.NetZone == myZone && p.NetPlayerState == PlayerState.Normal)
+            {
+                hasNormalPlayerInRescueZone = true;
+                break;
+            }
+        }
+
+        if (!hasNormalPlayerInRescueZone) RescueZoneDoor.CloseAllDoorsInZone(myZone);
+        else Debug.Log($"[CreatureAI] {myZone} 구출 구역에 생존자(Normal)가 있어 문을 닫지 않습니다!");
+
         //포획 시 해당 구역의 구출 구역 문 강제 폐쇄
         RescueZoneDoor.CloseAllDoorsInZone(myZone);
     }

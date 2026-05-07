@@ -189,7 +189,8 @@ public class GameSessionManager : NetworkBehaviour
                 Nickname = data.Nickname.ToString(),
                 SlotIndex = data.SlotIndex,
                 FinalState = finalState,
-                IsLocalPlayer = data.SlotIndex == localSlot
+                IsLocalPlayer = data.SlotIndex == localSlot,
+                PlayerZone = data.PlayerZone
             });
         }
 
