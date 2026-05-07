@@ -23,7 +23,7 @@ public class RescueZoneDoor : NetworkBehaviour
     private Quaternion targetOpenRotation;
 
     //첫 포획 감금 전까지 초기 '강제 열림' 상태를 유지하기 위한 로컬 플래그
-    private bool isInitialForcedOpen = true;
+    [Networked] public NetworkBool IsInitialForcedOpen { get; set; }
 
     //크리처의 문 제어를 위한 정적 딕셔너리
     private static Dictionary<Zone, List<RescueZoneDoor>> doors = new Dictionary<Zone, List<RescueZoneDoor>>();
@@ -40,9 +40,14 @@ public class RescueZoneDoor : NetworkBehaviour
         closedRotation = transform.localRotation;
         targetOpenRotation = closedRotation * Quaternion.Euler(openRotation);
 
+        if (HasStateAuthority)
+        {            
+            IsInitialForcedOpen = true;
+            IsOpen = true;
+        }
+
         //게임 시작 시 호스트가 문을 기본적으로 '열림' 상태로 설정
         transform.localRotation = targetOpenRotation;
-        isInitialForcedOpen = true;
 
         Debug.Log($"[RescueZoneDoor] {myZone} 문 스폰 완료! (초기 열림 상태 적용 완료)");
     }
@@ -50,7 +55,7 @@ public class RescueZoneDoor : NetworkBehaviour
     //객체 소멸 시 딕셔너리에서 제거
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
-        if (doors.ContainsKey(myZone) && doors[myZone].Contains(this)) doors.Remove(myZone);
+        if (doors.ContainsKey(myZone) && doors[myZone].Contains(this)) doors[myZone].Remove(this);
     }
 
     public override void Render()
@@ -59,7 +64,7 @@ public class RescueZoneDoor : NetworkBehaviour
         if (Object == null || !Object.IsValid) return;
 
         //초기 강제 열림 상태일 경우, 네트워크 동기화를 무시하고 무조건 열린 상태 유지
-        if (isInitialForcedOpen)
+        if (IsInitialForcedOpen)
         {
             transform.localRotation = targetOpenRotation;
             return;
@@ -90,7 +95,7 @@ public class RescueZoneDoor : NetworkBehaviour
         if (HasStateAuthority)
         {
             //이제부터 Render의 정상 동기화 로직이 작동하도록 고정 플래그 해제
-            if (isInitialForcedOpen) isInitialForcedOpen = false;                            
+            if (IsInitialForcedOpen) IsInitialForcedOpen = false;                            
             if (IsOpen) IsOpen = false;                        
         }
     }
