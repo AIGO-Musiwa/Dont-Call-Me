@@ -33,13 +33,18 @@ public class BGMManager : MonoBehaviour
         }
     }
 
-    /// <summary>
+    //// <summary>
     /// 전역 BGM 재생 (AudioEventSO 카트리지 사용)
     /// </summary>
-    // 🛠️ isLoop 매개변수 추가! (기본값은 true)
     public void PlayBGM(AudioEventSO bgmCartridge, bool isLoop = true)
     {
-        if (bgmCartridge == null) return;
+        // 🛠️ [핵심 개조 포인트] 빈 카트리지가 들어오면 스피커 전원을 아예 꺼버림!
+        if (bgmCartridge == null)
+        {
+            StopBGM();
+            _currentBgmCartridge = null; // 메모리 초기화
+            return;
+        }
 
         // 중복 재생 방지
         if (bgmSource.isPlaying && _currentBgmCartridge == bgmCartridge) return;
@@ -47,7 +52,7 @@ public class BGMManager : MonoBehaviour
         bgmSource.Stop();
         _currentBgmCartridge = bgmCartridge;
 
-        // 🛠️ 추가: 카트리지 성격에 맞춰 스피커의 루프 모드를 껐다 켰다 함!
+        // 카트리지 성격에 맞춰 스피커의 루프 모드를 껐다 켰다 함!
         bgmSource.loop = isLoop;
 
         bgmCartridge.Play(bgmSource);
