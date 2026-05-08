@@ -196,6 +196,7 @@ public class InputHandler : MonoBehaviour
     /// </summary>
     private void OnInteractPerformed(InputAction.CallbackContext ctx)
     {
+        if (ESCUI.IsOpen) return;
         _interactPressed = true; // 이번 입력 틱에서 눌림 순간 기록
         _interactHeld = true;    // 버튼 유지 상태 시작
     }
@@ -206,6 +207,7 @@ public class InputHandler : MonoBehaviour
     /// </summary>
     private void OnInteractCanceled(InputAction.CallbackContext ctx)
     {
+        if (ESCUI.IsOpen) return;
         _interactHeld = false; // 버튼 유지 상태 종료
     }
 
@@ -214,6 +216,7 @@ public class InputHandler : MonoBehaviour
     /// </summary>
     private void OnWalkiePerformed(InputAction.CallbackContext ctx)
     {
+        if (ESCUI.IsOpen) return;
         _walkiePressed = true; // 무전기 유지 상태 시작
     }
 
@@ -222,6 +225,7 @@ public class InputHandler : MonoBehaviour
     /// </summary>
     private void OnWalkieCanceled(InputAction.CallbackContext ctx)
     {
+        if (ESCUI.IsOpen) return;
         _walkiePressed = false; // 무전기 유지 상태 종료
     }
 
