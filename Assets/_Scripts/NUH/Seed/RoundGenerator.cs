@@ -147,9 +147,10 @@ public static class RoundGenerator
         AddStage3PuzzlePlan(result, zoneAContext, stage3Pool); // ZoneA Stage3 퍼즐 추가
         AddStage3PuzzlePlan(result, zoneBContext, stage3Pool); // ZoneB Stage3 퍼즐 추가
 
-        // FinalCode 데이터 생성
-        result.ZoneAFinalCodeData = FinalCodeAnswerGenerator.Generate(BuildFinalCodeSeed(roundSeed, Zone.ZoneA)); // ZoneA FinalCode 데이터 생성
-        result.ZoneBFinalCodeData = FinalCodeAnswerGenerator.Generate(BuildFinalCodeSeed(roundSeed, Zone.ZoneB)); // ZoneB FinalCode 데이터 생성
+        // FinalCode 데이터는 라운드당 1개만 생성한다.
+        // 이 하나의 데이터 안에서 ZoneA 힌트 3개와 ZoneB 힌트 3개가 함께 만들어져야
+        // A/B 정답 힌트 조합이 정확히 6자리 최종 코드를 완성할 수 있다.
+        result.FinalCodeData = FinalCodeAnswerGenerator.Generate(BuildFinalCodeSeed(roundSeed));
 
         return result; // 완성된 배치 결과 반환
     }
@@ -685,12 +686,11 @@ public static class RoundGenerator
     }
 
     /// <summary>
-    /// Zone별 FinalCode 힌트/정답 생성용 파생 시드 생성.
+    /// 라운드 전체 FinalCode 힌트/정답 생성용 파생 시드 생성.
     /// </summary>
-    private static int BuildFinalCodeSeed(int roundSeed, Zone zone)
+    private static int BuildFinalCodeSeed(int roundSeed)
     {
         int seed = roundSeed;
-        seed = (seed * 397) ^ (int)zone;
         seed = (seed * 397) ^ FinalCodeSeedSalt;
         seed = (seed * 397) ^ AnswerSeedSalt;
 
