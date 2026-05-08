@@ -1,8 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Audio;
-using Photon.Voice.Unity;
-using Fusion;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
@@ -47,8 +44,8 @@ public class SettingsManager : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
-            ToggleSettingPanel();
+        if (settingPanel.activeSelf && Keyboard.current.escapeKey.wasPressedThisFrame)
+            CloseSettingPanel();
     }
 
     // 설정창 끄기 / 닫기
@@ -65,17 +62,7 @@ public class SettingsManager : MonoBehaviour
         if (isActive)
         {
             OpenDisplayUIPanel();
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
-        else
-        {
-            bool isInGame = SceneManager.GetActiveScene().buildIndex == SceneNames.GAME_INDEX;
-            if (isInGame)
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }
+
         }
     }
 
@@ -119,14 +106,6 @@ public class SettingsManager : MonoBehaviour
     private void CloseSettingPanel()
     {
         settingPanel.SetActive(false);
-
         IsOpen = false;
-
-        bool isInGame = SceneManager.GetActiveScene().buildIndex == SceneNames.GAME_INDEX;
-        if (isInGame)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
     }
 }

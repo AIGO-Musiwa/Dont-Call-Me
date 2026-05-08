@@ -42,7 +42,7 @@ public class PlayerLookView : MonoBehaviour
         if (!IsReady())
             return;
 
-        if (SettingsManager.IsOpen && _controller.HasInputAuthority)
+        if (ESCUI.IsOpen && _controller.HasInputAuthority)
             return;
 
         ApplySharedLookPose();
@@ -149,7 +149,7 @@ public class PlayerLookView : MonoBehaviour
 
         if (hasInputAuthority)
         {
-            if (SettingsManager.IsOpen)
+            if (ESCUI.IsOpen)
                 return;
 
             Cursor.lockState = CursorLockMode.Locked;
