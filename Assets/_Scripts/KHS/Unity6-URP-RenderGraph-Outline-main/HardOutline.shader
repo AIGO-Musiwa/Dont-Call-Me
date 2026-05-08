@@ -2,16 +2,26 @@ Shader "Custom/HardOutline"
 {
     Properties
     {
-        _OutlineColor ("Outline Color", Color) = (1, 0, 0, 1)
-        _Thickness ("Outline Thickness", Range(1, 10)) = 1.0
+        _OutlineColor ("Outline Color", Color) = (1, 1, 0, 1)
+        _Thickness ("Outline Thickness", Range(0.1, 5)) = 1.0
+        _Stencil ("Stencil ID", Int) = 1
     }
     SubShader
     {
         Tags { "RenderType"="Opaque" "RenderPipeline"="UniversalPipeline" }
         Pass
         {
+            Stencil
+            {
+                Ref [_Stencil]
+                Comp Equal    // 물체 안쪽 영역에서만 그리기 (인사이드 방식)
+                Pass Keep
+            }
+
             Blend SrcAlpha OneMinusSrcAlpha
-            ZWrite Off ZTest Always Cull Off
+            ZWrite Off 
+            ZTest Always 
+            Cull Off
 
             HLSLPROGRAM
             #pragma vertex Vert 
@@ -21,6 +31,10 @@ Shader "Custom/HardOutline"
 
             TEXTURE2D_X(_OutlineRenderTexture);
             SAMPLER(sampler_OutlineRenderTexture);
+            
+            // [추가] 실제 카메라의 깊이 정보 시스템 연결
+            TEXTURE2D_X_FLOAT(_CameraDepthTexture);
+            SAMPLER(sampler_CameraDepthTexture);
 
             float4 _OutlineColor;
             float _Thickness;
@@ -28,29 +42,31 @@ Shader "Custom/HardOutline"
             half4 Frag(Varyings input) : SV_Target {
                 float2 uv = input.texcoord;
 
-                half centerAlpha = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv).a;
+                // 1. 현재 위치의 깊이값(Z)을 가져와 원근감 계산
+                float rawDepth = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture, sampler_CameraDepthTexture, uv, 0).r;
+                float depth = LinearEyeDepth(rawDepth, _ZBufferParams);
 
+                // 2. [원근 보정] 멀리 있는 물체는 외곽선을 얇게, 가까우면 굵게 조절
+                // 이 수식이 없으면 길쭉한 물체의 끝부분이 회전할 때 따로 놈
+                float distanceScale = 1.0 / depth; 
+                
                 float2 texelSize = float2(1.0 / _ScreenParams.x, 1.0 / _ScreenParams.y);
-                float referenceHeight = 1080.0;
-                float scaleFactor = _ScreenParams.y / referenceHeight;
-                float scaledThickness = _Thickness * scaleFactor;
-                float2 offset = texelSize * scaledThickness;
+                // 거리(depth)에 따라 두께를 동적으로 변화시켜 3D 일체감 부여
+                float2 offset = texelSize * _Thickness * (distanceScale * 10.0);
 
-                half up = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv + float2(0, offset.y)).a;
-                half down = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv + float2(0, -offset.y)).a;
-                half left = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv + float2(-offset.x, 0)).a;
-                half right = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv + float2(offset.x, 0)).a;
+                // 3. 실루엣 샘플링 (안쪽 경계선 탐색)
+                half centerAlpha = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv).a;
+                
+                half n1 = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv + float2(0, offset.y)).a;
+                half n2 = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv + float2(0, -offset.y)).a;
+                half n3 = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv + float2(-offset.x, 0)).a;
+                half n4 = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv + float2(offset.x, 0)).a;
 
-                half topLeft = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv + float2(-offset.x, offset.y)).a;
-                half topRight = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv + float2(offset.x, offset.y)).a;
-                half bottomLeft = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv + float2(-offset.x, -offset.y)).a;
-                half bottomRight = SAMPLE_TEXTURE2D_X(_OutlineRenderTexture, sampler_OutlineRenderTexture, uv + float2(offset.x, -offset.y)).a;
+                half minNeighbors = min(min(n1, n2), min(n3, n4));
+                half edge = centerAlpha * (1.0 - minNeighbors);
 
-                half maxNeighbors = max(max(up, down), max(left, right));
-                half maxDiagonals = max(max(topLeft, topRight), max(bottomLeft, bottomRight));
-                half dilated = max(centerAlpha, max(maxNeighbors, maxDiagonals));
-
-                half edge = saturate(dilated - centerAlpha);
+                // 4. [보정] 너무 먼 물체에서 선이 깨지는 현상 방지
+                edge = saturate(edge * depth);
 
                 return half4(_OutlineColor.rgb, edge * _OutlineColor.a);
             }
