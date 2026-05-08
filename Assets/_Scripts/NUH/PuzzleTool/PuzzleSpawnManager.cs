@@ -395,22 +395,35 @@ public class PuzzleSpawnManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// Zone별 FinalCode 힌트 3개를 Zone별 Stage2 퍼즐 3개에 배정한다.
+    /// 라운드 전체 FinalCode 데이터에서 Zone별 Stage3 힌트 3개를 Zone별 Stage2 퍼즐 3개에 배정한다.
     /// </summary>
     private void AssignStage3HintsToStage2Puzzles(RoundGenerationResult result)
     {
         if (result == null)
             return;
 
+        if (result.FinalCodeData == null)
+        {
+            LogWarning("FinalCodeData가 없어 Stage3 힌트를 배정할 수 없습니다.");
+            return;
+        }
+
+        Log(
+            $"FinalCode 생성 완료 | Code={result.FinalCodeData.GetFinalCodeString()} | " +
+            $"TrueA={result.FinalCodeData.TrueAHintIndex} | " +
+            $"TrueB={result.FinalCodeData.TrueBHintIndex}");
+
         AssignZoneStage3Hints(
             _zoneAStage2Puzzles,
-            result.ZoneAFinalCodeData != null ? result.ZoneAFinalCodeData.ZoneAHints : null,
-            Zone.ZoneA);
+            result.FinalCodeData.ZoneAHints,
+            Zone.ZoneA,
+            result.FinalCodeData.TrueAHintIndex);
 
         AssignZoneStage3Hints(
             _zoneBStage2Puzzles,
-            result.ZoneBFinalCodeData != null ? result.ZoneBFinalCodeData.ZoneBHints : null,
-            Zone.ZoneB);
+            result.FinalCodeData.ZoneBHints,
+            Zone.ZoneB,
+            result.FinalCodeData.TrueBHintIndex);
     }
 
     /// <summary>
@@ -419,12 +432,20 @@ public class PuzzleSpawnManager : NetworkBehaviour
     private void AssignZoneStage3Hints(
         List<PuzzleInteractableBase> stage2Puzzles,
         List<FinalCodeHintData> hints,
-        Zone zone)
+        Zone zone,
+        int trueHintIndex)
     {
         if (stage2Puzzles == null || hints == null)
             return;
 
         int count = Mathf.Min(stage2Puzzles.Count, hints.Count); // 실제 배정 가능한 수
+
+        if (stage2Puzzles.Count != hints.Count)
+        {
+            LogWarning(
+                $"{zone} Stage3 힌트 개수와 Stage2 퍼즐 개수가 다릅니다. " +
+                $"Puzzles={stage2Puzzles.Count} | Hints={hints.Count} | Assigned={count}");
+        }
 
         for (int i = 0; i < count; i++)
         {
@@ -434,24 +455,26 @@ public class PuzzleSpawnManager : NetworkBehaviour
             if (puzzle == null || hint == null)
                 continue;
 
+            string trueFlag = i == trueHintIndex ? "TRUE" : "FAKE";
+
             if (puzzle is MazePuzzle mazePuzzle)
             {
                 mazePuzzle.SetStage3HintData(hint);
-                Log($"{zone} Stage3 힌트 배정 | MazePuzzle -> {hint.GetDebugString()}");
+                Log($"{zone} Stage3 힌트 배정 | Index={i} | {trueFlag} | MazePuzzle -> {hint.GetDebugString()}");
                 continue;
             }
 
             if (puzzle is NumericCodePuzzle numericCodePuzzle)
             {
                 numericCodePuzzle.SetStage3HintData(hint);
-                Log($"{zone} Stage3 힌트 배정 | NumericCodePuzzle -> {hint.GetDebugString()}");
+                Log($"{zone} Stage3 힌트 배정 | Index={i} | {trueFlag} | NumericCodePuzzle -> {hint.GetDebugString()}");
                 continue;
             }
 
             if (puzzle is ReagentCraftPuzzle reagentCraftPuzzle)
             {
                 reagentCraftPuzzle.SetStage3HintData(hint);
-                Log($"{zone} Stage3 힌트 배정 | ReagentCraftPuzzle -> {hint.GetDebugString()}");
+                Log($"{zone} Stage3 힌트 배정 | Index={i} | {trueFlag} | ReagentCraftPuzzle -> {hint.GetDebugString()}");
                 continue;
             }
 

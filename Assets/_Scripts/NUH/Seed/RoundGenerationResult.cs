@@ -61,8 +61,7 @@ public class RoundGenerationResult
     public readonly List<PuzzleSpawnPlan> PuzzlePlans = new();               // 퍼즐 스폰 계획 목록
     public readonly List<PlayerAssignmentPlan> PlayerAssignments = new();    // 플레이어 배정 결과 목록
 
-    public FinalCodeAnswerGenerator.FinalCodeAnswerData ZoneAFinalCodeData;  // ZoneA FinalCode 정답/힌트 데이터
-    public FinalCodeAnswerGenerator.FinalCodeAnswerData ZoneBFinalCodeData;  // ZoneB FinalCode 정답/힌트 데이터
+    public FinalCodeAnswerGenerator.FinalCodeAnswerData FinalCodeData; // 라운드 전체 FinalCode 정답/힌트 데이터
 
     /// <summary>
     /// 퍼즐 스폰 계획 1개를 결과에 추가한다.
