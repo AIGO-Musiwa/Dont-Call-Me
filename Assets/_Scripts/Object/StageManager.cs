@@ -21,8 +21,8 @@ public class StageManager : NetworkBehaviour
     [SerializeField] private PuzzleProgressManager puzzleProgressManager; // 퍼즐 진행도 집계 매니저 참조
 
     [Header("Stage3 진입 문")]
-    [SerializeField] private GameObject zoneAStage3Door; // ZoneA 3단계 진입 문
-    [SerializeField] private GameObject zoneBStage3Door; // ZoneB 3단계 진입 문
+    [SerializeField] private GameObject[] zoneAStage3Door; // ZoneA 3단계 진입 문
+    [SerializeField] private GameObject[] zoneBStage3Door; // ZoneB 3단계 진입 문
 
     [Header("3막 연출 소리 설정")]
     [SerializeField] private AudioSource sirenAudioSource; // 전역 사이렌 AudioSource
@@ -232,11 +232,17 @@ public class StageManager : NetworkBehaviour
     /// </summary>
     private void SetStage3DoorOpen(Zone zone, bool isOpen)
     {
-        GameObject targetDoor = zone == Zone.ZoneA ? zoneAStage3Door : zoneBStage3Door;
-        if (targetDoor == null)
-            return;
+        GameObject[] targetDoor = zone == Zone.ZoneA ? zoneAStage3Door : zoneBStage3Door;
+        if (targetDoor == null) return;
 
-        targetDoor.SetActive(!isOpen); // 막는 오브젝트 기준: 열림이면 비활성화, 닫힘이면 활성화
+        foreach (GameObject door in targetDoor)
+        {
+            if (door != null)
+            {
+                //막는 오브젝트 기준: 열림이면 비활성화, 닫힘이면 활성화
+                door.SetActive(!isOpen);
+            }
+        }
     }
 
     /// <summary>
@@ -391,15 +397,14 @@ public class StageManager : NetworkBehaviour
         //타이머가 돌고 있지 않으면 0.5초 타이머 시간 (동시 입력 판정)
         if (!EscapeInputTimer.IsRunning)
         {
-            EscapeInputTimer = TickTimer.CreateFromSeconds(Runner, 0.5f);
-            Log($"{zone} 탈출 버튼 입력! 0.5초 대기 시작");
+            EscapeInputTimer = TickTimer.CreateFromSeconds(Runner, 3.0f);
+            Log($"{zone} 탈출 버튼 입력! 3.0초 대기 시작");
         }
     }
 
     public void TriggerAct3()
     {
-        if (!HasStateAuthority || IsAct3Active)
-            return;
+        if (!HasStateAuthority || IsAct3Active) return;
 
         IsAct3Active = true;
 
@@ -413,6 +418,10 @@ public class StageManager : NetworkBehaviour
         CreatureAI[] allCreature = FindObjectsByType<CreatureAI>(FindObjectsSortMode.None);
         foreach (CreatureAI creature in allCreature)
             creature.ApplyAct3Multipliers(true);
+
+        //3막 발동시 씬에 있는 모든 퍼즐 기계에서 키카드를 뱉어내라고 시도
+        FinalCodePuzzle[] finalCodePuzzles = FindObjectsByType<FinalCodePuzzle>(FindObjectsInactive.Exclude,FindObjectsSortMode.None);
+        foreach (FinalCodePuzzle puzzle in finalCodePuzzles) puzzle.TrySpawnRewardKeycard();
 
         ApplyRandomPatternToZone(Zone.ZoneA);
         ApplyRandomPatternToZone(Zone.ZoneB);
