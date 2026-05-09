@@ -1,25 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-7646401054293256498
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 529679ea0e7d3f145a0b8b0400868a56, type: 3}
-  m_Name: OutlineFeature
-  m_EditorClassIdentifier: Assembly-CSharp::OutlineFeature
-  m_Active: 1
-  settings:
-    LayerMask:
-      serializedVersion: 2
-      m_Bits: 256
-    SilhouetteMaterial: {fileID: 2100000, guid: 959ac95e918120b44a0bb9ac72402c43, type: 2}
-    OutlineMaterial: {fileID: 2100000, guid: 8f5eeda1d5589ab47a36841d81b284d4, type: 2}
-    StencilReference: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46,8 +26,8 @@ MonoBehaviour:
     probeVolumeBlendStatesCS: {fileID: 7200000, guid: b9a23f869c4fd45f19c5ada54dd82176, type: 3}
   m_RendererFeatures:
   - {fileID: 7833122117494664109}
-  - {fileID: -7646401054293256498}
-  m_RendererFeatureMap: ad6b866f10d7b46cce96ade4c086e295
+  - {fileID: 8845959172267848443}
+  m_RendererFeatureMap: ad6b866f10d7b46cfb32a2d0ff28c37a
   m_UseNativeRenderPass: 1
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
@@ -102,3 +82,23 @@ MonoBehaviour:
     BlurQuality: 0
     Falloff: 100
     SampleCount: -1
+--- !u!114 &8845959172267848443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 529679ea0e7d3f145a0b8b0400868a56, type: 3}
+  m_Name: OutlineFeature
+  m_EditorClassIdentifier: Assembly-CSharp::OutlineFeature
+  m_Active: 1
+  settings:
+    LayerMask:
+      serializedVersion: 2
+      m_Bits: 256
+    SilhouetteMaterial: {fileID: 2100000, guid: 959ac95e918120b44a0bb9ac72402c43, type: 2}
+    OutlineMaterial: {fileID: 2100000, guid: 8f5eeda1d5589ab47a36841d81b284d4, type: 2}
+    StencilReference: 1
