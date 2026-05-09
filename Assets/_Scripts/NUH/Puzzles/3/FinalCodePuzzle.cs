@@ -278,9 +278,9 @@ public class FinalCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     private void HandleSolved()
     {
         MarkSolved();
-
-        ApplySolvedPresentation();
-        TrySpawnRewardKeycard();
+        ApplySolvedPresentation();        
+        
+        if (StageManager.Instance != null) StageManager.Instance.ReportZoneStage3Completed(SpawnZone);
 
         Log("최종 코드 퍼즐 성공");
     }
@@ -376,7 +376,7 @@ public class FinalCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// <summary>
     /// 퍼즐 성공 보상 키카드를 스폰한다.
     /// </summary>
-    private void TrySpawnRewardKeycard()
+    public void TrySpawnRewardKeycard()
     {
         if (!HasStateAuthority)
             return;
