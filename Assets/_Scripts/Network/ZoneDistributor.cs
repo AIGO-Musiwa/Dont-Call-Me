@@ -80,6 +80,8 @@ public class ZoneDistributor : NetworkBehaviour
 
         Log("플레이어 Zone/Role 배치 완료");
 
+        GameSessionManager.Instance?.InitPlayerStateCache();
+
         NotifyTeammateForVoice();
     }
 
