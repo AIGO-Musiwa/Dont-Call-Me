@@ -38,8 +38,8 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
         if (interactType == EscapeInteractType.EscapeButton && buttonActiveVisual != null)
         {
             bool isExposed = StageManager.Instance != null &&
-                             (StageManager.Instance.IsZoneAEscapeButtonExposed ||
-                             StageManager.Instance.IsZoneBEscapeButtonExposed);
+                             ((myZone == Zone.ZoneA && StageManager.Instance.IsZoneAEscapeButtonExposed ||
+                             myZone == Zone.ZoneB && StageManager.Instance.IsZoneBEscapeButtonExposed));
 
             if (buttonActiveVisual.activeSelf != isExposed) buttonActiveVisual.SetActive(isExposed);
         }
@@ -85,6 +85,9 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
 
     private void HandleEscapeButtonInteract()
     {
+        bool isMyZoneExposed = (myZone == Zone.ZoneA && StageManager.Instance.IsZoneAEscapeButtonExposed) ||
+                               (myZone == Zone.ZoneB && StageManager.Instance.IsZoneBEscapeButtonExposed);
+
         //3단계 퍼즐이 모두 풀려 버튼이 노출된 상태에서만 작동
         if (StageManager.Instance.IsZoneAEscapeButtonExposed || StageManager.Instance.IsZoneBEscapeButtonExposed)
         {
@@ -177,6 +180,8 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
         switch (interactType)
         {
             case EscapeInteractType.EscapeButton:
+                bool isMyZoneExposed = (myZone == Zone.ZoneA && StageManager.Instance.IsZoneAEscapeButtonExposed) ||
+                                       (myZone == Zone.ZoneB && StageManager.Instance.IsZoneBEscapeButtonExposed);
                 if (StageManager.Instance.IsZoneAEscapeButtonExposed || StageManager.Instance.IsZoneBEscapeButtonExposed) return "탈출 버튼 누르기";
                 else return string.Empty;
 
