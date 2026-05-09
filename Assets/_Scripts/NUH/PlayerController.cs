@@ -946,6 +946,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetPlayerState = PlayerState.Dead;                                // 사망 상태 진입
         SaveFinalPlayerState(PlayerState.Dead);                           // 최종 상태 저장
 
+        GameSessionManager.Instance?.UpdatePlayerStateCache(Object.InputAuthority, PlayerState.Dead);
         GameEventLogger.Instance?.LogDead(GetNickname(), GetSlotIndex()); // 사망 로그 기록
 
         NetHideState = HideState.None;                                    // 은신 해제
@@ -955,6 +956,13 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureExpireTimer = TickTimer.None;                           // 사망 타이머 종료
         NetMovementLocked = true;                                         // 이동 잠금
         NetLookLocked = true;                                             // 시야 잠금
+
+        // 양손 아이템 강제 드랍
+        ServerDropLeftHandItem();
+        ServerDropRightHandItem();
+
+        // 세션 종료 조건 득시 평가
+        GameSessionManager.Instance?.EvaluateEndCondition();
 
         // 사망 시 관전 룸으로 이동 요청
         StageManager.Instance?.RequestTeleportToDeadRoom(this);
@@ -968,6 +976,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetPlayerState = PlayerState.Escaped;                             // 탈출 상태 진입
         SaveFinalPlayerState(PlayerState.Escaped);                        // 최종 상태 저장
 
+        GameSessionManager.Instance?.UpdatePlayerStateCache(Object.InputAuthority, PlayerState.Escaped);
         GameEventLogger.Instance?.LogEscaped(GetNickname(), GetSlotIndex()); // 탈출 로그 기록
         GameSessionManager.Instance?.CheckZoneEscaped(NetZone);           // 같은 구역 캡처 상태 플레이어 처리
 
