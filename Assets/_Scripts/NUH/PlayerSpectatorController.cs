@@ -2,20 +2,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Cinemachine;
-using UnityEngine.Serialization;
 
 /// <summary>
 /// Cinemachine Orbital Follow 기반 관전 컨트롤러.
 /// - 로컬 플레이어가 Dead / Escaped 상태가 되면 관전 모드로 진입한다.
-/// - 실제 출력 카메라는 LocalCameraModeController가 유지하고, 이 스크립트는 관전 대상과 Orbit 입력만 관리한다.
+/// - 관전 중에는 평상시 1인칭 카메라를 끄고 spectator rig를 켠다.
 /// - 관전 대상은 Normal + Captured만 허용한다.
 /// - 좌클릭 / 우클릭 계열 입력으로 대상 전환, 마우스 이동으로 Orbit, 휠로 Zoom을 처리한다.
 /// </summary>
 public class PlayerSpectatorController : MonoBehaviour
 {
     [Header("참조")]
-    [FormerlySerializedAs("spectatorCamera")]
-    [SerializeField] private Camera localMainCamera;                      // 실제 화면과 AudioListener를 담당하는 씬 카메라
+    [SerializeField] private Camera spectatorCamera;                      // 관전 화면을 실제로 출력하는 카메라
     [SerializeField] private CinemachineCamera spectatorOrbitCamera;      // 관전용 가상 카메라
     [SerializeField] private InputActionReference lookAction;             // 관전 회전 입력 액션
     [SerializeField] private InputActionReference zoomAction;             // 관전 줌 입력 액션
@@ -38,7 +36,7 @@ public class PlayerSpectatorController : MonoBehaviour
     private PlayerController _owner;                                      // 이 관전 컨트롤러를 사용하는 로컬 플레이어
     private CinemachineOrbitalFollow _orbitalFollow;                      // Orbit / Zoom 값을 실제로 적용할 Cinemachine 컴포넌트
 
-    private AudioListener _localMainAudioListener;                        // 씬의 LocalMainCamera에 붙은 AudioListener
+    private Camera _ownerGameplayCamera;                                  // 평상시 1인칭 시점 카메라
 
     private readonly List<PlayerController> _targets = new();             // 현재 관전 가능한 플레이어 목록
     private int _targetIndex;                                             // 현재 선택된 관전 대상 인덱스
@@ -70,15 +68,15 @@ public class PlayerSpectatorController : MonoBehaviour
         if (spectatorOrbitCamera != null)
             _orbitalFollow = spectatorOrbitCamera.GetComponent<CinemachineOrbitalFollow>();
 
-        // 씬의 LocalMainCamera에 붙은 AudioListener를 캐싱한다.
-        if (localMainCamera != null)
-            _localMainAudioListener = localMainCamera.GetComponent<AudioListener>();
+        // 로컬 플레이어의 평상시 1인칭 카메라를 캐싱한다.
+        if (_owner.LookView != null)
+            _ownerGameplayCamera = _owner.LookView.ViewCamera;
 
-        // 실제 출력 카메라는 항상 켜두고, 관전용 Cinemachine Camera도 Priority 전환 대상으로 유지한다.
-        EnsureCameraObjectsEnabled();
+        // 초기에는 관전 상태가 아니므로 spectator rig를 꺼둔다.
+        SetSpectatorRigActive(false);
 
-        // 현재 Listener Transform을 보이스/무전기 시스템에 알려준다.
-        NotifyListenerTransform();
+        // 초기에는 평상시 카메라만 켜두는 모드로 맞춘다.
+        ApplyCameraMode(false);
 
         // 관전 Orbit 기본값을 준비한다.
         ResetOrbitState();
@@ -138,7 +136,7 @@ public class PlayerSpectatorController : MonoBehaviour
         ResetOrbitState();                    // 관전 진입 시 Orbit 기본값 복원
         RefreshTargets();                     // 현재 관전 가능한 대상 목록 구성
         ClampTargetIndex();                   // 대상 인덱스를 안전 범위로 보정
-        ApplyCameraMode(true);                // 카메라 모드 변경 알림과 Listener 기준을 갱신한다.
+        ApplyCameraMode(true);                // 평상시 카메라를 끄고 관전 카메라를 켠다.
         ApplyCurrentTarget();                 // 첫 관전 대상에 Follow / LookAt 적용
         NotifySpectatorTarget();              // 관전 대상 보이스 구역 적용
     }
@@ -162,7 +160,7 @@ public class PlayerSpectatorController : MonoBehaviour
             spectatorOrbitCamera.LookAt = null;
         }
 
-        // 카메라 모드 변경 알림과 Listener 기준을 갱신한다.
+        // 평상시 카메라를 다시 켜고 관전 카메라는 끈다.
         ApplyCameraMode(false);
 
         // 관전 대상 초기화
@@ -421,29 +419,60 @@ public class PlayerSpectatorController : MonoBehaviour
     }
 
     /// <summary>
-    /// 씬 카메라와 관전용 Cinemachine Camera가 비활성화되어 있으면 다시 켠다.
-    /// 실제 모드 전환은 GameObject ON/OFF가 아니라 Cinemachine Priority로 처리한다.
+    /// spectator rig 자체의 활성 상태를 토글한다.
+    /// - 실제 출력 카메라
+    /// - 관전 가상 카메라
+    /// 두 오브젝트를 함께 켜고 끈다.
     /// </summary>
-    private void EnsureCameraObjectsEnabled()
+    private void SetSpectatorRigActive(bool active)
     {
-        if (localMainCamera != null && !localMainCamera.gameObject.activeSelf)
-            localMainCamera.gameObject.SetActive(true);
+        if (spectatorCamera != null)
+            spectatorCamera.gameObject.SetActive(active);
 
-        if (spectatorOrbitCamera != null && !spectatorOrbitCamera.gameObject.activeSelf)
-            spectatorOrbitCamera.gameObject.SetActive(true);
-
-        if (_localMainAudioListener != null)
-            _localMainAudioListener.enabled = true;
+        if (spectatorOrbitCamera != null)
+            spectatorOrbitCamera.gameObject.SetActive(active);
     }
 
     /// <summary>
-    /// 관전 상태 변경 시 카메라 리그와 음성 시스템에 필요한 최소 알림만 수행한다.
-    /// 실제 화면 전환은 LocalCameraModeController의 Priority 제어가 담당한다.
+    /// 로컬 플레이어의 평상시 1인칭 카메라 활성 상태를 토글한다.
+    /// 관전 모드에서는 false, 일반 모드에서는 true가 된다.
+    /// </summary>
+    private void SetOwnerGameplayCameraActive(bool active)
+    {
+        // 평상시 카메라 GameObject 자체를 켜고 끈다.
+        if (_ownerGameplayCamera != null)
+            _ownerGameplayCamera.gameObject.SetActive(active);
+    }
+
+    /// <summary>
+    /// 관전 카메라 출력 활성 상태를 토글한다.
+    /// 관전 모드에서는 true, 일반 모드에서는 false가 된다.
+    /// </summary>
+    private void SetSpectatorOutputActive(bool active)
+    {
+        // spectator rig 전체를 켜고 끈다.
+        SetSpectatorRigActive(active);
+    }
+
+    /// <summary>
+    /// 현재 카메라 모드를 일괄 적용한다.
+    /// - spectating == true  : 평상시 카메라 OFF, 관전 카메라 ON
+    /// - spectating == false : 평상시 카메라 ON,  관전 카메라 OFF
     /// </summary>
     private void ApplyCameraMode(bool spectating)
     {
-        EnsureCameraObjectsEnabled();
-        NotifyListenerTransform();
+        if (spectating)
+        {
+            SetOwnerGameplayCameraActive(false); // 1인칭 카메라 끄기
+            SetSpectatorOutputActive(true);      // 관전 카메라 켜기
+        }
+        else
+        {
+            SetSpectatorOutputActive(false);     // 관전 카메라 끄기
+            SetOwnerGameplayCameraActive(true);  // 1인칭 카메라 켜기
+        }
+
+        NotifySoundOrigin(spectating);
     }
 
     /// <summary>
@@ -503,23 +532,25 @@ public class PlayerSpectatorController : MonoBehaviour
         VoiceManager.Instance?.UpdateSpectatorZone(target.NetZone);
     }
 
-    private void NotifyListenerTransform()
+    private void NotifySoundOrigin(bool spectating)
     {
-        if (_owner == null)
-            return;
+        if (_owner == null) return;
 
-        Transform listenerTransform = _localMainAudioListener != null
-            ? _localMainAudioListener.transform
-            : localMainCamera != null ? localMainCamera.transform : null;
+        // 관전 진입 시 → 관전 카메라 AudioListener
+        // 관전 종료 시 → 1인칭 카메라 AudioListener
+        Transform soundOrigin = spectating
+            ? spectatorCamera.transform
+            : _ownerGameplayCamera.transform;
 
-        _owner.GetComponent<PlayerVoiceController>()?.SetListenerTransform(listenerTransform);
+        // PlayerVoiceController에 주입
+        _owner.GetComponent<PlayerVoiceController>()?.SetListenerTransform(soundOrigin);
 
+        // WalkieTalkieItem에 주입
         var walkies = WalkieTalkieManager.Instance?.GetAllWalkieTalkies();
-        if (walkies == null)
-            return;
+        if (walkies == null) return;
 
         foreach (var walkie in walkies)
-            walkie?.SetListenerTransform(listenerTransform);
+            walkie?.SetListenerTransform(soundOrigin);
     }
 
     /// <summary>
