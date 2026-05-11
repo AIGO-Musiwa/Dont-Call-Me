@@ -5,15 +5,13 @@ public class MicrophonedBMeasurer : MonoBehaviour
 {
     public static MicrophonedBMeasurer Instance { get; private set; }
 
-    [Header("측정 주기 (초)")]
-    [SerializeField] private float measureInterval = 0.05f;
+    [Header("사운드 설정 에셋")]
+    [SerializeField] private SounddBSetting sounddBSetting;
 
     private float _measureTimer;
     private bool isPTTActive;
     private Recorder recorder;
     private PlayerController localPc;
-
-    private const float silenceThreshold = 0.001f;      // 이 값 미만이면 무음 판정
 
     public float CurrentNaturaldB { get; private set; } = 0f;
     public float CurrentWalkiedB { get; private set; } = 0f;
@@ -34,10 +32,18 @@ public class MicrophonedBMeasurer : MonoBehaviour
             return;
         }
 
+        if (sounddBSetting == null)
+        {
+            Debug.LogError("[MicrophonedBMeasurer] SounddBSetting가 할당되지 않았습니다.");
+            return;
+        }
+
         if (!localPc.HasInputAuthority) return;
 
         // 로컬 플레이어만 Instance 등록
         Instance = this;
+
+        SoundEmitter.Initialize(sounddBSetting);
     }
 
     private void OnDestroy()
@@ -57,7 +63,7 @@ public class MicrophonedBMeasurer : MonoBehaviour
         }
 
         _measureTimer += Time.deltaTime;
-        if (_measureTimer < measureInterval) return;
+        if (_measureTimer < sounddBSetting.measureInterval) return;
         _measureTimer = 0f;
 
         Measure();
@@ -86,14 +92,14 @@ public class MicrophonedBMeasurer : MonoBehaviour
 
         float rms = recorder.LevelMeter?.CurrentAvgAmp ?? 0f;
 
-        if (rms < silenceThreshold)
+        if (rms < sounddBSetting.silenceThreshold)
         {
             CurrentNaturaldB = 0f;
             CurrentWalkiedB = 0f;
             CurrentRawdBFS = -96f;
 
             if (isPTTActive)
-                EmitWalkieSoundFromZoneWalkie(30f);
+                EmitWalkieSoundFromZoneWalkie(sounddBSetting.whiteNoisedB);
 
             return;
         }
@@ -140,20 +146,20 @@ public class MicrophonedBMeasurer : MonoBehaviour
         return 20f * Mathf.Log10(amp);
     }
 
-    private static float dBFSToNaturaldB(float dBfs)
+    private float dBFSToNaturaldB(float dBfs)
     {
-        if (dBfs <= -45f) return 30f;       // 속삭임
-        if (dBfs <= -30f) return 38f;       // 일반 대화
-        if (dBfs <= -20f) return 41f;       // 큰 목소리
-        return 43f;                         // 고함
+        if (dBfs <= sounddBSetting.naturalThreshold_Whisper) return sounddBSetting.naturalDB_Whisper;   // 속삭임
+        if (dBfs <= sounddBSetting.naturalThreshold_Normal) return sounddBSetting.naturalDB_Normal;     // 일반 대화
+        if (dBfs <= sounddBSetting.naturalThreshold_Loud) return sounddBSetting.naturalDB_Loud;         // 큰 소리
+        return sounddBSetting.naturalDB_Shout;                                                          // 고함
     }
 
-    private static float dBFSToWalkiedB(float dBfs)
+    private float dBFSToWalkiedB(float dBfs)
     {
-        if (dBfs <= -45f) return 36f;
-        if (dBfs <= -30f) return 44f;
-        if (dBfs <= -20f) return 47f;
-        return 49f;
+        if (dBfs <= sounddBSetting.walkieThreshold_Whisper) return sounddBSetting.walkieDB_Whisper;     // 속삭임
+        if (dBfs <= sounddBSetting.walkieThreshold_Normal) return sounddBSetting.walkieDB_Normal;       // 일반 대화
+        if (dBfs <= sounddBSetting.walkieThreshold_Loud) return sounddBSetting.walkieDB_Loud;           // 큰 소리
+        return sounddBSetting.walkieDB_Shout;                                                           // 고함
     }
 
     #endregion
