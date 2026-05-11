@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c824bbd71315fe24cbd276e370e661ea, type: 3}
   m_Name: SounddBSetting
   m_EditorClassIdentifier: Assembly-CSharp::SounddBSetting
-  whiteNoisedB: 30
+  measureInterval: 0.05
+  silenceThreshold: 0.001
+  whiteNoisedB: 20
   naturalThreshold_Whisper: -45
   naturalDB_Whisper: 30
   naturalThreshold_Normal: -30
@@ -25,12 +27,12 @@ MonoBehaviour:
   walkieThreshold_Normal: -30
   walkieDB_Normal: 44
   walkieThreshold_Loud: -20
-  walkieDB_Loud: 47
-  walkieDB_Shout: 49
+  walkieDB_Loud: 50
+  walkieDB_Shout: 70
   footstepDB_Crouch: 26
   footstepDB_Walk: 31
   footstepDB_Run: 34
-  puzzleFailSounddB: 49
-  radioRepairSounddB: 41
-  radioLureSounddB: 47
+  puzzleFailSounddB: 70
+  radioRepairSounddB: 50
+  radioLureSounddB: 70
   radioSoundInterval: 0.5
