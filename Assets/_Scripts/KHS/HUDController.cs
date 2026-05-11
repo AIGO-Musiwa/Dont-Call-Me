@@ -161,7 +161,7 @@ public class HUDController : MonoBehaviour
         ItemObject currentItem = playerController.GetRightHandItemObject();
         if (_lastItem != currentItem)
         {
-            itemNameText.text = (currentItem != null) ? currentItem.ItemName : "맨손";
+            itemNameText.text = (currentItem != null) ? currentItem.ItemName : "";
             _lastItem = currentItem;
         }
     }
