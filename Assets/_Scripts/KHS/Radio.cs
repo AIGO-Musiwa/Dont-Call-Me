@@ -23,9 +23,8 @@ public class Radio : NetworkBehaviour, IHoldInteractable
     [SerializeField] private float safetyLockTime = 1.5f;   // 수리 완료 후 즉시 작동 방지 잠금 시간
 
     [Header("소리 설정")]
-    [SerializeField] private float repairSounddB = 41f;         // 수리 중 자연음 dB
-    [SerializeField] private float radioLureSounddB = 47f;      // 유인 소리 무전음 dB
-    [SerializeField] private float radioSoundInterval = 0.5f;   // 유인 소리 발행 주기
+    [SerializeField] private SounddBSetting sounddBSetting; // 라디오 과련 dB 발행 SO
+
     private Zone myZone;
 
     [Networked] public RadioState CurrentState { get; set; }       // 현재 라디오 상태
@@ -42,6 +41,9 @@ public class Radio : NetworkBehaviour, IHoldInteractable
     public override void Spawned()
     {
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState); // 시뮬레이션 상태 변경 감지기 생성
+
+        if (sounddBSetting == null)
+            Debug.LogWarning($"[Radio] {gameObject.name} : SoundSettings가 할당되지 않았습니다. 라디오 소리가 발행되지 않습니다.");
 
         if (Object.HasStateAuthority)
         {
@@ -72,9 +74,9 @@ public class Radio : NetworkBehaviour, IHoldInteractable
         {
             if (radioSoundTimer.ExpiredOrNotRunning(Runner))
             {
-                SoundEmitter.EmitWalkieDirect(radioLureSounddB, transform.position, myZone);
+                SoundEmitter.EmitWalkieDirect(sounddBSetting.radioLureSounddB, transform.position, myZone);
 
-                radioSoundTimer = TickTimer.CreateFromSeconds(Runner, radioSoundInterval);
+                radioSoundTimer = TickTimer.CreateFromSeconds(Runner, sounddBSetting.radioSoundInterval);
             }
         }
     }
@@ -190,7 +192,7 @@ public class Radio : NetworkBehaviour, IHoldInteractable
         RepairTimeout = TickTimer.CreateFromSeconds(Runner, 0.2f); // 잠깐이라도 Hold가 끊기면 되돌아가도록 갱신
 
         // 수리 중 자연음 dB 발행
-        SoundEmitter.EmitNatural(repairSounddB, transform.position, myZone, actor);
+        SoundEmitter.EmitNatural(sounddBSetting.radioRepairSounddB, transform.position, myZone, actor);
 
         if (RepairProgress >= maxRepairTime)
         {

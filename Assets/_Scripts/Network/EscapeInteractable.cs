@@ -10,6 +10,12 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
     [Header("시각 연출 (버튼용)")]
     [Tooltip("버튼이 노출되었을 때 켤 불빛이나 머티리얼 오브젝트")]
     public GameObject buttonActiveVisual;
+    [Tooltip("버튼 상태를 표시할 실제 조명(Light) 컴포넌트")]
+    public Light buttonLight;
+    [Tooltip("대기 상태일 때의 조명 색상 (빨강)")]
+    public Color redLightColor = Color.red;
+    [Tooltip("눌린 상태일 때의 조명 색상 (녹색)")]
+    public Color greenLightColor = Color.green;
 
     [Header("문 개방 설정 (탈출구 전용)")]
     [Tooltip("문이 열릴 때 회전할 목표 각도 (예: Y축 90도)")]
@@ -35,13 +41,47 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
     public override void Render()
     {
         //버튼 타입 연출
-        if (interactType == EscapeInteractType.EscapeButton && buttonActiveVisual != null)
+        if (interactType == EscapeInteractType.EscapeButton)
         {
-            bool isExposed = StageManager.Instance != null &&
-                             ((myZone == Zone.ZoneA && StageManager.Instance.IsZoneAEscapeButtonExposed ||
-                             myZone == Zone.ZoneB && StageManager.Instance.IsZoneBEscapeButtonExposed));
+            bool isExposed = false;
+            bool isPressed = false;
 
-            if (buttonActiveVisual.activeSelf != isExposed) buttonActiveVisual.SetActive(isExposed);
+            //현재 Zone에 맞는 노출 여부와 눌림 상태 체크
+            if (StageManager.Instance != null)
+            {
+                if (myZone == Zone.ZoneA)
+                {
+                    isExposed = StageManager.Instance.IsZoneAEscapeButtonExposed;
+                    isPressed = StageManager.Instance.IsZoneAEscapePressed;
+                }
+                else if (myZone == Zone.ZoneB)
+                {
+                    isExposed = StageManager.Instance.IsZoneBEscapeButtonExposed;
+                    isPressed = StageManager.Instance.IsZoneBEscapePressed;
+                }
+            }
+
+            //버튼 켜짐/꺼짐 연출
+            if (buttonActiveVisual != null && buttonActiveVisual.activeSelf != isExposed) buttonActiveVisual.SetActive(isExposed);
+
+            //조명 색상 변경 연출
+            if (buttonLight != null)
+            {
+                //버튼이 노출된 상태라면 라이트를 켜고 색상을 세팅
+                if (isExposed)
+                {
+                    if (!buttonLight.enabled) buttonLight.enabled = true;
+
+                    //눌렀으면 녹색 조명, 안 눌렀으면 빨간색 조명
+                    Color targetColor = isPressed ? greenLightColor : redLightColor;
+
+                    if (buttonLight.color != targetColor) buttonLight.color = targetColor;
+                }
+
+                //버튼이 숨겨진 상태라면 라이트를 끔
+                else
+                if (buttonLight.enabled) buttonLight.enabled = false;                
+            }
         }
 
         //문 타입 연출
