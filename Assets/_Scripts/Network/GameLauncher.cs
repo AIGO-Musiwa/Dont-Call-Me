@@ -333,13 +333,18 @@ public class GameLauncher : MonoBehaviour
                     _availableCharacterIndices.Add(data.CharacterIndex);
                     Debug.Log($"[GameLauncher] 캐릭터 인덱스 반환 | Player={player} | CharacterIndex={data.CharacterIndex}");
                 }
-
-                runner.Despawn(obj);
             }
 
             _playerSlots.Remove(player);
         }
         OnPlayerLeftEvent?.Invoke(runner, player);
+
+        if (runner.IsServer)
+        {
+            var obj = runner.GetPlayerObject(player);
+            if (obj != null)
+                runner.Despawn(obj);
+        }
     }
 
     private void HandleShutdown(ShutdownReason reason)
