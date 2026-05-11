@@ -140,66 +140,62 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
 
     private void HandleFrontDoorInteract(PlayerController player)
     {
+        // 이 코드는 어차피 서버에서만 실행됨 (PlayerController의 RPC_RequestInteract 덕분)
         if (!HasStateAuthority) return;
 
-        //3막 발동 체크
+        // 1. 3막 발동 체크
         if (!StageManager.Instance.IsAct3Active)
         {
-            Debug.LogWarning("정문 잠김: 아직 3막(탈출 페이즈)이 시작되지 않았습니다.");
+            // 상호작용을 시도한 플레이어에게 귓속말로 알람 쏘기!
+            player.RPC_ShowAlertHUD("정문 잠김: 아직 3막(탈출 페이즈)이 시작되지 않았습니다.");
             return;
         }
 
-        if (IsOpen)        
+        // 2. 이미 열린 문 체크
+        if (IsOpen)
         {
-            Debug.LogWarning("정문이 이미 열려 있습니다.");
+            player.RPC_ShowAlertHUD("정문이 이미 열려 있습니다.");
             return;
         }
 
-        //플레이어의 오른손 아이템 타입 확인
+        // 3. 열쇠 확인
         ItemType heldItem = GetPlayerRightHandItemType(player);
-
-        //키 종류 체크
-        if (heldItem == ItemType.FrontDoorKey || heldItem == ItemType.MasterKey)
+        if (heldItem != ItemType.FrontDoorKey && heldItem != ItemType.MasterKey)
         {
-            //문 열기
-            IsOpen = true;
-            Debug.Log($"정문이 개방되었습니다! (사용 키: {heldItem}) 밖으로 나가 최종 탈출 구역에 도달하세요!");
+            player.RPC_ShowAlertHUD("정문 잠김: 탈출을 위해 일반 열쇠(FrontDoorKey) 또는 마스터키가 필요합니다.");
+            return;
         }
 
-        else
-        {
-            Debug.LogWarning("정문 잠김: 탈출을 위해 일반 열쇠(FrontDoorKey) 또는 마스터키가 필요합니다.");
-        }
-
+        // 4. 모든 조건을 통과했다면 문 개방!
+        IsOpen = true;
+        Debug.Log($"정문 개방 완료! 사용 키: {heldItem}");
     }
 
     private void HandleRooftopDoorInteract(PlayerController player)
     {
         if (!HasStateAuthority) return;
 
-        //3막 발동 체크
+        // 1. 3막 발동 체크
         if (!StageManager.Instance.IsAct3Active)
         {
-            Debug.LogWarning("옥상 잠김: 아직 3막(탈출 페이즈)이 시작되지 않았습니다.");
+            player.RPC_ShowAlertHUD("옥상 잠김: 아직 3막(탈출 페이즈)이 시작되지 않았습니다.");
             return;
         }
 
-        //옥상 문은 상호작용으로 열리지 않음
+        // 2. 이미 열린 문 체크
         if (IsOpen) return;
 
-        //플레이어의 오른손 아이템 타입 추출
+        // 3. 열쇠 확인 (마스터키 전용)
         ItemType heldItem = GetPlayerRightHandItemType(player);
+        if (heldItem != ItemType.MasterKey)
+        {
+            player.RPC_ShowAlertHUD("옥상 잠김: 옥상 탈출을 위해서는 반드시 마스터 키(MasterKey)가 필요합니다.");
+            return;
+        }
 
-        //키 종류 체크 (옥상 탈출 조건: 마스터키)
-        if (heldItem == ItemType.MasterKey)
-        {
-            IsOpen = true;
-            Debug.Log($"옥상 문이 개방되었습니다! (사용 키: {heldItem}) 밖으로 나가 최종 탈출 구역에 도달하세요!");
-        }
-        else
-        {
-            Debug.LogWarning("옥상 잠김: 옥상 탈출을 위해서는 반드시 마스터 키(MasterKey)가 필요합니다.");
-        }
+        // 4. 조건 통과 시 문 개방!
+        IsOpen = true;
+        Debug.Log($"옥상 문 개방 완료! 사용 키: {heldItem}");
     }
 
     //플레이어의 오른손 아이템 타입을 가져오는 함수
