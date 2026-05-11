@@ -82,7 +82,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
     private ItemOutlineController _lastHighlightedOutline;               // 마지막으로 강조 중인 외곽선 장치
 
     private HUDController _localHUD;                                     // 🛠️ 로컬 UI 상태 업데이트를 위한 캐시
-
+    public HUDController HUD => _localHUD;
     [SerializeField] private Transform debugCaptureAnchor;               // 테스트용 임시 포획 Anchor
 
     public override void Spawned()

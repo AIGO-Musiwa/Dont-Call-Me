@@ -100,37 +100,28 @@ public class EscapeInteractable : NetworkBehaviour, IInteractable
 
     private void HandleFrontDoorInteract(PlayerController player)
     {
+        // 아직은 호스트만 통과하는 차단기 (테스트용)
         if (!HasStateAuthority) return;
 
-        //3막 발동 체크
+        // 1. 3막 체크
         if (!StageManager.Instance.IsAct3Active)
         {
-            Debug.LogWarning("정문 잠김: 아직 3막(탈출 페이즈)이 시작되지 않았습니다.");
+            // 호스트의 HUD에 출력
+            player.HUD.ShowAlert("정문 잠김: 아직 탈출 페이즈가 아닙니다.");
             return;
         }
 
-        if (IsOpen)        
-        {
-            Debug.LogWarning("정문이 이미 열려 있습니다.");
-            return;
-        }
-
-        //플레이어의 오른손 아이템 타입 확인
+        // 2. 키 체크
         ItemType heldItem = GetPlayerRightHandItemType(player);
-
-        //키 종류 체크
         if (heldItem == ItemType.FrontDoorKey || heldItem == ItemType.MasterKey)
         {
-            //문 열기
             IsOpen = true;
-            Debug.Log($"정문이 개방되었습니다! (사용 키: {heldItem}) 밖으로 나가 최종 탈출 구역에 도달하세요!");
         }
-
         else
         {
-            Debug.LogWarning("정문 잠김: 탈출을 위해 일반 열쇠(FrontDoorKey) 또는 마스터키가 필요합니다.");
+            // 호스트의 HUD에 출력
+            player.HUD.ShowAlert("정문 잠김: 전용 키가 필요합니다.");
         }
-
     }
 
     private void HandleRooftopDoorInteract(PlayerController player)
