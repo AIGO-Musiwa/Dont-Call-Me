@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 8266241369266992923}
   - component: {fileID: -2225652593487480060}
   - component: {fileID: 56863714706497034}
+  - component: {fileID: 1512607424679390682}
   m_Layer: 6
   m_Name: Front Door Key
   m_TagString: Untagged
@@ -176,3 +177,18 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.026033795, y: 0.020000005, z: 0.019999998}
   m_Center: {x: -0.0030168954, y: 0, z: 0}
+--- !u!114 &1512607424679390682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5569030233354891501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 5551145360341427403}

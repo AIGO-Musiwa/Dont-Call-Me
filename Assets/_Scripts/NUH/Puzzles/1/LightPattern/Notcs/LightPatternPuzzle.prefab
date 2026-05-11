@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5436186797197297911}
   - component: {fileID: 6704693103537670610}
   - component: {fileID: 1068644768976072028}
+  - component: {fileID: 5089536455592598106}
   m_Layer: 6
   m_Name: Pad_4
   m_TagString: Untagged
@@ -153,6 +154,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 7440516301019650082}
   interactableId: 4
   promptText: "\uD328\uB110 \uC785\uB825"
+--- !u!114 &5089536455592598106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1363692087390131706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 8611807999082220828}
 --- !u!1 &2013559144651383278
 GameObject:
   m_ObjectHideFlags: 0
@@ -167,6 +183,7 @@ GameObject:
   - component: {fileID: 7364450845342292010}
   - component: {fileID: 8124675147419109694}
   - component: {fileID: 8457701184273776227}
+  - component: {fileID: 6273115181677754420}
   m_Layer: 6
   m_Name: Pad_6
   m_TagString: Untagged
@@ -306,6 +323,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 7440516301019650082}
   interactableId: 6
   promptText: "\uD328\uB110 \uC785\uB825"
+--- !u!114 &6273115181677754420
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2013559144651383278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 735130659071434302}
 --- !u!1 &2063680172256693945
 GameObject:
   m_ObjectHideFlags: 0
@@ -320,6 +352,7 @@ GameObject:
   - component: {fileID: 7211566919184155106}
   - component: {fileID: 29702687583738599}
   - component: {fileID: 2276291782625849425}
+  - component: {fileID: 5181416352447940874}
   m_Layer: 6
   m_Name: Pad_7
   m_TagString: Untagged
@@ -459,6 +492,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 7440516301019650082}
   interactableId: 7
   promptText: "\uD328\uB110 \uC785\uB825"
+--- !u!114 &5181416352447940874
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2063680172256693945}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 2396298362748129346}
 --- !u!1 &2928614191427321222
 GameObject:
   m_ObjectHideFlags: 0
@@ -473,6 +521,7 @@ GameObject:
   - component: {fileID: 8455005897967005660}
   - component: {fileID: 1870700314436330124}
   - component: {fileID: 1088246327490280820}
+  - component: {fileID: 701200862922742380}
   m_Layer: 6
   m_Name: Pad_3
   m_TagString: Untagged
@@ -612,6 +661,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 7440516301019650082}
   interactableId: 3
   promptText: "\uD328\uB110 \uC785\uB825"
+--- !u!114 &701200862922742380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2928614191427321222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 5363754015491281658}
 --- !u!1 &4012195186138934084
 GameObject:
   m_ObjectHideFlags: 0
@@ -658,6 +722,7 @@ GameObject:
   - component: {fileID: 9137248407184045118}
   - component: {fileID: 29480418247131728}
   - component: {fileID: 5731872187383167529}
+  - component: {fileID: 2410911051469073503}
   m_Layer: 6
   m_Name: Pad_0
   m_TagString: Untagged
@@ -797,6 +862,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 7440516301019650082}
   interactableId: 0
   promptText: "\uD328\uB110 \uC785\uB825"
+--- !u!114 &2410911051469073503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4249547244095788266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 5890341961418283458}
 --- !u!1 &4601797393160417783
 GameObject:
   m_ObjectHideFlags: 0
@@ -851,6 +931,7 @@ GameObject:
   - component: {fileID: 9161829899900544950}
   - component: {fileID: 3935373069820694396}
   - component: {fileID: 604525023492489379}
+  - component: {fileID: 978149338015879211}
   m_Layer: 6
   m_Name: Pad_1
   m_TagString: Untagged
@@ -990,6 +1071,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 7440516301019650082}
   interactableId: 1
   promptText: "\uD328\uB110 \uC785\uB825"
+--- !u!114 &978149338015879211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4990281599104881450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 8186529217741865769}
 --- !u!1 &5276295334548638543
 GameObject:
   m_ObjectHideFlags: 0
@@ -1004,6 +1100,7 @@ GameObject:
   - component: {fileID: 7366541196691796604}
   - component: {fileID: 9101920670527588667}
   - component: {fileID: 837725808129489845}
+  - component: {fileID: 776663779184697049}
   m_Layer: 6
   m_Name: Pad_5
   m_TagString: Untagged
@@ -1143,6 +1240,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 7440516301019650082}
   interactableId: 5
   promptText: "\uD328\uB110 \uC785\uB825"
+--- !u!114 &776663779184697049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5276295334548638543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 316447194728465036}
 --- !u!1 &6094006107070007056
 GameObject:
   m_ObjectHideFlags: 0
@@ -1247,6 +1359,7 @@ GameObject:
   - component: {fileID: 2926011896084784391}
   - component: {fileID: 4438693816213243928}
   - component: {fileID: 4951170450251897222}
+  - component: {fileID: 4794748739483208814}
   m_Layer: 6
   m_Name: Pad_8
   m_TagString: Untagged
@@ -1386,6 +1499,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 7440516301019650082}
   interactableId: 8
   promptText: "\uD328\uB110 \uC785\uB825"
+--- !u!114 &4794748739483208814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6919413297056625773}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 3810971977917837851}
 --- !u!1 &7081858040795560348
 GameObject:
   m_ObjectHideFlags: 0
@@ -1929,6 +2057,7 @@ GameObject:
   - component: {fileID: 1106954033993578668}
   - component: {fileID: 3389937824677607655}
   - component: {fileID: 4621088427720998337}
+  - component: {fileID: 9111014668512528980}
   m_Layer: 6
   m_Name: Pad_2
   m_TagString: Untagged
@@ -2068,3 +2197,18 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 7440516301019650082}
   interactableId: 2
   promptText: "\uD328\uB110 \uC785\uB825"
+--- !u!114 &9111014668512528980
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8984077739869635522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 696216617433624751}
