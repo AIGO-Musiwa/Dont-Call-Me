@@ -36,14 +36,14 @@ public class WalkieMeterialController : MonoBehaviour
                 break;
 
             case WalkieState.TX:
-                // 송신: 강렬한 레드 (고정 발광)
+                // 송신: 녹색 발광
                 // Color에 강도를 곱해서 HDR Emission을 증폭시킴
-                walkieMat.SetColor(EmissionColor, Color.red * 2.0f);
+                walkieMat.SetColor(EmissionColor, Color.green * 2.0f);
                 break;
 
             case WalkieState.RX:
-                // 수신: 녹색 발광 
-                walkieMat.SetColor(EmissionColor, Color.green * 2.0f);
+                // 수신: 강렬한 레드 (고정 발광)
+                walkieMat.SetColor(EmissionColor, Color.red * 2.0f);
                 break;
         }
     }
