@@ -552,6 +552,7 @@ GameObject:
   - component: {fileID: 7768245636513996884}
   - component: {fileID: 2639675441318670212}
   - component: {fileID: 1376293178693089005}
+  - component: {fileID: 8003808648063309101}
   m_Layer: 6
   m_Name: LeftButton
   m_TagString: Untagged
@@ -652,6 +653,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8003808648063309101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2686490317720773433}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 2639675441318670212}
 --- !u!1 &3164697548858657084
 GameObject:
   m_ObjectHideFlags: 0
@@ -1219,6 +1235,7 @@ GameObject:
   - component: {fileID: 3684578429229786961}
   - component: {fileID: 8854483350838284302}
   - component: {fileID: 7914116692099367351}
+  - component: {fileID: 2484246733290819110}
   m_Layer: 6
   m_Name: RightButton
   m_TagString: Untagged
@@ -1319,6 +1336,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2484246733290819110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4469759557555889041}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 8854483350838284302}
 --- !u!1 &4799357909830266155
 GameObject:
   m_ObjectHideFlags: 0
@@ -2067,6 +2099,7 @@ GameObject:
   - component: {fileID: 1463383864800298882}
   - component: {fileID: 6223303017629758993}
   - component: {fileID: 460376927761932132}
+  - component: {fileID: 9078035092512017932}
   m_Layer: 6
   m_Name: Button
   m_TagString: Untagged
@@ -2201,6 +2234,21 @@ MonoBehaviour:
   greenIndicator: {fileID: 0}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   pressedColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &9078035092512017932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6922768481732751208}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 281828898906596252}
 --- !u!1 &6924392878524642522
 GameObject:
   m_ObjectHideFlags: 0
@@ -2539,6 +2587,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
   outlineLayerName: ItemOutline
+  targetRenderers: []
 --- !u!65 &354084945524407293
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2862,6 +2911,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
   outlineLayerName: ItemOutline
+  targetRenderers: []
 --- !u!65 &3817070171796228986
 BoxCollider:
   m_ObjectHideFlags: 0

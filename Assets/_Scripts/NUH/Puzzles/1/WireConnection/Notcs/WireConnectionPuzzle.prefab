@@ -103,6 +103,7 @@ GameObject:
   - component: {fileID: 4136330511304794826}
   - component: {fileID: 2567007193381329210}
   - component: {fileID: 8497882969620485935}
+  - component: {fileID: 1108529834152515923}
   m_Layer: 6
   m_Name: R_Socket_5
   m_TagString: Untagged
@@ -221,6 +222,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 4313632013108757835}
   interactableId: 105
   promptText: "\uC6B0\uCE21 \uC804\uC120 \uC5F0\uACB0"
+--- !u!114 &1108529834152515923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 426929256332194321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 4136330511304794826}
 --- !u!1 &657982814100982634
 GameObject:
   m_ObjectHideFlags: 0
@@ -779,6 +795,7 @@ GameObject:
   - component: {fileID: 3783715330313403094}
   - component: {fileID: 3469280944736958614}
   - component: {fileID: 6577275106350803375}
+  - component: {fileID: 5083404970842574591}
   m_Layer: 6
   m_Name: L_Socket_5
   m_TagString: Untagged
@@ -898,6 +915,21 @@ CapsuleCollider:
   m_Height: 0.005
   m_Direction: 1
   m_Center: {x: -0.0012, y: 0.0025, z: 4.3477033e-10}
+--- !u!114 &5083404970842574591
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1337631484498733895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 3783715330313403094}
 --- !u!1 &1376627520431972520
 GameObject:
   m_ObjectHideFlags: 0
@@ -1399,6 +1431,7 @@ GameObject:
   - component: {fileID: 5585294207767892490}
   - component: {fileID: 8925907760010015139}
   - component: {fileID: 3754308225458736791}
+  - component: {fileID: 6151967875553289045}
   m_Layer: 6
   m_Name: R_Socket_1
   m_TagString: Untagged
@@ -1517,6 +1550,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 4313632013108757835}
   interactableId: 101
   promptText: "\uC6B0\uCE21 \uC804\uC120 \uC5F0\uACB0"
+--- !u!114 &6151967875553289045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1807688182128344964}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 5585294207767892490}
 --- !u!1 &1928950852987761918
 GameObject:
   m_ObjectHideFlags: 0
@@ -1620,6 +1668,7 @@ GameObject:
   - component: {fileID: 1517091818196265178}
   - component: {fileID: 5456830990898388680}
   - component: {fileID: 794326711527859954}
+  - component: {fileID: 1233107406151633812}
   m_Layer: 6
   m_Name: L_Socket_0
   m_TagString: Untagged
@@ -1739,6 +1788,21 @@ CapsuleCollider:
   m_Height: 0.005
   m_Direction: 1
   m_Center: {x: -0.0012, y: 0.0025, z: 4.967054e-10}
+--- !u!114 &1233107406151633812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1966047866191039825}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 1517091818196265178}
 --- !u!1 &1977201557469803521
 GameObject:
   m_ObjectHideFlags: 0
@@ -1946,6 +2010,7 @@ GameObject:
   - component: {fileID: 6237115161790298966}
   - component: {fileID: 6300376888852284118}
   - component: {fileID: 1544337008125259726}
+  - component: {fileID: 7246578572219892228}
   m_Layer: 6
   m_Name: R_Socket_2
   m_TagString: Untagged
@@ -2064,6 +2129,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 4313632013108757835}
   interactableId: 102
   promptText: "\uC6B0\uCE21 \uC804\uC120 \uC5F0\uACB0"
+--- !u!114 &7246578572219892228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3619373361839582641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 6237115161790298966}
 --- !u!1 &3624993075579621012
 GameObject:
   m_ObjectHideFlags: 0
@@ -2171,6 +2251,7 @@ GameObject:
   - component: {fileID: 2208432858569225702}
   - component: {fileID: 3427921841745560145}
   - component: {fileID: 4879445753677816936}
+  - component: {fileID: 8566120365390236204}
   m_Layer: 6
   m_Name: R_Socket_4
   m_TagString: Untagged
@@ -2289,6 +2370,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 4313632013108757835}
   interactableId: 104
   promptText: "\uC6B0\uCE21 \uC804\uC120 \uC5F0\uACB0"
+--- !u!114 &8566120365390236204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4056640507955762032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 2208432858569225702}
 --- !u!1 &4231146798057189575
 GameObject:
   m_ObjectHideFlags: 0
@@ -2392,6 +2488,7 @@ GameObject:
   - component: {fileID: 3602703705365508995}
   - component: {fileID: 206622415831721460}
   - component: {fileID: 2088614354604506390}
+  - component: {fileID: 7221360309649061105}
   m_Layer: 6
   m_Name: L_Socket_3
   m_TagString: Untagged
@@ -2511,6 +2608,21 @@ CapsuleCollider:
   m_Height: 0.005
   m_Direction: 1
   m_Center: {x: -0.0012, y: 0.0025, z: -4.5442865e-11}
+--- !u!114 &7221360309649061105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4286285162311196101}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 3602703705365508995}
 --- !u!1 &4325072230598420410
 GameObject:
   m_ObjectHideFlags: 0
@@ -2946,6 +3058,7 @@ GameObject:
   - component: {fileID: 1007083060029601099}
   - component: {fileID: 60140592063509740}
   - component: {fileID: 3763233451142776340}
+  - component: {fileID: 7825410708430151375}
   m_Layer: 6
   m_Name: L_Socket_4
   m_TagString: Untagged
@@ -3065,6 +3178,21 @@ CapsuleCollider:
   m_Height: 0.005
   m_Direction: 1
   m_Center: {x: -0.0012, y: 0.0025, z: -3.089095e-11}
+--- !u!114 &7825410708430151375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5608558649962480512}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 1007083060029601099}
 --- !u!1 &5686824307689126718
 GameObject:
   m_ObjectHideFlags: 0
@@ -3276,6 +3404,7 @@ GameObject:
   - component: {fileID: 2334618341758906179}
   - component: {fileID: 3954248191921828591}
   - component: {fileID: 8101914834297634085}
+  - component: {fileID: 8625519917757455029}
   m_Layer: 6
   m_Name: R_Socket_0
   m_TagString: Untagged
@@ -3394,6 +3523,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 4313632013108757835}
   interactableId: 100
   promptText: "\uC6B0\uCE21 \uC804\uC120 \uC5F0\uACB0"
+--- !u!114 &8625519917757455029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5950928291819723374}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 2334618341758906179}
 --- !u!1 &6526467141145242612
 GameObject:
   m_ObjectHideFlags: 0
@@ -3438,6 +3582,7 @@ GameObject:
   - component: {fileID: 5009624427668937443}
   - component: {fileID: 6129240837212765393}
   - component: {fileID: 7309910763564077075}
+  - component: {fileID: 1610729394194338060}
   m_Layer: 6
   m_Name: R_Socket_3
   m_TagString: Untagged
@@ -3556,6 +3701,21 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 4313632013108757835}
   interactableId: 103
   promptText: "\uC6B0\uCE21 \uC804\uC120 \uC5F0\uACB0"
+--- !u!114 &1610729394194338060
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6828739567514075103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 5009624427668937443}
 --- !u!1 &7000957802503540923
 GameObject:
   m_ObjectHideFlags: 0
@@ -3789,6 +3949,7 @@ GameObject:
   - component: {fileID: 8345571076127071099}
   - component: {fileID: 1489276399017781923}
   - component: {fileID: 3810448383998960821}
+  - component: {fileID: 3098252697495314655}
   m_Layer: 6
   m_Name: L_Socket_1
   m_TagString: Untagged
@@ -3908,6 +4069,21 @@ CapsuleCollider:
   m_Height: 0.005
   m_Direction: 1
   m_Center: {x: -0.0012, y: 0.0025, z: 4.3477033e-10}
+--- !u!114 &3098252697495314655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7555991148028348626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 8345571076127071099}
 --- !u!1 &7694461623042676771
 GameObject:
   m_ObjectHideFlags: 0
@@ -4300,6 +4476,7 @@ GameObject:
   - component: {fileID: 2238648180596454327}
   - component: {fileID: 1152994006900173862}
   - component: {fileID: 6960978729884854481}
+  - component: {fileID: 3816090344785201682}
   m_Layer: 6
   m_Name: L_Socket_2
   m_TagString: Untagged
@@ -4419,6 +4596,21 @@ CapsuleCollider:
   m_Height: 0.005
   m_Direction: 1
   m_Center: {x: -0.0012, y: 0.0025, z: -3.089095e-11}
+--- !u!114 &3816090344785201682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8363733364715367440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 2238648180596454327}
 --- !u!1 &8729121510677656016
 GameObject:
   m_ObjectHideFlags: 0

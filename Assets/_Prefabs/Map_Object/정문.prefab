@@ -307,6 +307,7 @@ GameObject:
   m_Component:
   - component: {fileID: 346887561169794417}
   - component: {fileID: 2363020938882006386}
+  - component: {fileID: 8848941653126854600}
   m_Layer: 0
   m_Name: "\uC815\uBB38"
   m_TagString: Untagged
@@ -353,6 +354,22 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8848941653126854600
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3681406806253985017}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 5386695653209121865}
+  - {fileID: 8335016211031325225}
 --- !u!1 &7467202372661767278
 GameObject:
   m_ObjectHideFlags: 0
