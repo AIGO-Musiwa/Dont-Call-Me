@@ -37,8 +37,6 @@ public class PlayerSpectatorController : MonoBehaviour
     private CinemachineOrbitalFollow _orbitalFollow;                      // Orbit / Zoom 값을 실제로 적용할 Cinemachine 컴포넌트
 
     private Camera _ownerGameplayCamera;                                  // 평상시 1인칭 시점 카메라
-    private AudioListener _ownerGameplayAudioListener;                    // 평상시 카메라의 오디오 리스너
-    private AudioListener _spectatorAudioListener;                        // 관전 카메라의 오디오 리스너
 
     private readonly List<PlayerController> _targets = new();             // 현재 관전 가능한 플레이어 목록
     private int _targetIndex;                                             // 현재 선택된 관전 대상 인덱스
@@ -73,14 +71,6 @@ public class PlayerSpectatorController : MonoBehaviour
         // 로컬 플레이어의 평상시 1인칭 카메라를 캐싱한다.
         if (_owner.LookView != null)
             _ownerGameplayCamera = _owner.LookView.ViewCamera;
-
-        // 평상시 카메라의 AudioListener를 캐싱한다.
-        if (_ownerGameplayCamera != null)
-            _ownerGameplayAudioListener = _ownerGameplayCamera.GetComponent<AudioListener>();
-
-        // 관전 카메라의 AudioListener를 캐싱한다.
-        if (spectatorCamera != null)
-            _spectatorAudioListener = spectatorCamera.GetComponent<AudioListener>();
 
         // 초기에는 관전 상태가 아니므로 spectator rig를 꺼둔다.
         SetSpectatorRigActive(false);
@@ -452,10 +442,6 @@ public class PlayerSpectatorController : MonoBehaviour
         // 평상시 카메라 GameObject 자체를 켜고 끈다.
         if (_ownerGameplayCamera != null)
             _ownerGameplayCamera.gameObject.SetActive(active);
-
-        // AudioListener도 같이 맞춰준다.
-        if (_ownerGameplayAudioListener != null)
-            _ownerGameplayAudioListener.enabled = active;
     }
 
     /// <summary>
@@ -466,10 +452,6 @@ public class PlayerSpectatorController : MonoBehaviour
     {
         // spectator rig 전체를 켜고 끈다.
         SetSpectatorRigActive(active);
-
-        // 관전 카메라의 AudioListener도 같이 맞춰준다.
-        if (_spectatorAudioListener != null)
-            _spectatorAudioListener.enabled = active;
     }
 
     /// <summary>
@@ -490,7 +472,7 @@ public class PlayerSpectatorController : MonoBehaviour
             SetOwnerGameplayCameraActive(true);  // 1인칭 카메라 켜기
         }
 
-        NotifyListenerTransform(spectating);
+        NotifySoundOrigin(spectating);
     }
 
     /// <summary>
@@ -550,25 +532,25 @@ public class PlayerSpectatorController : MonoBehaviour
         VoiceManager.Instance?.UpdateSpectatorZone(target.NetZone);
     }
 
-    private void NotifyListenerTransform(bool spectating)
+    private void NotifySoundOrigin(bool spectating)
     {
         if (_owner == null) return;
 
         // 관전 진입 시 → 관전 카메라 AudioListener
         // 관전 종료 시 → 1인칭 카메라 AudioListener
-        Transform listenerTransform = spectating
-            ? _spectatorAudioListener?.transform
-            : _ownerGameplayAudioListener?.transform;
+        Transform soundOrigin = spectating
+            ? spectatorCamera.transform
+            : _ownerGameplayCamera.transform;
 
         // PlayerVoiceController에 주입
-        _owner.GetComponent<PlayerVoiceController>()?.SetListenerTransform(listenerTransform);
+        _owner.GetComponent<PlayerVoiceController>()?.SetListenerTransform(soundOrigin);
 
         // WalkieTalkieItem에 주입
         var walkies = WalkieTalkieManager.Instance?.GetAllWalkieTalkies();
         if (walkies == null) return;
 
         foreach (var walkie in walkies)
-            walkie?.SetListenerTransform(listenerTransform);
+            walkie?.SetListenerTransform(soundOrigin);
     }
 
     /// <summary>
