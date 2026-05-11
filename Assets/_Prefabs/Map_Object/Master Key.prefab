@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 2261622664652739053}
   - component: {fileID: -6269772158152198259}
   - component: {fileID: 6228251177591242106}
+  - component: {fileID: 2145046862798084068}
   m_Layer: 6
   m_Name: Master Key
   m_TagString: Untagged
@@ -178,3 +179,18 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.0856, y: 0.053979993, z: 0.0011399996}
   m_Center: {x: 0.00017543323, y: 0.00014551636, z: -5.820766e-10}
+--- !u!114 &2145046862798084068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8653008706771812974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 7766098016568765914}
