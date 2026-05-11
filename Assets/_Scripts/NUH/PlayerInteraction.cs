@@ -2,7 +2,7 @@ using Fusion;
 using UnityEngine;
 
 /// <summary>
-/// 로컬 카메라 기준으로 상호작용 타겟을 찾고 캐싱한다.
+/// 로컬 플레이어의 시야 기준 Transform으로 상호작용 타겟을 찾고 캐싱한다.
 /// 실제 상호작용 성립은 PlayerController의 RPC 요청 후 서버가 판정한다.
 /// </summary>
 public class PlayerInteraction : MonoBehaviour
@@ -13,7 +13,7 @@ public class PlayerInteraction : MonoBehaviour
     [SerializeField] private bool drawDebugRay = true;          // 디버그 레이 표시 여부
 
     private PlayerController _controller;
-    private Camera _viewCamera;                                 // 현재 상호작용 기준 카메라
+    private Transform _viewOrigin;                              // 현재 상호작용 Raycast 기준 Transform
 
     private IInteractable _currentInteractable;                 // 현재 바라보는 상호작용 대상 인터페이스
     private NetworkObject _currentTargetObject;                 // 현재 바라보는 상호작용 대상 루트 NetworkObject
@@ -24,14 +24,12 @@ public class PlayerInteraction : MonoBehaviour
     public string CurrentPromptText => HasValidTarget ? _currentInteractable.GetPromptText(_controller) : string.Empty;
 
     /// <summary>
-    /// PlayerController에서 생성 시 호출되어 카메라 참조를 연결한다.
+    /// PlayerController에서 생성 시 호출되어 시야 기준 Transform을 연결한다.
     /// </summary>
     public void Initialize(PlayerController controller)
     {
         _controller = controller;
-
-        if (_controller != null && _controller.LookView != null)
-            _viewCamera = _controller.LookView.ViewCamera;
+        RefreshViewOriginReference();
     }
 
     /// <summary>
@@ -45,15 +43,15 @@ public class PlayerInteraction : MonoBehaviour
             return;
         }
 
-        TryRefreshCameraReference();
+        RefreshViewOriginReference();
 
-        if (_viewCamera == null)
+        if (_viewOrigin == null)
         {
             ClearTarget();
             return;
         }
 
-        Ray ray = new Ray(_viewCamera.transform.position, _viewCamera.transform.forward);
+        Ray ray = new Ray(_viewOrigin.position, _viewOrigin.forward);
 
         if (drawDebugRay)
             Debug.DrawRay(ray.origin, ray.direction * interactDistance, Color.green);
@@ -76,7 +74,7 @@ public class PlayerInteraction : MonoBehaviour
     }
 
     /// <summary>
-    /// 현재 캐싱된 상호작용 대상의 루트 NetworkId와 자식 상호작용 ID 반환
+    /// 현재 캐싱된 상호작용 대상의 루트 NetworkId와 자식 상호작용 ID 반환.
     /// </summary>
     public bool TryGetCurrentTargetInfo(out NetworkId targetId, out int interactableId)
     {
@@ -114,12 +112,13 @@ public class PlayerInteraction : MonoBehaviour
     }
 
     /// <summary>
-    /// 카메라 참조가 비어있으면 LookView에서 다시 받아온다.
+    /// PlayerLookView에서 현재 게임플레이 시야 기준 Transform을 받아온다.
+    /// Camera 컴포넌트가 아니라 Transform을 기준으로 사용해 ViewModelCamera와 MainCamera 의존을 분리한다.
     /// </summary>
-    private void TryRefreshCameraReference()
+    private void RefreshViewOriginReference()
     {
-        if (_viewCamera == null && _controller != null && _controller.LookView != null)
-            _viewCamera = _controller.LookView.ViewCamera;
+        if (_controller != null && _controller.LookView != null)
+            _viewOrigin = _controller.LookView.ViewOrigin;
     }
 
     /// <summary>
@@ -139,7 +138,7 @@ public class PlayerInteraction : MonoBehaviour
         MonoBehaviour[] behaviours = start.GetComponentsInParent<MonoBehaviour>(true);
         foreach (var behaviour in behaviours)
         {
-            if(behaviour is IInteractable foundInteractable)
+            if (behaviour is IInteractable foundInteractable)
             {
                 interactable = foundInteractable;
 
