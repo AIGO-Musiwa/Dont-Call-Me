@@ -133,6 +133,10 @@ public class PlayerController : NetworkBehaviour, IInteractable
             {
                 Debug.LogWarning("[HUD] 씬에서 HUDController를 찾을 수 없습니다. HUD 프리팹이 배치되었는지 확인하세요.");
             }
+
+            LocalCameraModeController cameraModeController = UnityEngine.Object.FindFirstObjectByType<LocalCameraModeController>(FindObjectsInactive.Include); // 씬 로컬 카메라 리그 탐색
+            if (cameraModeController != null)
+                cameraModeController.RegisterLocalPlayer(this);          // 로컬 플레이어 카메라 Target 등록
         }
 
         var bodySync = GetComponent<PlayerBodySync>();                   // 원격 바디 동기화 스크립트 탐색
@@ -318,9 +322,33 @@ public class PlayerController : NetworkBehaviour, IInteractable
         }
     }
 
+    public Transform NormalCameraTarget
+    {
+        get
+        {
+            return LookView != null ? LookView.NormalCameraTarget : transform; // Normal 상태 시야 기준 Transform 반환
+        }
+    }
+
+    public Transform CapturedCameraTarget
+    {
+        get
+        {
+            return LookView != null ? LookView.CapturedCameraTarget : NormalCameraTarget; // Captured 상태 카메라 기준 Transform 반환
+        }
+    }
+
+    public Transform CurrentViewOrigin
+    {
+        get
+        {
+            return LookView != null ? LookView.ViewOrigin : transform; // 현재 상태에 맞는 시야 기준 Transform 반환
+        }
+    }
+
     public Transform GetCameraLightRoot()
     {
-        return LookView != null ? LookView.GetCameraLightRoot() : null;  // 카메라 기준 손전등 루트 반환
+        return LookView != null ? LookView.GetCameraLightRoot() : null;  // 손전등 라이트가 따라갈 기준 루트 반환
     }
 
     public void SetInputLock(bool movementLocked, bool lookLocked)
@@ -801,7 +829,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureTransitionTimer = TickTimer.CreateFromSeconds(Runner, captureTransitionSeconds); // 전환 타이머 시작
         NetCaptureExpireTimer = TickTimer.None;                           // 사망 타이머 초기화
 
-        SetInputLock(true, false);                                        // 이동 잠금, 시야는 허용
+        SetInputLock(true, true);                                         // 포획 상태에서는 일반 이동과 일반 시야 회전을 모두 잠근다
 
         ServerForceDropAllHeldItems();                                    // 들고 있던 아이템 강제 드랍
         ApplyImmediateTraumaOnCapture();                                  // 즉시 후유증 증가
@@ -862,7 +890,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
         MovePlayerToWorldPose(NetCaptureAnchorPosition, NetCaptureAnchorRotation); // 구조 구역으로 이동
 
-        SetInputLock(true, false);                                        // 이동 잠금, 시야는 허용
+        SetInputLock(true, true);                                         // 포획 상태에서는 일반 이동과 일반 시야 회전을 모두 잠근다
 
         float remainSeconds = Mathf.Max(0f, rescueBaseTimeSeconds - NetAftereffectPercent); // 남은 구조 가능 시간 계산
         NetCaptureExpireTimer = TickTimer.CreateFromSeconds(Runner, remainSeconds); // 사망 타이머 시작

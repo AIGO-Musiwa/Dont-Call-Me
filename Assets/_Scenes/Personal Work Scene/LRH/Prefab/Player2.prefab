@@ -58,6 +58,7 @@ GameObject:
   - component: {fileID: 969681772662802719}
   - component: {fileID: -2663173833969849363}
   - component: {fileID: 4781147723234491082}
+  - component: {fileID: -7150383608892738858}
   m_Layer: 0
   m_Name: Player2
   m_TagString: Player
@@ -256,7 +257,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerLookView
   cameraHolder: {fileID: 5759469755395386870}
-  playerCamera: {fileID: 0}
+  normalCameraTarget: {fileID: 4503048872251079674}
+  capturedCameraTarget: {fileID: 5444202043399962095}
   cameraLightRoot: {fileID: 8324999275640108001}
   eyeOffset: 0.3
   lockCursorForLocalPlayer: 1
@@ -484,7 +486,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerVisualSetter
   fullBodyMesh: {fileID: 3682048380889930161}
-  playerCamera: {fileID: 0}
+  viewModelCamera: {fileID: 522266156015839901}
   localLayerName: PlayerSelf
   remoteLayerName: RemotePlayer
 --- !u!114 &969681772662802719
@@ -532,6 +534,27 @@ MonoBehaviour:
   ringModDepth: 0.6
   distortionAmount: 0.6
   outputGain: 2.5
+--- !u!114 &-7150383608892738858
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827289365566288008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9239a5c4fef9e7741973a514e21d4d90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CapturedCameraController
+  capturedLookPivot: {fileID: 5444202043399962095}
+  inputHandler: {fileID: 0}
+  yawMin: -70
+  yawMax: 70
+  pitchMin: -45
+  pitchMax: 45
+  lookSensitivity: 0.2
+  resetWhenEnterCaptured: 1
+  resetWhenExitCaptured: 1
 --- !u!1 &2098675536719637024
 GameObject:
   m_ObjectHideFlags: 0
@@ -624,6 +647,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 4503048872251079674}
+  - {fileID: 5444202043399962095}
   - {fileID: 4940630099782532313}
   - {fileID: 8324999275640108001}
   m_Father: {fileID: 1101863805230548405}
@@ -960,6 +985,68 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5229453286644084639}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3810222466875303497
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4503048872251079674}
+  m_Layer: 0
+  m_Name: NormalCameraTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4503048872251079674
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810222466875303497}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5759469755395386870}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4418186657046876025
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5444202043399962095}
+  m_Layer: 0
+  m_Name: CapturedCameraTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5444202043399962095
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4418186657046876025}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5759469755395386870}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5354373334187213990
 GameObject:
