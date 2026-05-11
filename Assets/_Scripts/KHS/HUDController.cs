@@ -37,6 +37,11 @@ public class HUDController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI spectatorGuideText;  // "조작 가이드"
     [SerializeField] private GameObject deathOverlay;             // 사망 직후 안내 UI
 
+    [Header("신규 부품")]
+    [SerializeField] private TextMeshProUGUI alertText; // 알람용 텍스트 (인스펙터 할당!)
+    private Coroutine _itemTimer;
+    private Coroutine _alertTimer;
+
     private ItemObject _lastItem;
     // 초기 상태를 알 수 없는 상태(-1)로 설정하여 첫 프레임에 무조건 초기화 실행
     private PlayerState _lastState = (PlayerState)(-1);
@@ -154,16 +159,44 @@ public class HUDController : MonoBehaviour
         }
     }
 
+    // 1. 아이템 이름 1.5초 출력 엔진
     private void UpdateNormalHUD()
     {
         if (itemNameText == null) return;
-
         ItemObject currentItem = playerController.GetRightHandItemObject();
+
         if (_lastItem != currentItem)
         {
-            itemNameText.text = (currentItem != null) ? currentItem.ItemName : "";
             _lastItem = currentItem;
+            string name = (currentItem != null) ? currentItem.ItemName : "맨손";
+
+            if (_itemTimer != null) StopCoroutine(_itemTimer);
+            _itemTimer = StartCoroutine(ItemNameRoutine(name));
         }
+    }
+
+    private System.Collections.IEnumerator ItemNameRoutine(string name)
+    {
+        itemNameText.text = name;
+        itemNameText.gameObject.SetActive(true);
+        yield return new WaitForSeconds(1.5f);
+        itemNameText.gameObject.SetActive(false);
+    }
+
+    // 2. 경고 메시지 알람 엔진
+    public void ShowAlert(string msg)
+    {
+        if (alertText == null) return;
+        if (_alertTimer != null) StopCoroutine(_alertTimer);
+        _alertTimer = StartCoroutine(AlertRoutine(msg));
+    }
+
+    private System.Collections.IEnumerator AlertRoutine(string msg)
+    {
+        alertText.text = msg;
+        alertText.gameObject.SetActive(true);
+        yield return new WaitForSeconds(2.5f);
+        alertText.gameObject.SetActive(false);
     }
 
     private void UpdateCapturedHUD()
