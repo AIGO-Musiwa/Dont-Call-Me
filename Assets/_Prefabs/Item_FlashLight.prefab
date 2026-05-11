@@ -237,6 +237,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
   outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 5928647228850744376}
 --- !u!1 &4396835873817712534
 GameObject:
   m_ObjectHideFlags: 0
@@ -448,5 +450,10 @@ PrefabInstance:
 --- !u!4 &5916920466301338096 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4153173015106888, guid: e3109ccf9db0f54408d5c02b496761c1, type: 3}
+  m_PrefabInstance: {fileID: 5914315486197241016}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &5928647228850744376 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 23951379687045248, guid: e3109ccf9db0f54408d5c02b496761c1, type: 3}
   m_PrefabInstance: {fileID: 5914315486197241016}
   m_PrefabAsset: {fileID: 0}

@@ -620,6 +620,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4579184645526266580}
   - component: {fileID: 7274163835406573295}
+  - component: {fileID: 7604235344061498635}
   m_Layer: 6
   m_Name: RoofTopDoor
   m_TagString: Untagged
@@ -664,6 +665,26 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 0.15643565, z: 1.9141796}
   m_Center: {x: 0, y: -0.008003235, z: -0.0108680725}
+--- !u!114 &7604235344061498635
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5402301532390591239}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 6402294575465667511}
+  - {fileID: 5439957326761443271}
+  - {fileID: 928810292008660234}
+  - {fileID: 1328553288399980670}
+  - {fileID: 2566528322342545965}
+  - {fileID: 2483496500034734670}
 --- !u!1 &5631454914380119676
 GameObject:
   m_ObjectHideFlags: 0

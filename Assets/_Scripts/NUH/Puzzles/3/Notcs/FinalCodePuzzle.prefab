@@ -86,6 +86,7 @@ GameObject:
   - component: {fileID: 7376888982033888875}
   - component: {fileID: 7985246291464769544}
   - component: {fileID: 1411621344655177343}
+  - component: {fileID: 1412723848707036778}
   m_Layer: 6
   m_Name: Button_Erase
   m_TagString: Untagged
@@ -295,6 +296,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.09, y: 0.02, z: 0.01}
   m_Center: {x: 0.000093651935, y: -0.000025634654, z: 0.005}
+--- !u!114 &1412723848707036778
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 855237283285293452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 1679921236400585996}
 --- !u!1 &992546764709283022
 GameObject:
   m_ObjectHideFlags: 0
@@ -661,6 +677,7 @@ GameObject:
   - component: {fileID: 6292155178928958906}
   - component: {fileID: 4688495969227183765}
   - component: {fileID: 9046645230310923005}
+  - component: {fileID: 2415731978010632324}
   m_Layer: 6
   m_Name: Button5
   m_TagString: Untagged
@@ -870,6 +887,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.04, y: 0.04, z: 0.01}
   m_Center: {x: 0.00026064366, y: -0.00019775331, z: 0.005}
+--- !u!114 &2415731978010632324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1845419219552478488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 6688811978626541132}
 --- !u!1 &2084748993374270798
 GameObject:
   m_ObjectHideFlags: 0
@@ -883,6 +915,7 @@ GameObject:
   - component: {fileID: 886434323183429338}
   - component: {fileID: 5709247097238088849}
   - component: {fileID: 7837111402599527463}
+  - component: {fileID: 3412138724733878666}
   m_Layer: 6
   m_Name: Button3
   m_TagString: Untagged
@@ -1092,6 +1125,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.04, y: 0.04, z: 0.01}
   m_Center: {x: 0.00006758934, y: -0.000051269308, z: 0.005}
+--- !u!114 &3412138724733878666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2084748993374270798}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 2745614515790946608}
 --- !u!1 &2227555659643041190
 GameObject:
   m_ObjectHideFlags: 0
@@ -1105,6 +1153,7 @@ GameObject:
   - component: {fileID: 487132438960118561}
   - component: {fileID: 5987390191849112786}
   - component: {fileID: 8653536171300040530}
+  - component: {fileID: 1999023053969760335}
   m_Layer: 6
   m_Name: Button2
   m_TagString: Untagged
@@ -1314,6 +1363,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.04, y: 0.04, z: 0.01}
   m_Center: {x: 0.000037941616, y: 0.000095214695, z: 0.005}
+--- !u!114 &1999023053969760335
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2227555659643041190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 6915667710043356247}
 --- !u!1 &2415434450292831377
 GameObject:
   m_ObjectHideFlags: 0
@@ -1834,6 +1898,7 @@ GameObject:
   - component: {fileID: 5813857354489611244}
   - component: {fileID: 2543159917127361641}
   - component: {fileID: 7896172705229587840}
+  - component: {fileID: 7256839356160512224}
   m_Layer: 6
   m_Name: Button7
   m_TagString: Untagged
@@ -2043,6 +2108,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.04, y: 0.04, z: 0.01}
   m_Center: {x: -0.000067488756, y: -0.000051268842, z: 0.005}
+--- !u!114 &7256839356160512224
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3095042148892472476}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 7001698887154031410}
 --- !u!1 &3128100378866383779
 GameObject:
   m_ObjectHideFlags: 0
@@ -2564,6 +2644,7 @@ GameObject:
   - component: {fileID: 6916316813805986269}
   - component: {fileID: 5808320149387059723}
   - component: {fileID: 5089630337362341820}
+  - component: {fileID: 4753390057625323975}
   m_Layer: 6
   m_Name: Button1
   m_TagString: Untagged
@@ -2773,6 +2854,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.04, y: 0.04, z: 0.01}
   m_Center: {x: -0.00087052095, y: -0.000051268842, z: 0.005}
+--- !u!114 &4753390057625323975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3880000538527651160}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 7832977130731859295}
 --- !u!1 &4046594254249405204
 GameObject:
   m_ObjectHideFlags: 0
@@ -2786,6 +2882,7 @@ GameObject:
   - component: {fileID: 7608945536000666956}
   - component: {fileID: 4997285776501682349}
   - component: {fileID: 775998737723872800}
+  - component: {fileID: 56839750142127386}
   m_Layer: 6
   m_Name: Button9
   m_TagString: Untagged
@@ -2995,6 +3092,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.04, y: 0.04, z: 0.01}
   m_Center: {x: 0.000096352305, y: -0.00003369013, z: 0.005}
+--- !u!114 &56839750142127386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4046594254249405204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 7879823916140031794}
 --- !u!1 &4251286024741972969
 GameObject:
   m_ObjectHideFlags: 0
@@ -3779,6 +3891,7 @@ GameObject:
   - component: {fileID: 2682547724224171556}
   - component: {fileID: 5549856309503751531}
   - component: {fileID: 7682494912119635083}
+  - component: {fileID: 8028798795442846855}
   m_Layer: 6
   m_Name: Button8
   m_TagString: Untagged
@@ -3988,6 +4101,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.04, y: 0.04, z: 0.01}
   m_Center: {x: 0.000038170256, y: -0.000051269308, z: 0.005}
+--- !u!114 &8028798795442846855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4984523071490473615}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 5288182779233753663}
 --- !u!1 &5007871088695090260
 GameObject:
   m_ObjectHideFlags: 0
@@ -4483,6 +4611,7 @@ GameObject:
   - component: {fileID: 1300059741199131840}
   - component: {fileID: 7981774388863974432}
   - component: {fileID: 8428558625896350178}
+  - component: {fileID: 2458883149902042177}
   m_Layer: 6
   m_Name: Button6
   m_TagString: Untagged
@@ -4692,6 +4821,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.04, y: 0.04, z: 0.01}
   m_Center: {x: 0.00002603978, y: -0.000068847556, z: 0.005}
+--- !u!114 &2458883149902042177
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5568797865970976472}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 8554772648406802597}
 --- !u!1 &5678805130178294821
 GameObject:
   m_ObjectHideFlags: 0
@@ -5449,6 +5593,7 @@ GameObject:
   - component: {fileID: 8306293494991776890}
   - component: {fileID: 6706613347272706475}
   - component: {fileID: 360860407879014636}
+  - component: {fileID: 8102256233365443588}
   m_Layer: 6
   m_Name: Button4
   m_TagString: Untagged
@@ -5658,6 +5803,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.04, y: 0.04, z: 0.01}
   m_Center: {x: 0.00010852143, y: -0.000051268842, z: 0.005}
+--- !u!114 &8102256233365443588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6687636540458424510}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 6297751030017344962}
 --- !u!1 &6758391006672473241
 GameObject:
   m_ObjectHideFlags: 0
