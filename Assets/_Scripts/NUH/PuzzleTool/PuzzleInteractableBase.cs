@@ -391,4 +391,13 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     /// 반드시 서버 권한에서만 실행된다.
     /// </summary>
     protected abstract void ServerInteract(PlayerController actor);
+
+    //디버그/치트용 강제 완료 함수
+    public void DebugForceSolve()
+    {
+        if (!IsSolved)
+        {
+            MarkSolved();
+        }
+    }
 }
