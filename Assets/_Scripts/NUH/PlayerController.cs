@@ -1319,6 +1319,17 @@ public class PlayerController : NetworkBehaviour, IInteractable
         Debug.Log($"<color=cyan>[미니게임 결산]</color> 1사이클 완료! {successCount}회 성공하여 후유증 {reductionValue}% 삭감. 현재: {NetAftereffectPercent}%");
     }
 
+    // 🛠️ [신규 부품: 역방향 무전기] 서버가 특정 클라이언트(나)의 HUD에만 알림을 쏠 때 사용
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    public void RPC_ShowAlertHUD(string message)
+    {
+        // 내 컴퓨터(로컬)의 HUD 컨트롤러가 켜져 있다면 알람을 띄운다!
+        if (HUD != null)
+        {
+            HUD.ShowAlert(message); // (아까 HUDController에 만든 ShowAlert 함수)
+        }
+    }
+
     #region 게임 종료 이벤트 확인용 RPC
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
