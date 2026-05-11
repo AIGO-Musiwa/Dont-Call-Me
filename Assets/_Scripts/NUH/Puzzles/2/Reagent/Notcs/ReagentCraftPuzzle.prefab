@@ -1222,6 +1222,7 @@ GameObject:
   m_Component:
   - component: {fileID: 768725913425376063}
   - component: {fileID: 1186922085967362255}
+  - component: {fileID: 1457743733028079129}
   m_Layer: 0
   m_Name: AnalyzerRoot
   m_TagString: Untagged
@@ -1274,6 +1275,21 @@ MonoBehaviour:
   lanternIdleColor: {r: 1, g: 1, b: 1, a: 1}
   lanternSuccessColor: {r: 0, g: 1, b: 0, a: 1}
   lanternFailColor: {r: 1, g: 0, b: 0, a: 1}
+--- !u!114 &1457743733028079129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1086777324595708248}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 2412954859176711342}
 --- !u!1 &1276646700747030270
 GameObject:
   m_ObjectHideFlags: 0
@@ -1341,6 +1357,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
   outlineLayerName: ItemOutline
+  targetRenderers: []
 --- !u!1 &1408387123371372963
 GameObject:
   m_ObjectHideFlags: 0
@@ -8292,6 +8309,7 @@ MonoBehaviour:
     \uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
   countForStage1Progress: 1
   audioModule: {fileID: 6708459796500928344}
+  sounddBSetting: {fileID: 11400000, guid: f18877e7ba39eb940817fd552485658f, type: 2}
   _NetIsSolved:
     _value: 0
   craftView: {fileID: 1791206325549575615}

@@ -230,6 +230,7 @@ GameObject:
   - component: {fileID: 4221384690775408464}
   - component: {fileID: 3168247491067533}
   - component: {fileID: 3476786266871838972}
+  - component: {fileID: 6706636164334184898}
   m_Layer: 6
   m_Name: Handle_Baked
   m_TagString: Untagged
@@ -346,6 +347,22 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 3612032705541222451}
   interactableId: 3
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
+--- !u!114 &6706636164334184898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 437705381337303921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 4221384690775408464}
+  - {fileID: 8529531280691337417}
 --- !u!1 &455745493516610219
 GameObject:
   m_ObjectHideFlags: 0
@@ -1116,6 +1133,7 @@ GameObject:
   - component: {fileID: 2133180453358454492}
   - component: {fileID: 5987492368092652165}
   - component: {fileID: 8526739749432871019}
+  - component: {fileID: 794713438931891176}
   m_Layer: 6
   m_Name: Handle_Baked
   m_TagString: Untagged
@@ -1232,6 +1250,22 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 3612032705541222451}
   interactableId: 2
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
+--- !u!114 &794713438931891176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1131771294715979962}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 2133180453358454492}
+  - {fileID: 2155298809730057103}
 --- !u!1 &1182675793867513298
 GameObject:
   m_ObjectHideFlags: 0
@@ -1552,6 +1586,7 @@ GameObject:
   - component: {fileID: 5015268758418902200}
   - component: {fileID: 4211868359136310655}
   - component: {fileID: 6384635814918486755}
+  - component: {fileID: 1270818346970349358}
   m_Layer: 6
   m_Name: Handle_Baked
   m_TagString: Untagged
@@ -1668,6 +1703,22 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 3612032705541222451}
   interactableId: 0
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
+--- !u!114 &1270818346970349358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1720649750105075304}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 5015268758418902200}
+  - {fileID: 3139040007926176784}
 --- !u!1 &1850050088431148264
 GameObject:
   m_ObjectHideFlags: 0
@@ -2961,6 +3012,7 @@ GameObject:
   - component: {fileID: 1466636029374663922}
   - component: {fileID: 6307041315150228960}
   - component: {fileID: 6348155463015767690}
+  - component: {fileID: 4570164278421009944}
   m_Layer: 6
   m_Name: Handle_Baked
   m_TagString: Untagged
@@ -3077,6 +3129,22 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 3612032705541222451}
   interactableId: 1
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
+--- !u!114 &4570164278421009944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4534327849070193497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 1466636029374663922}
+  - {fileID: 5039031019401322450}
 --- !u!1 &4902642818637309641
 GameObject:
   m_ObjectHideFlags: 0
@@ -3629,6 +3697,7 @@ GameObject:
   - component: {fileID: 7793432050982963569}
   - component: {fileID: 8646170354033854480}
   - component: {fileID: 168027191150544614}
+  - component: {fileID: 6072898341875212622}
   m_Layer: 6
   m_Name: Handle_Baked
   m_TagString: Untagged
@@ -3745,6 +3814,22 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 3612032705541222451}
   interactableId: 4
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
+--- !u!114 &6072898341875212622
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5265637507480170719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 7793432050982963569}
+  - {fileID: 5425870465828642096}
 --- !u!1 &5383216505947228882
 GameObject:
   m_ObjectHideFlags: 0
@@ -4250,6 +4335,7 @@ GameObject:
   - component: {fileID: 2933296700716737073}
   - component: {fileID: 8209731919120493704}
   - component: {fileID: 2407024418610460412}
+  - component: {fileID: 274236763032158752}
   m_Layer: 6
   m_Name: Handle_Baked
   m_TagString: Untagged
@@ -4366,6 +4452,22 @@ MonoBehaviour:
   ownerPuzzle: {fileID: 3612032705541222451}
   interactableId: 5
   leverPromptText: "\uB808\uBC84 \uC870\uC791"
+--- !u!114 &274236763032158752
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6385740479814949443}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 2933296700716737073}
+  - {fileID: 7424103589957827975}
 --- !u!1 &6408578740204040111
 GameObject:
   m_ObjectHideFlags: 0
@@ -4523,6 +4625,7 @@ MonoBehaviour:
     \uD37C\uC990 \uC0C1\uD638\uC791\uC6A9"
   countForStage1Progress: 1
   audioModule: {fileID: 4731961362578912002}
+  sounddBSetting: {fileID: 11400000, guid: f18877e7ba39eb940817fd552485658f, type: 2}
   _NetIsSolved:
     _value: 0
   leverCount: 6

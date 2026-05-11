@@ -243,6 +243,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
   outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 9159537069378160144}
 --- !u!82 &8485254465430211809
 AudioSource:
   m_ObjectHideFlags: 0
@@ -397,9 +399,7 @@ MonoBehaviour:
   maxRepairTime: 10
   lureDuration: 20
   safetyLockTime: 1.5
-  repairSounddB: 41
-  radioLureSounddB: 47
-  radioSoundInterval: 0.5
+  sounddBSetting: {fileID: 11400000, guid: f18877e7ba39eb940817fd552485658f, type: 2}
   _CurrentState: 0
   _RepairProgress: 0
 --- !u!114 &8392107573869927125

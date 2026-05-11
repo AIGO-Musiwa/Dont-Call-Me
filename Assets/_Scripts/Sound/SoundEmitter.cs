@@ -7,6 +7,13 @@ public static class SoundEmitter
 {
     private static readonly Dictionary<Zone, CreatureSensor> creatureSensors = new();
 
+    private static SounddBSetting sounddBSetting;
+
+    public static void Initialize(SounddBSetting setting)
+    {
+        sounddBSetting = setting;
+    }
+
     #region 크리처 등록/해제
 
     public static void RegisterCreature(Zone zone, CreatureSensor sensor)
@@ -42,10 +49,10 @@ public static class SoundEmitter
     {
         float dB = type switch
         {
-            CharacterAudioModule.FootstepType.Crouch => 26f,
-            CharacterAudioModule.FootstepType.Walk => 31f,
-            CharacterAudioModule.FootstepType.Run => 34f,
-            _ => 31f
+            CharacterAudioModule.FootstepType.Crouch => sounddBSetting.footstepDB_Crouch,
+            CharacterAudioModule.FootstepType.Walk => sounddBSetting.footstepDB_Walk,
+            CharacterAudioModule.FootstepType.Run => sounddBSetting.footstepDB_Run,
+            _ => sounddBSetting.footstepDB_Walk
         };
 
         EmitNatural(dB, position, sourceZone, pc);

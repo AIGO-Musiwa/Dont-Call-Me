@@ -25,6 +25,9 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     [Header("사운드 모듈")]
     [SerializeField] public MultiAudioTrigger audioModule; // 공통 성공/실패 사운드 모듈
 
+    [Header("사운드 dB 설정")]
+    [SerializeField] private SounddBSetting sounddBSetting; // 퍼즐 관련 사운드 dB 발행 설정
+
     [Networked, OnChangedRender(nameof(OnSolvedStateChangedRender))]
     public NetworkBool NetIsSolved { get; private set; } // 퍼즐 최종 클리어 여부 네트워크 동기화 값
 
@@ -53,8 +56,6 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     [Networked] private NetworkBool NetStage3HintReveal5 { get; set; } // Stage3 힌트 5번 공개 여부
 
     public bool CountForStageProgress => countForStage1Progress; // 진행도 집계 포함 여부 외부 읽기용
-
-    private float failSounddB = 49f;
 
     /// <summary>
     /// 현재 퍼즐에 스폰 Zone이 주입되었는지 반환한다.
@@ -94,6 +95,9 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     public override void Spawned()
     {
         IsNetworkReady = true; // Spawned 이후 네트워크 준비 완료 표시
+
+        if (sounddBSetting == null)
+            Debug.LogWarning($"[{gameObject.name}] SounddBSettings가 할당되지 않았습니다. 퍼즐 실패음이 발행되지 않습니다.");
 
         if (NetHasSpawnZone)
             HandleSpawnZoneAssigned(SpawnZone); // 이미 Zone이 들어온 상태면 자식 후처리 반영
@@ -235,7 +239,7 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     /// </summary>
     protected virtual void MarkFailed()
     {
-        SoundEmitter.EmitWalkieDirect(failSounddB, transform.position, SpawnZone);
+        SoundEmitter.EmitWalkieDirect(sounddBSetting.puzzleFailSounddB, transform.position, SpawnZone);
         if (audioModule != null)
             audioModule.PlaySound(SoundType.Fail); // 실패
     }
@@ -391,4 +395,13 @@ public abstract class PuzzleInteractableBase : NetworkBehaviour, IInteractable
     /// 반드시 서버 권한에서만 실행된다.
     /// </summary>
     protected abstract void ServerInteract(PlayerController actor);
+
+    //디버그/치트용 강제 완료 함수
+    public void DebugForceSolve()
+    {
+        if (!IsSolved)
+        {
+            MarkSolved();
+        }
+    }
 }

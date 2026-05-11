@@ -275,7 +275,7 @@ public class FinalCodePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     /// <summary>
     /// 성공 처리.
     /// </summary>
-    private void HandleSolved()
+    public void HandleSolved()
     {
         MarkSolved();
         ApplySolvedPresentation();        
