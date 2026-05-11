@@ -26,7 +26,7 @@ public class PlayerVoiceController : NetworkBehaviour
     private PlayerController teammatePc;
     private AudioSource teammateAudioSource;
 
-    private Transform listenerTransform;
+    private Transform soundOrigin;
 
     private float globalVolume = 1f;        // 다른 플레이어 전체 수신 볼륨 배율 (0 ~ 1)
 
@@ -39,13 +39,6 @@ public class PlayerVoiceController : NetworkBehaviour
 
         // PlayerPrefs에서 globalVolume 불러오기
         globalVolume = PlayerPrefs.GetFloat(Constants.KEY_GLOBAL_RECEIVE_VOLUME, 1f);
-
-        // 자식 AudioListener 탐색
-        AudioListener listener = GetComponentInChildren<AudioListener>();
-        if (listener != null)
-            listenerTransform = listener.transform;
-        else
-            Debug.LogWarning("[PlayerVoiceController] 자식에서 AudioListener를 찾지 못했습니다.");
 
         VoiceManager.Instance?.SwitchToGameMode(playerController.NetZone);
     }
@@ -86,7 +79,7 @@ public class PlayerVoiceController : NetworkBehaviour
     {
         PlayerController target = VoiceManager.Instance?.GetSpectatingTarget();
         if (target == null) return;
-        if (listenerTransform == null) return;
+        if (soundOrigin == null) return;
 
         // 관전 대상 AudioSource -> globalVolume 적용
         AudioSource targetAudio = target.GetComponent<AudioSource>();
@@ -95,7 +88,7 @@ public class PlayerVoiceController : NetworkBehaviour
             targetAudio.volume = globalVolume;
 
             // 좌우 방향성
-            targetAudio.panStereo = VoicePanCalculator.Calculate(listenerTransform, target.transform.position, proximityPanRange);
+            targetAudio.panStereo = VoicePanCalculator.Calculate(soundOrigin, target.transform.position, proximityPanRange);
         }
 
         // 관전 대상 팀원 찾기
@@ -106,19 +99,19 @@ public class PlayerVoiceController : NetworkBehaviour
         AudioSource teammateAudio = teammate.GetComponent<AudioSource>();
         if (teammateAudio == null) return;
 
-        float dist = Vector3.Distance(listenerTransform.position, teammate.transform.position);
+        float dist = Vector3.Distance(soundOrigin.position, teammate.transform.position);
         float distanceVolume = dist >= maxDistance
             ? 0f
             : Mathf.Clamp01(minDistance / Mathf.Max(dist, minDistance));
 
         // 벽 감쇠
         float obstructionMultiplier = VoiceObstructionDetector.GetObstructionMultiplier(
-            listenerTransform.position, teammate.transform.position, obstructionMask, perWallAttenuation, maxWallCount);
+            soundOrigin.position, teammate.transform.position, obstructionMask, perWallAttenuation, maxWallCount);
 
         teammateAudio.volume = globalVolume * distanceVolume * obstructionMultiplier;
 
         // 좌우 방향성
-        teammateAudio.panStereo = VoicePanCalculator.Calculate(listenerTransform, teammate.transform.position, proximityPanRange);
+        teammateAudio.panStereo = VoicePanCalculator.Calculate(soundOrigin, teammate.transform.position, proximityPanRange);
     }
 
     // spectatingTarget과 같은 구역이면서 살아있는 팀원 반환
@@ -141,9 +134,9 @@ public class PlayerVoiceController : NetworkBehaviour
 
     // ── 외부 API ────────────────────────────────────────────────
 
-    public void SetListenerTransform(Transform listenerTransform)
+    public void SetListenerTransform(Transform origin)
     {
-        this.listenerTransform = listenerTransform;
+        soundOrigin = origin;
     }
 
     // 전체 수신 볼륨 설정

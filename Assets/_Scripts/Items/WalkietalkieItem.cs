@@ -27,7 +27,7 @@ public class WalkieTalkieItem : ItemObject
     // 송신자 구역 플레이어 WalkieTalkieNoiseFilter 캐시
     private readonly List<WalkieTalkieNoiseFilter> senderZoneNoiseFilters = new();
 
-    private Transform listenerTransform;
+    private Transform soundOrigin;
 
     // ─── 초기화 ──────────────────────────────────────
     protected override void Awake()
@@ -97,9 +97,9 @@ public class WalkieTalkieItem : ItemObject
 
     public void RefreshSenderAudioSources() => RebuildSenderAudioSources();
 
-    public void SetListenerTransform(Transform transform)
+    public void SetListenerTransform(Transform origin)
     {
-        listenerTransform = transform;
+        soundOrigin = origin;
     }
 
     // ────────────────────────────────────────────────
@@ -249,15 +249,10 @@ public class WalkieTalkieItem : ItemObject
             }
         }
 
-        Transform panOrigin = listenerTransform;
-        if (panOrigin == null)
-        {
-            AudioListener listener = localPc.GetComponentInChildren<AudioListener>();
-            panOrigin = listener != null ? listener.transform : localPc.transform;
-        }
+        Vector3 originPos = soundOrigin != null ? soundOrigin.position : localPc.transform.position;
 
         // 로컬 플레이어와 수신 무전기 사이 거리 계산
-        float dist = Vector3.Distance(panOrigin.position, transform.position);
+        float dist = Vector3.Distance(originPos, transform.position);
 
         // Logarithmic 감쇠
         float volume = dist >= Constants.WALKIE_RANGE
@@ -265,7 +260,7 @@ public class WalkieTalkieItem : ItemObject
             : Mathf.Clamp01(walkieVoiceMinDistance / Mathf.Max(dist, walkieVoiceMinDistance));
 
         // 무전기 위치 기준 panStereo 계산
-        float pan = VoicePanCalculator.Calculate(listenerTransform, transform.position, walkiePanRange);
+        float pan = VoicePanCalculator.Calculate(soundOrigin, transform.position, walkiePanRange);
 
         foreach (var audioSource in senderZoneAudioSources)
         {
