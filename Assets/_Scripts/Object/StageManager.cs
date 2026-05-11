@@ -1,6 +1,7 @@
 using Fusion;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// 게임 전체 Stage 진행 승인 및 전역 맵 변화 관리 매니저.
@@ -27,6 +28,7 @@ public class StageManager : NetworkBehaviour
     [Header("3막 연출 소리 설정")]
     [SerializeField] private AudioSource sirenAudioSource; // 전역 사이렌 AudioSource
     [SerializeField] private AudioClip sirenClip;          // 3막 진입 시 재생할 사이렌 클립
+    [SerializeField] private AudioClip shutterCloseClip;   // 셔터 닫힘 시 재생할 클립
 
     [Header("Zone A 계단 차단 (셔터)")]
     [SerializeField] private GameObject zoneA_StairA_Top;    // ZoneA A계단 상단 차단벽 (3F-2F)
@@ -46,7 +48,12 @@ public class StageManager : NetworkBehaviour
     [Header("디버그")]
     [SerializeField] private bool enableDebugLog = true; // 디버그 로그 출력 여부
 
-    [Networked] public NetworkBool IsAct3Active { get; set; } // 3막 진행 여부 네트워크 동기화 값
+    [Networked, OnChangedRender(nameof(OnAct3StateChanged))]
+    public NetworkBool IsAct3Active { get; set; } // 3막 진행 여부 네트워크 동기화 값
+
+    //방장이 뽑은 셔터 패턴 결과를 저장할 네트워크 변수
+    [Networked] private NetworkBool NetZoneAPattern1 { get; set; }
+    [Networked] private NetworkBool NetZoneBPattern1 { get; set; }
 
     [Networked, OnChangedRender(nameof(OnStage1CompletedChangedRender))]
     private NetworkBool NetZoneAStage1Completed { get; set; } // ZoneA Stage1 완료 승인 여부
@@ -62,8 +69,8 @@ public class StageManager : NetworkBehaviour
     [Networked] public NetworkBool IsEscapeButtonExposed { get; private set; }
     [Networked] public NetworkBool IsZoneAEscapeButtonExposed { get; private set; } // ZoneA 탈출 버튼 노출 여부
     [Networked] public NetworkBool IsZoneBEscapeButtonExposed { get; private set; } // ZoneB 탈출 버튼 노출 여부
-    [Networked] private NetworkBool IsZoneAEscapePressed { get; set; }
-    [Networked] private NetworkBool IsZoneBEscapePressed { get; set; }
+    [Networked] public NetworkBool IsZoneAEscapePressed { get; set; }
+    [Networked] public NetworkBool IsZoneBEscapePressed { get; set; }
     [Networked] private TickTimer EscapeInputTimer { get; set; }
 
     //텔레포트가 이미 완료된 플레이어들을 기억하여 무한 워프를 방지하는 로컬 셋
@@ -72,6 +79,21 @@ public class StageManager : NetworkBehaviour
     //옵저버 시스템 고장 방지를 위한 3초 지연 타이머 딕셔너리
     private Dictionary<NetworkId, TickTimer> _deadTeleportTimers = new Dictionary<NetworkId, TickTimer>();
     private float _findRespawnTimer = 0f;
+
+    private void Update()
+    {
+        if (!HasStateAuthority) return;
+
+        // 현재 연결된 키보드 장치 가져오기
+        var keyboard = Keyboard.current;
+        if (keyboard == null) return;
+
+        // F11키가 이번 프레임에 눌렸는지 확인
+        if (keyboard.f11Key.wasPressedThisFrame)
+        {
+            DebugCheatSkipAllToEscapeButton();
+        }
+    }
 
     public override void Spawned()
     {
@@ -423,8 +445,8 @@ public class StageManager : NetworkBehaviour
         FinalCodePuzzle[] finalCodePuzzles = FindObjectsByType<FinalCodePuzzle>(FindObjectsInactive.Exclude,FindObjectsSortMode.None);
         foreach (FinalCodePuzzle puzzle in finalCodePuzzles) puzzle.TrySpawnRewardKeycard();
 
-        ApplyRandomPatternToZone(Zone.ZoneA);
-        ApplyRandomPatternToZone(Zone.ZoneB);
+        NetZoneAPattern1 = Random.value > 0.5f;
+        NetZoneBPattern1 = Random.value > 0.5f;
 
         ZoneLightingManager.GetManager(Zone.ZoneA)?.TriggerAct3Event(true);
         ZoneLightingManager.GetManager(Zone.ZoneB)?.TriggerAct3Event(true);
@@ -436,13 +458,21 @@ public class StageManager : NetworkBehaviour
         Log("3막(Act3) 진입 완료 | 크리처 강화 | 계단 차단 | 조명/사이렌 발동");
     }
 
-    /// <summary>
-    /// 특정 Zone에 랜덤 계단 차단 패턴을 적용한다.
-    /// </summary>
-    private void ApplyRandomPatternToZone(Zone zone)
+    //IsAct3Active가 true로 변할 때 모든 클라이언트(방장+접속자)에서 동시 실행
+    private void OnAct3StateChanged()
     {
-        bool isPattern1 = Random.value > 0.5f;
+        if (IsAct3Active)
+        {
+            ApplySyncedPatternToZone(Zone.ZoneA, NetZoneAPattern1);
+            ApplySyncedPatternToZone(Zone.ZoneB, NetZoneBPattern1);
+        }
+    }
 
+    /// <summary>
+    /// 특정 Zone에 동기화된 계단 차단 패턴을 적용한다.
+    /// </summary>
+    private void ApplySyncedPatternToZone(Zone zone, bool isPattern1)
+    {
         if (zone == Zone.ZoneA)
         {
             if (zoneA_StairA_Top != null) zoneA_StairA_Top.SetActive(isPattern1);
@@ -450,18 +480,17 @@ public class StageManager : NetworkBehaviour
 
             if (zoneA_StairA_Bottom != null) zoneA_StairA_Bottom.SetActive(!isPattern1);
             if (zoneA_StairB_Top != null) zoneA_StairB_Top.SetActive(!isPattern1);
+        }
+        else
+        {
+            if (zoneB_StairA_Top != null) zoneB_StairA_Top.SetActive(isPattern1);
+            if (zoneB_StairB_Bottom != null) zoneB_StairB_Bottom.SetActive(isPattern1);
 
-            Log($"ZoneA 3막 계단 차단 패턴 {(isPattern1 ? "1" : "2")} 적용");
-            return;
+            if (zoneB_StairA_Bottom != null) zoneB_StairA_Bottom.SetActive(!isPattern1);
+            if (zoneB_StairB_Top != null) zoneB_StairB_Top.SetActive(!isPattern1);
         }
 
-        if (zoneB_StairA_Top != null) zoneB_StairA_Top.SetActive(isPattern1);
-        if (zoneB_StairB_Bottom != null) zoneB_StairB_Bottom.SetActive(isPattern1);
-
-        if (zoneB_StairA_Bottom != null) zoneB_StairA_Bottom.SetActive(!isPattern1);
-        if (zoneB_StairB_Top != null) zoneB_StairB_Top.SetActive(!isPattern1);
-
-        Log($"ZoneB 3막 계단 차단 패턴 {(isPattern1 ? "1" : "2")} 적용");
+        Log($"[{zone}] 3막 계단 차단 완료 (동기화됨)");
     }
 
     /// <summary>
@@ -483,12 +512,22 @@ public class StageManager : NetworkBehaviour
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void RPC_PlayAct3Effects()
     {
-        if (sirenAudioSource == null || sirenClip == null)
+        if (sirenAudioSource == null)
             return;
 
-        sirenAudioSource.clip = sirenClip;
-        sirenAudioSource.loop = true;
-        sirenAudioSource.Play();
+        //사이렌이 울리기 직전(또는 동시)에 셔터 소리를 단 한 번만 겹쳐서 재생
+        if (shutterCloseClip != null)
+        {
+            sirenAudioSource.PlayOneShot(shutterCloseClip);
+        }
+
+        //사이렌 루프 재생 로직
+        if (sirenClip != null)
+        {
+            sirenAudioSource.clip = sirenClip;
+            sirenAudioSource.loop = true;
+            sirenAudioSource.Play();
+        }
     }
 
     #endregion
@@ -514,6 +553,40 @@ public class StageManager : NetworkBehaviour
         ReportZoneStage1Completed(Zone.ZoneB);
 
         Log("디버그 | 양쪽 Zone Stage2 해금 + Stage3 문 개방 강제 적용");
+    }
+
+    [ContextMenu("Debug/치트: 1&2&3 단계 즉시 패스 (F11)")]
+    private void DebugCheatSkipAllToEscapeButton()
+    {
+        if (!HasStateAuthority) return;
+
+        //1단계 완료 강제 승인
+        ReportZoneStage1Completed(Zone.ZoneA);
+        ReportZoneStage1Completed(Zone.ZoneB);
+
+        ReportZoneStage3Completed(Zone.ZoneA);
+        ReportZoneStage3Completed(Zone.ZoneB);
+
+        //맵에 있는 모든 퍼즐 검색
+        PuzzleInteractableBase[] allPuzzles = FindObjectsByType<PuzzleInteractableBase>(FindObjectsInactive.Include, FindObjectsSortMode.None);        
+        foreach (var puzzle in allPuzzles)
+        {
+            //3단계 퍼즐(FinalCodePuzzle)까지 포함해서 전부 다 풀어버림
+            if (puzzle == null) continue;
+
+            if (puzzle is FinalCodePuzzle finalCodePuzzle)
+            {
+                // 3단계 전용 완료 함수 실행
+                finalCodePuzzle.HandleSolved();
+            }
+            else
+            {
+                // 일반 1, 2단계 퍼즐 완료
+                puzzle.DebugForceSolve();
+            }
+        }
+
+        Log("<color=magenta><b>[CHEAT] F11 입력!</b></color> 3단계까지 모두 패스했습니다! 탈출 버튼에 불이 들어옵니다.");
     }
 
     [ContextMenu("Debug/3단계 완료 강제 승인 (탈출 버튼 노출)")]
