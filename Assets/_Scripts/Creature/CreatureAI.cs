@@ -494,27 +494,32 @@ public class CreatureAI : NetworkBehaviour
         //시야에서 놓쳤을 경우 타이머 증가
         losLostTimer += Runner.DeltaTime;
 
-        //시야에서 사라져도 lockOnBreakTime 동안에는 타겟의 실제 위치를 정확히 추적
-        if (losLostTimer < lockOnBreakTime) targetLocation = playerTarget.position;
-
-        //시야 상실 후 lockOnBreakTime 초과 시, 타겟의 마지막 위치를 중심으로 수색 시작
-        else if (losLostTimer >= lockOnBreakTime)
+        //시야에서 사라진 후 loockOnBreakTime 초과 시 타겟 추적 포기
+        if (losLostTimer > lockOnBreakTime)
         {
-            currentState = CreatureState.Search;
-
-            //최초 주변 수색 페이즈 설정
-            currentSearchPhase = SearchPhase.InitialLookAround;
-            overallSearchTimer = 0f;
-            searchCenter = targetLocation;
-            stateTimer = 0f;
-            stuckTimer = 0f;
-            currentTrackedDb = 0f;
-
-            //타겟 초기화 및 제자리 대기
             playerTarget = null;
-            motor.StopMoving();
         }
-        
+
+        ////시야에서 사라져도 lockOnBreakTime 동안에는 타겟의 실제 위치를 정확히 추적
+        //if (losLostTimer < lockOnBreakTime) targetLocation = playerTarget.position;
+
+        ////시야 상실 후 lockOnBreakTime 초과 시, 타겟의 마지막 위치를 중심으로 수색 시작
+        //else if (losLostTimer >= lockOnBreakTime)
+        //{
+        //    currentState = CreatureState.Search;
+
+        //    //최초 주변 수색 페이즈 설정
+        //    currentSearchPhase = SearchPhase.InitialLookAround;
+        //    overallSearchTimer = 0f;
+        //    searchCenter = targetLocation;
+        //    stateTimer = 0f;
+        //    stuckTimer = 0f;
+        //    currentTrackedDb = 0f;
+
+        //    //타겟 초기화 및 제자리 대기
+        //    playerTarget = null;
+        //    motor.StopMoving();
+        //}        
     }  
 
     //수색 페이즈를 종료하고 순찰로 복귀
