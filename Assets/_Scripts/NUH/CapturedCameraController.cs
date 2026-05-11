@@ -11,9 +11,6 @@ public class CapturedCameraController : MonoBehaviour
     [SerializeField] private Transform capturedLookPivot; // 포획 상태에서 마우스 입력으로 회전할 기준 pivot
     [SerializeField] private InputHandler inputHandler;   // 로컬 입력을 제공하는 씬 입력 수집기
 
-    [Header("기본 회전")]
-    [SerializeField] private Vector3 baseRotationEuler = new Vector3(-90f, 0f, 0f); // 포획 카메라가 바라볼 기본 자세 회전값
-
     [Header("회전 제한")]
     [SerializeField] private float yawMin = -70f;          // 포획 카메라 좌측 최대 각도
     [SerializeField] private float yawMax = 70f;           // 포획 카메라 우측 최대 각도
@@ -139,10 +136,9 @@ public class CapturedCameraController : MonoBehaviour
         if (capturedLookPivot == null)
             return;
 
-        Quaternion baseRotation = Quaternion.Euler(baseRotationEuler);
         Quaternion lookRotation = Quaternion.Euler(_pitch, _yaw, 0f);
 
-        capturedLookPivot.localRotation = baseRotation * lookRotation;
+        capturedLookPivot.localRotation = lookRotation;
     }
 
     /// <summary>

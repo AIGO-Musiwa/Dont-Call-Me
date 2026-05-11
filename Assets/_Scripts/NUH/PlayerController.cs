@@ -36,6 +36,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [SerializeField] private float leftHandDropImpulse = 2.0f;           // 왼손 드랍 임펄스
 
     [Header("포획")]
+    [SerializeField] private GameObject capturedRescueHitbox;            // 포획 상태에서 구출 판정을 위한 히트박스
     [SerializeField] private float captureTransitionSeconds = 1.0f;      // 포획 전환 연출 시간
     [SerializeField] private float traumaPenaltyCapture1 = 10f;          // 첫 포획 후유증 증가량
     [SerializeField] private float traumaPenaltyCapture2 = 20f;          // 두 번째 포획 후유증 증가량
@@ -43,6 +44,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [SerializeField] private float traumaIncreasePerSecond = 1f;         // 포획 중 초당 후유증 증가량
     [SerializeField] private float traumaDeathThreshold = 100f;          // 후유증 사망 임계값
     [SerializeField] private float rescueBaseTimeSeconds = 100f;         // 기본 구조 제한 시간
+    
 
     [Networked, OnChangedRender(nameof(OnPlayerStateChanged))]
     public PlayerState NetPlayerState { get; set; }                      // 현재 플레이어 상태
@@ -77,6 +79,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
     private int _lastInteractRequestTick = -1;                           // 마지막 일반 상호작용 요청 tick
     private bool _prevWalkiePressed;                                     // 이전 tick 무전기 입력 상태
+    private bool _lastCapturedRescueHitboxActive;                        // 마지막으로 구출 감지 Trigger 활성 상태
 
     private ChangeDetector stateChangeDetector;                          // PlayerState 변경 감지기
     private ItemOutlineController _lastHighlightedOutline;               // 마지막으로 강조 중인 외곽선 장치
@@ -148,6 +151,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
         stateChangeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState); // 상태 변경 감지기 생성
 
         if (!AllPlayers.Contains(this)) AllPlayers.Add(this);
+
+        ApplyCapturedRescueHitboxState(true);                                            // 포획 구출 히트박스 상태 초기화
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState)
@@ -231,6 +236,11 @@ public class PlayerController : NetworkBehaviour, IInteractable
             if (GetHeldWalkieTalkie() != null)
                 RPC_RequestPTT(false);
         }
+    }
+
+    public override void Render()
+    {
+        ApplyCapturedRescueHitboxState(false);
     }
 
     /// <summary>
@@ -382,6 +392,26 @@ public class PlayerController : NetworkBehaviour, IInteractable
     public bool IsCaptureActive()
     {
         return NetPlayerState == PlayerState.Captured && NetCapturePhase == CapturePhase.Active; // 현재 포획 활성 상태인지
+    }
+
+    /// <summary>
+    /// 포획 활성 상태일 때만 구출 Raycast 감지용 Trigger 오브젝트 켜기
+    /// </summary>
+    private void ApplyCapturedRescueHitboxState(bool force)
+    {
+        if (capturedRescueHitbox == null)
+            return;
+
+        bool shouldActive = NetPlayerState == PlayerState.Captured &&
+            NetCapturePhase == CapturePhase.Active;
+
+        if (!force &&
+            _lastCapturedRescueHitboxActive == shouldActive &&
+            capturedRescueHitbox.activeSelf == shouldActive)
+            return;
+
+        capturedRescueHitbox.SetActive(shouldActive);                                       // 포획 활성 상태에 따라 히트박스 활성화
+        _lastCapturedRescueHitboxActive = shouldActive;                                     // 상태 기록
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
