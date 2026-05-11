@@ -80,6 +80,8 @@ public class ZoneDistributor : NetworkBehaviour
 
         Log("플레이어 Zone/Role 배치 완료");
 
+        GameSessionManager.Instance?.InitPlayerStateCache();
+
         NotifyTeammateForVoice();
     }
 
@@ -188,6 +190,7 @@ public class ZoneDistributor : NetworkBehaviour
             }
 
             data.PlayerControllerNetId = obj.Id;
+            data.PlayerZone = zone;
 
             _playerZoneMap[playerRef] = zone;
             _playerRoleMap[playerRef] = role;

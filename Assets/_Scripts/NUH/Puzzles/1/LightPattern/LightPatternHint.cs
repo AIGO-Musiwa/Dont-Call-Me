@@ -137,7 +137,7 @@ public class LightPatternHint : MonoBehaviour, IPuzzleSeedReceiver
                 yield return new WaitForSeconds(hintOffTime);
             }
 
-            // 사운드 재생
+            // TODO_사운드 재생
             if (audioModule != null) audioModule.PlaySound(SoundType.BeepLarge); // 전구 힌트 전체 깜빡임
 
             TurnAllBulbs(true);

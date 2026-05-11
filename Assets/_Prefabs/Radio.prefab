@@ -125,6 +125,11 @@ GameObject:
   - component: {fileID: 9159537069378160144}
   - component: {fileID: 2067297389569236236}
   - component: {fileID: 1230386808349935442}
+  - component: {fileID: 8485254465430211809}
+  - component: {fileID: 5351956335816139644}
+  - component: {fileID: 139118785504497620}
+  - component: {fileID: 4218528487504776801}
+  - component: {fileID: 8392107573869927125}
   m_Layer: 6
   m_Name: Radio
   m_TagString: Untagged
@@ -142,8 +147,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2551553521507278689}
   m_Father: {fileID: 0}
@@ -220,11 +225,11 @@ MonoBehaviour:
   glassRenderer: {fileID: 2983928308364387623}
   materialIndex: 0
   outlineComponent: {fileID: 2067297389569236236}
-  brokenColor: {r: 2.5, g: 0, b: 0, a: 2.5}
-  progressColor: {r: 0, g: 0, b: 2.5, a: 2.5}
-  readyColor: {r: 1.25, g: 1.25, b: 1.25, a: 2.5}
-  activeColor: {r: 0, g: 2.5, b: 0, a: 2.5}
-  disabledColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
+  brokenColor: {r: 2.5, g: 0, b: 0, a: 0.21568628}
+  progressColor: {r: 0, g: 0, b: 2.5, a: 0.21568628}
+  readyColor: {r: 1.25, g: 1.25, b: 1.25, a: 0.21568628}
+  activeColor: {r: 0, g: 2.5, b: 0, a: 0.21568628}
+  disabledColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.21568628}
 --- !u!114 &1230386808349935442
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -238,3 +243,181 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
   outlineLayerName: ItemOutline
+--- !u!82 &8485254465430211809
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9159537069380098256}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 5430554230989911950, guid: 94a6fbf40ebbb524dabe2174f314a8ea, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &5351956335816139644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9159537069380098256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e57a42340b87584885328f0269e014a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SimpleAudioTrigger
+  soundMappings:
+  - soundType: 9
+    audioEvent: {fileID: 11400000, guid: 34a1d89f30943c848b6243fc2a97288f, type: 2}
+  - soundType: 10
+    audioEvent: {fileID: 11400000, guid: 153a38ed9e8d15749807b089c5444dc6, type: 2}
+  minDistance: 2
+  maxDistance: 4
+--- !u!65 &139118785504497620
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9159537069380098256}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.5, y: 0.3, z: 0.2}
+  m_Center: {x: 0, y: 0.13320939, z: 0.00601444}
+--- !u!114 &4218528487504776801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9159537069380098256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc03bff2870decd4fa8610f2d1bfe12b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Radio
+  glassController: {fileID: 2067297389569236236}
+  audioModule: {fileID: 5351956335816139644}
+  maxRepairTime: 10
+  lureDuration: 20
+  safetyLockTime: 1.5
+  repairSounddB: 41
+  radioLureSounddB: 47
+  radioSoundInterval: 0.5
+  _CurrentState: 0
+  _RepairProgress: 0
+--- !u!114 &8392107573869927125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9159537069380098256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 109670386
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 4218528487504776801}
+  ForceRemoteRenderTimeframe: 0

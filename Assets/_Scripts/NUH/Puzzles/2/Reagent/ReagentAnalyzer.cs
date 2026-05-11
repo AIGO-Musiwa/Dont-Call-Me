@@ -128,6 +128,10 @@ public class ReagentAnalyzer : NetworkBehaviour, IInteractable, IChildPuzzleInte
         NetInsertedItemId = reagentItem.Object.Id; // 네트워크에 삽입 시약 ID 기록
 
         //TODO_Sound - 시약 검사기 검사 시작
+        if (ownerPuzzle != null && ownerPuzzle.audioModule != null)
+        {
+            ownerPuzzle.audioModule.PlaySound(SoundType.MechanicalMove); // 철컥 들어가면서 웅- 돌아가는 소리
+        }
 
         if (_analyzeRoutine != null)
             StopCoroutine(_analyzeRoutine);

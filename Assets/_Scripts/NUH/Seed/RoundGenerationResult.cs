@@ -1,71 +1,46 @@
-using System.Collections.Generic;
 using Fusion;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 한 판의 랜덤 생성 결과를 담는 데이터 컨테이너.
+/// 한 라운드의 퍼즐 / 힌트 / 플레이어 배치 결과를 담는 데이터 컨테이너.
 /// 
 /// 역할
-/// - 퍼즐 배치 계획 보관
-/// - 힌트 배치 계획 보관
-/// - 플레이어 배정 결과 보관
-/// - Zone별 FinalCode 정답/힌트 데이터 보관
-/// 
-/// 변경점
-/// - 기존 슬롯 인덱스 기반 구조를 제거
-/// - 실제 선택된 Room / Slot 참조를 직접 보관하는 구조로 변경
+/// - RoundGenerator가 만든 배치 계획을 PuzzleSpawnManager에 전달한다.
+/// - 퍼즐 본체 스폰 계획과 힌트 스폰 계획을 보관한다.
+/// - FinalCode 정답/힌트 데이터와 FinalCodeSeed를 라운드 단위로 1개만 보관한다.
 /// </summary>
 public class RoundGenerationResult
 {
     /// <summary>
-    /// 개별 힌트 배치 결과
+    /// 이번 라운드의 원본 기준 시드.
     /// </summary>
-    public class HintSpawnPlan
-    {
-        public string HintId;                                    // 힌트 식별용 ID
-        public NetworkObject HintPrefab;                         // 실제 스폰할 힌트 프리팹
-        public PuzzleDefinition.HintDefinition HintDefinition;   // 원본 힌트 정의 데이터
-        public RoomPlacementGroup TargetRoom;                    // 이 힌트를 배치할 대상 방
-        public PlacementSlotMeta TargetSlot;                     // 이 힌트를 배치할 대상 슬롯
-        public Vector3 HintPositionOffset;                       // 힌트 로컬 위치 보정값
-        public Vector3 HintRotationOffset;                       // 힌트 로컬 회전 보정값
-    }
+    public int RoundSeed;
 
     /// <summary>
-    /// 개별 퍼즐 배치 결과
+    /// FinalCode 전용 파생 시드.
+    /// Stage2 화면 힌트와 Stage3 FinalCodePuzzle 정답이 반드시 이 seed를 공유해야 한다.
     /// </summary>
-    public class PuzzleSpawnPlan
-    {
-        public PuzzleDefinition Definition;                      // 어떤 퍼즐 정의인지
-        public Zone Zone;                                        // 어느 Zone에 퍼즐 본체가 배치되는지
-        public PuzzleStage Stage;                                // 몇 단계 퍼즐인지
-        public RoomPlacementGroup TargetRoom;                    // 이 퍼즐을 배치할 대상 방
-        public PlacementSlotMeta TargetSlot;                     // 이 퍼즐을 배치할 대상 슬롯
-        public int AnswerSeed;                                   // 퍼즐 정답 생성용 시드
-        public readonly List<HintSpawnPlan> HintPlans = new();   // 연결된 힌트 배치 계획들
-    }
+    public int FinalCodeSeed;
 
     /// <summary>
-    /// 개별 플레이어 배정 결과
-    /// SlotIndex 기준으로 적용한다.
+    /// 라운드 전체 FinalCode 정답/힌트 데이터.
+    /// ZoneA 힌트 3개와 ZoneB 힌트 3개를 모두 포함한다.
     /// </summary>
-    public class PlayerAssignmentPlan
-    {
-        public int SlotIndex;    // 실제 플레이어 슬롯 인덱스
-        public Zone Zone;        // 배정된 존
-        public PlayerRole Role;  // 배정된 역할
-    }
-
-    public int RoundSeed; // 이번 라운드 원본 시드
-
-    public readonly List<PuzzleSpawnPlan> PuzzlePlans = new();               // 퍼즐 스폰 계획 목록
-    public readonly List<PlayerAssignmentPlan> PlayerAssignments = new();    // 플레이어 배정 결과 목록
-
-    public FinalCodeAnswerGenerator.FinalCodeAnswerData ZoneAFinalCodeData;  // ZoneA FinalCode 정답/힌트 데이터
-    public FinalCodeAnswerGenerator.FinalCodeAnswerData ZoneBFinalCodeData;  // ZoneB FinalCode 정답/힌트 데이터
+    public FinalCodeAnswerGenerator.FinalCodeAnswerData FinalCodeData;
 
     /// <summary>
-    /// 퍼즐 스폰 계획 1개를 결과에 추가한다.
+    /// 퍼즐 스폰 계획 목록.
+    /// </summary>
+    public List<PuzzleSpawnPlan> PuzzlePlans = new();
+
+    /// <summary>
+    /// 플레이어 배정 계획 목록.
+    /// </summary>
+    public List<PlayerAssignmentPlan> PlayerAssignments = new();
+
+    /// <summary>
+    /// 퍼즐 스폰 계획 1개를 추가한다.
     /// </summary>
     public void AddPuzzlePlan(PuzzleSpawnPlan plan)
     {
@@ -76,7 +51,7 @@ public class RoundGenerationResult
     }
 
     /// <summary>
-    /// 플레이어 배정 결과 1개를 결과에 추가한다.
+    /// 플레이어 배정 계획 1개를 추가한다.
     /// </summary>
     public void AddPlayerAssignment(PlayerAssignmentPlan plan)
     {
@@ -87,7 +62,7 @@ public class RoundGenerationResult
     }
 
     /// <summary>
-    /// 특정 Zone에 속한 퍼즐 배치 계획만 반환한다.
+    /// 특정 Zone에 속한 퍼즐 스폰 계획 목록을 반환한다.
     /// </summary>
     public List<PuzzleSpawnPlan> GetPlansByZone(Zone zone)
     {
@@ -109,48 +84,40 @@ public class RoundGenerationResult
     }
 
     /// <summary>
-    /// 특정 Stage에 속한 퍼즐 배치 계획만 반환한다.
+    /// 퍼즐 본체 1개의 스폰 계획.
     /// </summary>
-    public List<PuzzleSpawnPlan> GetPlansByStage(PuzzleStage stage)
+    public class PuzzleSpawnPlan
     {
-        List<PuzzleSpawnPlan> result = new();
-
-        for (int i = 0; i < PuzzlePlans.Count; i++)
-        {
-            PuzzleSpawnPlan plan = PuzzlePlans[i];
-            if (plan == null)
-                continue;
-
-            if (plan.Stage != stage)
-                continue;
-
-            result.Add(plan);
-        }
-
-        return result;
+        public PuzzleDefinition Definition;                  // 스폰할 퍼즐 정의
+        public Zone Zone;                                    // 이 퍼즐이 속한 Zone
+        public PuzzleStage Stage;                            // 퍼즐 단계
+        public RoomPlacementGroup TargetRoom;                // 배치 대상 Room, Stage3는 null 가능
+        public PlacementSlotMeta TargetSlot;                 // 실제 스폰 슬롯
+        public int AnswerSeed;                               // 이 퍼즐에 적용할 정답 seed
+        public List<HintSpawnPlan> HintPlans = new();        // 이 퍼즐에 연결된 힌트 스폰 계획 목록
     }
 
     /// <summary>
-    /// 특정 Zone의 Stage3 퍼즐 스폰 계획을 반환한다.
-    /// 없으면 null 반환.
+    /// 힌트 오브젝트 1개의 스폰 계획.
     /// </summary>
-    public PuzzleSpawnPlan FindStage3Plan(Zone zone)
+    public class HintSpawnPlan
     {
-        for (int i = 0; i < PuzzlePlans.Count; i++)
-        {
-            PuzzleSpawnPlan plan = PuzzlePlans[i];
-            if (plan == null)
-                continue;
+        public string HintId;                                // 힌트 ID
+        public NetworkObject HintPrefab;                     // 스폰할 힌트 프리팹
+        public PuzzleDefinition.HintDefinition HintDefinition; // 원본 힌트 정의
+        public RoomPlacementGroup TargetRoom;                // 힌트 배치 Room
+        public PlacementSlotMeta TargetSlot;                 // 힌트 배치 Slot
+        public Vector3 HintPositionOffset;                   // 슬롯 기준 위치 오프셋
+        public Vector3 HintRotationOffset;                   // 슬롯 기준 회전 오프셋
+    }
 
-            if (plan.Zone != zone)
-                continue;
-
-            if (plan.Stage != PuzzleStage.Stage3)
-                continue;
-
-            return plan;
-        }
-
-        return null;
+    /// <summary>
+    /// 플레이어 SlotIndex 기준 Zone / Role 배정 계획.
+    /// </summary>
+    public class PlayerAssignmentPlan
+    {
+        public int SlotIndex;
+        public Zone Zone;
+        public PlayerRole Role;
     }
 }

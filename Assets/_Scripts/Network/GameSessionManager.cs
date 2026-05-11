@@ -19,6 +19,10 @@ public class GameSessionManager : NetworkBehaviour
 
     private bool escapeUnlocked;
 
+    // 플레이어 상태 캐시
+    private readonly Dictionary<PlayerRef, PlayerState> playerStateCache = new();
+    private readonly Dictionary<PlayerRef, Zone> playerZoneCache = new();
+
     [Networked] public float SessionDuration { get; private set; }
 
     #region Fusion Lifecycle
@@ -78,21 +82,18 @@ public class GameSessionManager : NetworkBehaviour
             return;
         }
 
-        var players = GetAllPlayers();
-        if (players.Length == 0) return;
+        if (playerStateCache.Count == 0) return;
 
         // 모든 플레이어가 아직 Normal -> 종료 조건 없음
-        bool anyNonNormal = players.Any(p =>
-        p.NetPlayerState == PlayerState.Escaped ||
-        p.NetPlayerState == PlayerState.Dead);
+        bool anyNonNormal = playerStateCache.Values.Any(s => s == PlayerState.Escaped || s == PlayerState.Dead);
         if (!anyNonNormal) return;
 
         // ── 클리어 ───────────────────────────────────────────
         // 한명 이상 탈츨 AND 나머지 전원이 Escaped 또는 Dead
-        bool anyEscaped = players.Any(p => p.NetPlayerState == PlayerState.Escaped);
-        bool allDone = players.All(p =>
-        p.NetPlayerState == PlayerState.Escaped ||
-        p.NetPlayerState == PlayerState.Dead);
+        bool anyEscaped = playerStateCache.Values.Any(s => s == PlayerState.Escaped);
+        bool allDone = playerStateCache.Values.All(s =>
+        s == PlayerState.Escaped ||
+        s == PlayerState.Dead);
 
         if (anyEscaped && allDone)
         {
@@ -102,23 +103,29 @@ public class GameSessionManager : NetworkBehaviour
 
         // ── 게임오버 ─────────────────────────────────────────
         // 조건 A: 전원 사망
-        bool allDead = players.All(p => p.NetPlayerState == PlayerState.Dead);
+        bool allDead = playerStateCache.Values.All(s => s == PlayerState.Dead);
 
         // 조건 B: 한 Zone 내 플레이어 전원 사망 (탈출 조건이 완성되면 ZoneWiped 판정 비활성)
-        bool zoneWiped = !escapeUnlocked && IsAnyZoneWiped(players);
+        bool zoneWiped = !escapeUnlocked && IsAnyZoneWipedFromCache();
 
         if (allDead || zoneWiped)
             TriggerSessionEnd(isClear: false);
     }
 
-    private bool IsAnyZoneWiped(PlayerController[] players)
+    // 캐시 기반 Zone 전멸 판정
+    private bool IsAnyZoneWipedFromCache()
     {
         foreach (Zone zone in Enum.GetValues(typeof(Zone)))
         {
-            var inZone = players.Where(p => p.NetZone == zone).ToArray();
-            if (inZone.Length == 0) continue;
-            if (inZone.All(p => p.NetPlayerState == PlayerState.Dead))
-                return true;
+            var inZone = playerZoneCache
+                .Where(kvp => kvp.Value == zone)
+                .Select(kvp => kvp.Key)
+                .ToList();
+
+            if (inZone.Count == 0) continue;
+
+            bool allDeadInZone = inZone.All(p => GetCachedState(p) == PlayerState.Dead);
+            if (allDeadInZone) return true;
         }
         return false;
     }
@@ -189,7 +196,8 @@ public class GameSessionManager : NetworkBehaviour
                 Nickname = data.Nickname.ToString(),
                 SlotIndex = data.SlotIndex,
                 FinalState = finalState,
-                IsLocalPlayer = data.SlotIndex == localSlot
+                IsLocalPlayer = data.SlotIndex == localSlot,
+                PlayerZone = data.PlayerZone
             });
         }
 
@@ -203,8 +211,29 @@ public class GameSessionManager : NetworkBehaviour
     // 플레이어 게임 나가기
     public async void LeaveGame()
     {
-        if (GameLauncher.Instance != null)
-            await GameLauncher.Instance.LeaveRoom();
+        var launcher = GameLauncher.Instance;
+        if (launcher == null)
+        {
+            SceneManager.LoadScene(SceneNames.TITLE_INDEX);
+            return;
+        }
+
+        // LeaveRoom 전에 로컬 플레이어 Dead 처리 및 Despawn
+        var runner = launcher.Runner;
+
+        if (runner != null && !runner.IsServer)
+        {
+            // 클라이언트: 로컬 플레이어 오브젝트 직접 처리
+            var localObject = runner.GetPlayerObject(runner.LocalPlayer);
+            if (localObject != null)
+            {
+                var pc = localObject.GetComponent<PlayerData>()?.GetPlayerController();
+                pc?.ServerEnterDead();
+                runner.Despawn(pc.GetComponent<NetworkObject>());
+            }
+        }
+
+        await GameLauncher.Instance.LeaveRoom();
         SceneManager.LoadScene(SceneNames.TITLE_INDEX);
     }
 
@@ -221,16 +250,49 @@ public class GameSessionManager : NetworkBehaviour
     private void HandlePlayerLeft(NetworkRunner runner, PlayerRef player)
     {
         if (!runner.IsServer) return;
- 
-        var pc = runner.GetPlayerObject(player)?.GetComponent<PlayerController>();
+
+        var playerObject = runner.GetPlayerObject(player);
+        if (playerObject == null) return;       // 이미 LeaveGame에서 처리된 경우
+
+        var data = playerObject.GetComponent<PlayerData>();
+        if (data == null) return;
+
+        var pc = data.GetPlayerController();
         if (pc == null) return;
 
-        pc.ServerEnterDead();
+        // LeaveGame를 거치지 않은 비정상 이탈
+        pc?.ServerEnterDead();
+        runner.Despawn(playerObject);
+        Debug.Log($"[GameSessionManager] 이탈 처리 | Player={player}");
     }
 
     #endregion
 
     #region 내부 유틸
+
+    // 전체 플레이어 상태 / 구역 캐시 초기화
+    public void InitPlayerStateCache()
+    {
+        playerStateCache.Clear();
+        playerZoneCache.Clear();
+
+        foreach (var player in Runner.ActivePlayers)
+        {
+            var data = Runner.GetPlayerObject(player)?.GetComponent<PlayerData>();
+            if (data == null) continue;
+
+            playerStateCache[player] = PlayerState.Normal;
+            playerZoneCache[player] = data.PlayerZone;
+        }
+        Debug.Log($"[GameSessionManager] 플레이어 캐시 초기화 | 인원={playerStateCache.Count}");
+    }
+
+    // 캐시 상태 갱신
+    public void UpdatePlayerStateCache(PlayerRef player, PlayerState state)
+    {
+        if (playerStateCache.ContainsKey(player))
+            playerStateCache[player] = state;
+    }
 
     private PlayerController[] GetAllPlayers()
     {
@@ -242,6 +304,16 @@ public class GameSessionManager : NetworkBehaviour
             if (pc != null) list.Add(pc);
         }
         return list.ToArray();
+    }
+
+    private PlayerState GetCachedState(PlayerRef player)
+    {
+        return playerStateCache.TryGetValue(player, out var state) ? state : PlayerState.Dead;
+    }
+
+    private Zone GetCachedZone(PlayerRef player)
+    {
+        return playerZoneCache.TryGetValue(player, out var zone) ? zone : Zone.ZoneA;
     }
 
     #endregion

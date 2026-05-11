@@ -57,6 +57,7 @@ GameObject:
   - component: {fileID: 2631477015144606700}
   - component: {fileID: 969681772662802719}
   - component: {fileID: -2663173833969849363}
+  - component: {fileID: 465510675941546445}
   m_Layer: 0
   m_Name: Player4
   m_TagString: Player
@@ -74,8 +75,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
-  m_ConstrainProportionsScale: 1
+  m_LocalScale: {x: 1.45, y: 1.5, z: 1.45}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7394318396230926080}
   - {fileID: 5759469755395386870}
@@ -257,10 +258,11 @@ MonoBehaviour:
   cameraHolder: {fileID: 5759469755395386870}
   playerCamera: {fileID: 1283061483550928000}
   cameraLightRoot: {fileID: 8324999275640108001}
-  eyeOffset: 0.1
+  eyeOffset: 0.3
   lockCursorForLocalPlayer: 1
   capturedEyeHeight: 0.45
-  lightRootOffset: 0.3
+  flashlightHeightOffset: 2
+  flashlightForwardOffset: 0.5
   heightSmoothTime: 0.05
 --- !u!114 &2312676653009107545
 MonoBehaviour:
@@ -346,7 +348,7 @@ AudioSource:
   rolloffMode: 0
   BypassEffects: 0
   BypassListenerEffects: 0
-  BypassReverbZones: 0
+  BypassReverbZones: 1
   rolloffCustomCurve:
     serializedVersion: 2
     m_Curve:
@@ -448,6 +450,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerVoiceController
   minDistance: 5
   maxDistance: 25
+  proximityPanRange: 0.8
+  obstructionMask:
+    serializedVersion: 2
+    m_Bits: 0
+  perWallAttenuation: 0.75
+  maxWallCount: 3
 --- !u!114 &6872417279680758967
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -507,6 +515,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MicrophonedBMeasurer
   measureInterval: 0.08
+--- !u!114 &465510675941546445
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827289365566288008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 783aafc31e0c25c46a21c8c184d5c6e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WalkieTalkieNoiseFilter
+  highPassCutoff: 0.6
+  carrierFrequency: 2400
+  ringModDepth: 0.6
+  distortionAmount: 0.6
+  outputGain: 2.5
 --- !u!1 &2098675536719637024
 GameObject:
   m_ObjectHideFlags: 0
@@ -1008,7 +1033,7 @@ AudioSource:
   m_GameObject: {fileID: 5354373334187213990}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 5430554230989911950, guid: 94a6fbf40ebbb524dabe2174f314a8ea, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1

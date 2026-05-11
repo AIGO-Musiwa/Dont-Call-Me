@@ -11,12 +11,15 @@ public class PlayerLookView : MonoBehaviour
     [SerializeField] private float eyeOffset = 0.1f;
     [SerializeField] private bool lockCursorForLocalPlayer = true;
     [SerializeField] private float capturedEyeHeight = 0.45f;
-    [SerializeField] private float lightRootOffset = 0.3f;
 
-    // 🛠️ 추가된 카메라 스무딩 부품
-    [Header("카메라 스무딩 (Camera Smoothing)")]
-    [SerializeField] private float heightSmoothTime = 0.2f; // 전환에 걸리는 시간 (0.2초 추천)
-    private float _heightVelocity; // SmoothDamp가 내부적으로 사용할 현재 속도
+    [Header("손전등 라이트 위치")]
+    [SerializeField] private float flashlightHeightOffset = 2f; // 플레이어 발 위치 기준 라이트 높이
+    [SerializeField] private float flashlightForwardOffset = 0.5f; // 플레이어 몸 기준 앞쪽 거리
+
+    [Header("카메라 스무딩")]
+    [SerializeField] private float heightSmoothTime = 0.2f; // 카메라 높이 전환 시간
+
+    private float _heightVelocity; // SmoothDamp 내부 속도값
 
     private PlayerController _controller;
     private PlayerKCCMotor _motor;
@@ -39,9 +42,11 @@ public class PlayerLookView : MonoBehaviour
         if (!IsReady())
             return;
 
-        if (SettingsManager.IsOpen && _controller.HasInputAuthority) return;
+        if (ESCUI.IsOpen && _controller.HasInputAuthority)
+            return;
 
         ApplySharedLookPose();
+        ApplyCameraLightRootPose();
         ApplyAuthorityOnlyPresentation();
     }
 
@@ -82,12 +87,11 @@ public class PlayerLookView : MonoBehaviour
         Vector3 localPos = cameraHolder.localPosition;
         float targetHeight = GetCurrentEyeHeight();
 
-        // 🛠️ Mathf.SmoothDamp를 사용해 현재 높이에서 목표 높이로 부드럽게 이동
         localPos.y = Mathf.SmoothDamp(
-            localPos.y,           // 현재 위치
-            targetHeight,         // 목표 위치
-            ref _heightVelocity,  // 현재 속도 (엔진이 알아서 계산함)
-            heightSmoothTime      // 도달하는 데 걸리는 시간 (인스펙터에서 조절)
+            localPos.y,
+            targetHeight,
+            ref _heightVelocity,
+            heightSmoothTime
         );
 
         cameraHolder.localPosition = localPos;
@@ -100,19 +104,42 @@ public class PlayerLookView : MonoBehaviour
             if (_controller.NetHideState == HideState.Desk)
                 return _motor.CrouchHeight - eyeOffset;
 
-            if (_controller.NetPlayerState == PlayerState.Captured && _controller.NetCapturePhase == CapturePhase.Active)
+            if (_controller.NetPlayerState == PlayerState.Captured &&
+                _controller.NetCapturePhase == CapturePhase.Active)
                 return capturedEyeHeight;
         }
 
         bool isCrouching = _motor.IsCrouching;
         float baseHeight = isCrouching ? _motor.CrouchHeight : _motor.StandHeight;
+
         return baseHeight - eyeOffset;
+    }
+
+    /// <summary>
+    /// 손전등 SpotLight가 따라갈 기준 위치와 회전을 갱신한다.
+    /// 위치는 플레이어 몸 기준 높이/앞뒤 offset을 사용하고,
+    /// 회전은 실제 카메라가 보는 방향을 사용한다.
+    /// </summary>
+    private void ApplyCameraLightRootPose()
+    {
+        if (cameraLightRoot == null || playerCamera == null)
+            return;
+
+        Vector3 targetPosition =
+            transform.position +
+            Vector3.up * flashlightHeightOffset +
+            transform.forward * flashlightForwardOffset;
+
+        cameraLightRoot.position = targetPosition;
+        cameraLightRoot.rotation = playerCamera.transform.rotation;
     }
 
     private void ApplyAuthorityOnlyPresentation()
     {
         bool hasInputAuthority = _controller != null && _controller.HasInputAuthority;
-        bool shouldEnableFirstPersonCamera = hasInputAuthority && (_controller == null || !_controller.IsSpectatorState());
+        bool shouldEnableFirstPersonCamera =
+            hasInputAuthority &&
+            (_controller == null || !_controller.IsSpectatorState());
 
         if (playerCamera != null)
             playerCamera.enabled = shouldEnableFirstPersonCamera;
@@ -122,23 +149,20 @@ public class PlayerLookView : MonoBehaviour
 
         if (hasInputAuthority)
         {
-            if (SettingsManager.IsOpen) return;
+            if (ESCUI.IsOpen)
+                return;
+
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
     }
 
     /// <summary>
-    /// lightRootOffset 만큼 카메라 transform의 y 위치를 낮춘 위치 반환 (손전등 라이트 루트용)
+    /// 손전등 라이트가 붙을 기준 Transform을 반환한다.
+    /// 실제 위치/회전 갱신은 LateUpdate의 ApplyCameraLightRootPose에서 처리한다.
     /// </summary>
     public Transform GetCameraLightRoot()
     {
-        
-        if (cameraLightRoot == null || playerCamera == null)
-            return null;
-        Vector3 offset = new Vector3(0f, -lightRootOffset, 0f);
-        cameraLightRoot.position = playerCamera.transform.position + offset;
-        cameraLightRoot.rotation = playerCamera.transform.rotation;
         return cameraLightRoot;
     }
 }

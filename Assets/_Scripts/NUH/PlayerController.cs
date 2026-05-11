@@ -1,4 +1,6 @@
 using Fusion;
+using NUnit.Framework;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -70,6 +72,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
     [Networked, OnChangedRender(nameof(OnNearSenderChanged))]
     public NetworkBool NetIsNearSender { get; set; }                     // 송신 무전기 근처 여부
+    
+    public static readonly List<PlayerController> AllPlayers = new List<PlayerController>();
 
     private int _lastInteractRequestTick = -1;                           // 마지막 일반 상호작용 요청 tick
     private bool _prevWalkiePressed;                                     // 이전 tick 무전기 입력 상태
@@ -138,6 +142,13 @@ public class PlayerController : NetworkBehaviour, IInteractable
         WalkieTalkieManager.Instance?.RegisterPlayer(this);              // 무전기 매니저에 플레이어 등록
 
         stateChangeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState); // 상태 변경 감지기 생성
+
+        if (!AllPlayers.Contains(this)) AllPlayers.Add(this);
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        if (AllPlayers.Contains(this)) AllPlayers.Remove(this);
     }
 
     public override void FixedUpdateNetwork()
@@ -156,7 +167,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
         if (!GetInput(out PlayerNetworkInput input))
             return;                                                      // 입력 없으면 종료
 
-        if (!(SettingsManager.IsOpen && HasInputAuthority))
+        if (!(ESCUI.IsOpen && HasInputAuthority))
             KCCMotor.Simulate(input, NetMovementLocked, NetLookLocked);   // 이동/시야 시뮬레이션
 
         // 관전 상태에서는 일반 상호작용 / Hold 상호작용 / 무전기 PTT를 처리하지 않는다.
@@ -935,6 +946,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetPlayerState = PlayerState.Dead;                                // 사망 상태 진입
         SaveFinalPlayerState(PlayerState.Dead);                           // 최종 상태 저장
 
+        GameSessionManager.Instance?.UpdatePlayerStateCache(Object.InputAuthority, PlayerState.Dead);
         GameEventLogger.Instance?.LogDead(GetNickname(), GetSlotIndex()); // 사망 로그 기록
 
         NetHideState = HideState.None;                                    // 은신 해제
@@ -944,6 +956,13 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureExpireTimer = TickTimer.None;                           // 사망 타이머 종료
         NetMovementLocked = true;                                         // 이동 잠금
         NetLookLocked = true;                                             // 시야 잠금
+
+        // 양손 아이템 강제 드랍
+        ServerDropLeftHandItem();
+        ServerDropRightHandItem();
+
+        // 세션 종료 조건 득시 평가
+        GameSessionManager.Instance?.EvaluateEndCondition();
 
         // 사망 시 관전 룸으로 이동 요청
         StageManager.Instance?.RequestTeleportToDeadRoom(this);
@@ -957,6 +976,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetPlayerState = PlayerState.Escaped;                             // 탈출 상태 진입
         SaveFinalPlayerState(PlayerState.Escaped);                        // 최종 상태 저장
 
+        GameSessionManager.Instance?.UpdatePlayerStateCache(Object.InputAuthority, PlayerState.Escaped);
         GameEventLogger.Instance?.LogEscaped(GetNickname(), GetSlotIndex()); // 탈출 로그 기록
         GameSessionManager.Instance?.CheckZoneEscaped(NetZone);           // 같은 구역 캡처 상태 플레이어 처리
 

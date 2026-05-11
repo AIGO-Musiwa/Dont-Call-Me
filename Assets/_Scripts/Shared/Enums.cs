@@ -64,7 +64,8 @@ public enum PuzzleStage
 public enum PlacementSlotUsageType
 {
     HintOnly = 0,       // 힌트만 배치 가능
-    PuzzleOrHint = 1    // 퍼즐 / 힌트 모두 배치 가능
+    PuzzleOrHint = 1,   // 퍼즐 / 힌트 모두 배치 가능
+    Stage3Puzzle = 2    // Stage3 퍼즐 전용 (Stage1/Stage2 퍼즐 후보에서 제외)
 }
 
 // ── 크리처 ────────────────────────────────────────────────

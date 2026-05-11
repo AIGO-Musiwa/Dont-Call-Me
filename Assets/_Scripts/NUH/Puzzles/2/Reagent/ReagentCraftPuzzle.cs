@@ -132,17 +132,43 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
     /// <summary>
     /// 이 퍼즐이 성공 후 표시할 3단계 힌트 데이터를 세팅한다.
+    /// 데이터는 Networked 값으로 저장되어 Host뿐 아니라 Client 화면에도 동일하게 반영된다.
     /// </summary>
     public void SetStage3HintData(FinalCodeHintData hintData)
     {
-        _stage3HintData = hintData;
-        _hasStage3HintData = hintData != null;
+        SetNetworkStage3HintData(hintData);
+    }
 
-        if (craftView != null && _hasStage3HintData)
-            craftView.ApplyStage3Hint(_stage3HintData);
+    /// <summary>
+    /// Networked Stage3 힌트 데이터가 변경되었을 때 모든 클라이언트에서 호출된다.
+    /// </summary>
+    protected override void HandleStage3HintDataChanged()
+    {
+        RefreshStage3HintViewFromNetwork();
 
         if (IsSolved)
             ApplySolvedPresentation();
+    }
+
+    /// <summary>
+    /// Networked Stage3 힌트 데이터를 로컬 캐시와 View에 반영한다.
+    /// </summary>
+    private bool RefreshStage3HintViewFromNetwork()
+    {
+        if (!TryGetNetworkStage3HintData(out FinalCodeHintData hintData))
+        {
+            _stage3HintData = null;
+            _hasStage3HintData = false;
+            return false;
+        }
+
+        _stage3HintData = hintData;
+        _hasStage3HintData = true;
+
+        if (craftView != null)
+            craftView.ApplyStage3Hint(_stage3HintData);
+
+        return true;
     }
 
     /// <summary>
@@ -212,6 +238,7 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         SetNetSlotValue(slotIndex, GetPreviousReagentType(current));
 
         //TODO_Sound - 시약 슬롯 좌우 변경
+        if (audioModule != null) audioModule.PlaySound(SoundType.InteractLight);
 
         Log($"현재 슬롯 좌측 변경 | slot={slotIndex} | value={GetNetSlotValue(slotIndex)}");
     }
@@ -229,6 +256,7 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         SetNetSlotValue(slotIndex, GetNextReagentType(current));
 
         //TODO_Sound - 시약 슬롯 좌우 변경
+        if (audioModule != null) audioModule.PlaySound(SoundType.InteractLight);
 
         Log($"현재 슬롯 우측 변경 | slot={slotIndex} | value={GetNetSlotValue(slotIndex)}");
     }
@@ -244,6 +272,7 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         SetNetSlotLocked(NetEditingSlotIndex, true);
 
         //TODO_Sound - 시약 슬롯 선택 확정
+        if (audioModule != null) audioModule.PlaySound(SoundType.InteractLight);
 
         if (NetEditingSlotIndex < recipeSlotCount - 1)
         {
@@ -306,6 +335,7 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             return;
 
         //TODO_Sound - 시약 제조 시작 버튼
+        if (audioModule != null) audioModule.PlaySound(SoundType.InteractHeavy); // 묵직한 기계 작동 스위치 느낌
 
         ResetCraftState();
         _craftRoutine = StartCoroutine(CoStartCraftProcess());
@@ -325,6 +355,7 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             NetCountdownNumber = number;
 
             //TODO_Sound - 시약 제조 카운트다운 틱
+            if (audioModule != null) audioModule.PlaySound(SoundType.BeepSmall); // 전자음 띡! 띡! 띡!
 
             yield return new WaitForSeconds(countdownStepSeconds);
         }
@@ -342,6 +373,7 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             NetCurrentProgressIndex = step;
 
             //TODO_Sound - 시약 프로그레스 한 칸 진행
+            if (audioModule != null) audioModule.PlaySound(SoundType.MechanicalMove); // 기계가 덜컹 진행되는 소리
 
             yield return new WaitForSeconds(progressStepInterval);
         }
@@ -387,10 +419,12 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         if (actionType == ReagentActionType.Heat)
         {
             //TODO_Sound - 시약 가열 입력
+            if (audioModule != null) audioModule.PlaySound(SoundType.InteractLight);
         }
         else if (actionType == ReagentActionType.Cool)
         {
             //TODO_Sound - 시약 냉각 입력
+            if (audioModule != null) audioModule.PlaySound(SoundType.InteractLight);
         }
 
         Log($"행동 입력 기록 | step={NetCurrentProgressIndex} | action={actionType}");
@@ -423,6 +457,7 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         bool isCorrectResult = isCorrectRecipe && isCorrectActions;
 
         //TODO_Sound - 시약 제조 완료
+        if (audioModule != null) audioModule.PlaySound(SoundType.Success); // 띵동~ 완성!
 
         SpawnCraftResultItem(isCorrectResult);
 
@@ -635,6 +670,8 @@ public class ReagentCraftPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     {
         if (craftView == null)
             return;
+
+        RefreshStage3HintViewFromNetwork();
 
         if (_hasStage3HintData)
             craftView.ApplyStage3Hint(_stage3HintData);

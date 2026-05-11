@@ -21,8 +21,8 @@ public class StageManager : NetworkBehaviour
     [SerializeField] private PuzzleProgressManager puzzleProgressManager; // 퍼즐 진행도 집계 매니저 참조
 
     [Header("Stage3 진입 문")]
-    [SerializeField] private GameObject zoneAStage3Door; // ZoneA 3단계 진입 문
-    [SerializeField] private GameObject zoneBStage3Door; // ZoneB 3단계 진입 문
+    [SerializeField] private GameObject[] zoneAStage3Door; // ZoneA 3단계 진입 문
+    [SerializeField] private GameObject[] zoneBStage3Door; // ZoneB 3단계 진입 문
 
     [Header("3막 연출 소리 설정")]
     [SerializeField] private AudioSource sirenAudioSource; // 전역 사이렌 AudioSource
@@ -47,8 +47,12 @@ public class StageManager : NetworkBehaviour
     [SerializeField] private bool enableDebugLog = true; // 디버그 로그 출력 여부
 
     [Networked] public NetworkBool IsAct3Active { get; set; } // 3막 진행 여부 네트워크 동기화 값
-    [Networked] private NetworkBool NetZoneAStage1Completed { get; set; } // ZoneA Stage1 완료 승인 여부
-    [Networked] private NetworkBool NetZoneBStage1Completed { get; set; } // ZoneB Stage1 완료 승인 여부
+
+    [Networked, OnChangedRender(nameof(OnStage1CompletedChangedRender))]
+    private NetworkBool NetZoneAStage1Completed { get; set; } // ZoneA Stage1 완료 승인 여부
+
+    [Networked, OnChangedRender(nameof(OnStage1CompletedChangedRender))]
+    private NetworkBool NetZoneBStage1Completed { get; set; } // ZoneB Stage1 완료 승인 여부
 
     //Zone별 Stage3 완료 상태
     [Networked] private NetworkBool NetZoneAStage3Completed { get; set; } // ZoneA Stage3 완료 여부
@@ -92,6 +96,8 @@ public class StageManager : NetworkBehaviour
             SetStage3DoorOpen(Zone.ZoneA, false); // ZoneA 3단계 진입 문 닫기
             SetStage3DoorOpen(Zone.ZoneB, false); // ZoneB 3단계 진입 문 닫기
         }
+
+        ApplyStage1CompletedStateToLocalObjects(); // 현재 Networked Stage1 완료 상태를 로컬 오브젝트에 반영
     }
 
     public override void FixedUpdateNetwork()
@@ -200,20 +206,13 @@ public class StageManager : NetworkBehaviour
         if (!HasStateAuthority)
             return;
 
-        if (puzzleProgressManager == null)
-        {
-            LogWarning("PuzzleProgressManager 참조가 없어 Stage2 해금을 승인할 수 없습니다.");
-            return;
-        }
-
         if (zone == Zone.ZoneA)
         {
             if (NetZoneAStage1Completed)
                 return;
 
             NetZoneAStage1Completed = true; // ZoneA 완료 승인 기록
-            puzzleProgressManager.HandleZoneStage2Unlocked(Zone.ZoneA); // ZoneA Stage2 화면 ON 승인
-            SetStage3DoorOpen(Zone.ZoneA, true); // ZoneA 3단계 진입 문 개방
+            ApplyStage1CompletedStateToLocalObjects(); // Host 로컬 오브젝트 즉시 반영
 
             Log("ZoneA Stage1 완료 승인 | ZoneA Stage2 화면 ON | ZoneA Stage3 문 OPEN");
             return;
@@ -223,8 +222,7 @@ public class StageManager : NetworkBehaviour
             return;
 
         NetZoneBStage1Completed = true; // ZoneB 완료 승인 기록
-        puzzleProgressManager.HandleZoneStage2Unlocked(Zone.ZoneB); // ZoneB Stage2 화면 ON 승인
-        SetStage3DoorOpen(Zone.ZoneB, true); // ZoneB 3단계 진입 문 개방
+        ApplyStage1CompletedStateToLocalObjects(); // Host 로컬 오브젝트 즉시 반영
 
         Log("ZoneB Stage1 완료 승인 | ZoneB Stage2 화면 ON | ZoneB Stage3 문 OPEN");
     }
@@ -234,16 +232,73 @@ public class StageManager : NetworkBehaviour
     /// </summary>
     private void SetStage3DoorOpen(Zone zone, bool isOpen)
     {
-        GameObject targetDoor = zone == Zone.ZoneA ? zoneAStage3Door : zoneBStage3Door;
-        if (targetDoor == null)
-            return;
+        GameObject[] targetDoor = zone == Zone.ZoneA ? zoneAStage3Door : zoneBStage3Door;
+        if (targetDoor == null) return;
 
-        targetDoor.SetActive(!isOpen); // 막는 오브젝트 기준: 열림이면 비활성화, 닫힘이면 활성화
+        foreach (GameObject door in targetDoor)
+        {
+            if (door != null)
+            {
+                //막는 오브젝트 기준: 열림이면 비활성화, 닫힘이면 활성화
+                door.SetActive(!isOpen);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Stage1 완료 Networked 값이 바뀌었을 때 모든 클라이언트에서 호출된다.
+    /// 여기서 로컬 Stage2 화면/Stage3 문 상태를 동기화한다.
+    /// </summary>
+    private void OnStage1CompletedChangedRender()
+    {
+        ApplyStage1CompletedStateToLocalObjects();
+    }
+
+    /// <summary>
+    /// Networked Stage1 완료 상태를 현재 클라이언트의 로컬 오브젝트에 반영한다.
+    /// SetActive는 네트워크 동기화가 아니므로 각 클라이언트에서 직접 호출되어야 한다.
+    /// </summary>
+    private void ApplyStage1CompletedStateToLocalObjects()
+    {
+        RefreshAllStage2ScreenGates();
+
+        SetStage3DoorOpen(Zone.ZoneA, NetZoneAStage1Completed);
+        SetStage3DoorOpen(Zone.ZoneB, NetZoneBStage1Completed);
+    }
+
+    /// <summary>
+    /// 씬에 존재하는 모든 Stage2ScreenGate에게 현재 StageManager 상태를 다시 반영하게 한다.
+    /// 각 Stage2 퍼즐은 자기 Stage2ScreenRoot만 직접 관리한다.
+    /// </summary>
+    private void RefreshAllStage2ScreenGates()
+    {
+        Stage2ScreenGate[] gates = FindObjectsByType<Stage2ScreenGate>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < gates.Length; i++)
+        {
+            if (gates[i] == null)
+                continue;
+
+            gates[i].RefreshScreenState();
+        }
     }
 
     #endregion
 
     #region Stage2 진행도 / 키카드 보상 판정
+
+    /// <summary>
+    /// 특정 Zone의 Stage1 완료 승인 여부를 반환한다.
+    /// Stage2 화면 표시 조건으로 사용한다.
+    /// </summary>
+    public bool IsZoneStage1Completed(Zone zone)
+    {
+        return zone == Zone.ZoneA
+            ? NetZoneAStage1Completed
+            : NetZoneBStage1Completed;
+    }
 
     /// <summary>
     /// 특정 Zone의 Stage2 solved 개수를 반환한다.
@@ -342,15 +397,14 @@ public class StageManager : NetworkBehaviour
         //타이머가 돌고 있지 않으면 0.5초 타이머 시간 (동시 입력 판정)
         if (!EscapeInputTimer.IsRunning)
         {
-            EscapeInputTimer = TickTimer.CreateFromSeconds(Runner, 0.5f);
-            Log($"{zone} 탈출 버튼 입력! 0.5초 대기 시작");
+            EscapeInputTimer = TickTimer.CreateFromSeconds(Runner, 3.0f);
+            Log($"{zone} 탈출 버튼 입력! 3.0초 대기 시작");
         }
     }
 
     public void TriggerAct3()
     {
-        if (!HasStateAuthority || IsAct3Active)
-            return;
+        if (!HasStateAuthority || IsAct3Active) return;
 
         IsAct3Active = true;
 
@@ -364,6 +418,10 @@ public class StageManager : NetworkBehaviour
         CreatureAI[] allCreature = FindObjectsByType<CreatureAI>(FindObjectsSortMode.None);
         foreach (CreatureAI creature in allCreature)
             creature.ApplyAct3Multipliers(true);
+
+        //3막 발동시 씬에 있는 모든 퍼즐 기계에서 키카드를 뱉어내라고 시도
+        FinalCodePuzzle[] finalCodePuzzles = FindObjectsByType<FinalCodePuzzle>(FindObjectsInactive.Exclude,FindObjectsSortMode.None);
+        foreach (FinalCodePuzzle puzzle in finalCodePuzzles) puzzle.TrySpawnRewardKeycard();
 
         ApplyRandomPatternToZone(Zone.ZoneA);
         ApplyRandomPatternToZone(Zone.ZoneB);

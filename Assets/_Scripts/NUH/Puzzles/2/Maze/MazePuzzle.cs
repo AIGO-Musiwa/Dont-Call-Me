@@ -74,17 +74,43 @@ public class MazePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 
     /// <summary>
     /// 이 퍼즐이 성공 후 표시할 3단계 힌트 데이터를 세팅한다.
+    /// 데이터는 Networked 값으로 저장되어 Host뿐 아니라 Client 화면에도 동일하게 반영된다.
     /// </summary>
     public void SetStage3HintData(FinalCodeHintData hintData)
     {
-        _stage3HintData = hintData;
-        _hasStage3HintData = hintData != null;
+        SetNetworkStage3HintData(hintData);
+    }
 
-        if (mazeView != null && _hasStage3HintData)
-            mazeView.ApplyStage3Hint(_stage3HintData);
+    /// <summary>
+    /// Networked Stage3 힌트 데이터가 변경되었을 때 모든 클라이언트에서 호출된다.
+    /// </summary>
+    protected override void HandleStage3HintDataChanged()
+    {
+        RefreshStage3HintViewFromNetwork();
 
         if (IsSolved)
             ApplySolvedPresentation();
+    }
+
+    /// <summary>
+    /// Networked Stage3 힌트 데이터를 로컬 캐시와 View에 반영한다.
+    /// </summary>
+    private bool RefreshStage3HintViewFromNetwork()
+    {
+        if (!TryGetNetworkStage3HintData(out FinalCodeHintData hintData))
+        {
+            _stage3HintData = null;
+            _hasStage3HintData = false;
+            return false;
+        }
+
+        _stage3HintData = hintData;
+        _hasStage3HintData = true;
+
+        if (mazeView != null)
+            mazeView.ApplyStage3Hint(_stage3HintData);
+
+        return true;
     }
 
     /// <summary>
@@ -182,6 +208,8 @@ public class MazePuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     {
         if (mazeView == null)
             return;
+
+        RefreshStage3HintViewFromNetwork();
 
         if (_hasStage3HintData)
             mazeView.ApplyStage3Hint(_stage3HintData);

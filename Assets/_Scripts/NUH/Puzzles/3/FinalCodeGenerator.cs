@@ -7,17 +7,21 @@ using UnityEngine;
 /// 
 /// 규칙
 /// - 최종 정답은 6자리
-/// - 각 자리는 0~9 완전 랜덤
-/// - 숫자 중복 허용
+/// - 최종 정답 숫자는 1~9 랜덤, 중복 허용
 /// - A 힌트 3개, B 힌트 3개 생성
-/// - 총 9개 조합 중 오직 1개 조합만 완성 가능해야 한다
+/// - 각 힌트는 6칸 중 정확히 3칸만 공개
+/// - 총 9개 A/B 조합 중 오직 1개 조합만 6자리를 완성 가능
+/// - 진짜 A/B 힌트만 최종 정답 숫자를 사용
+/// - 가짜 힌트의 공개 숫자는 정답 숫자를 재사용하지 않고, 시드 기반 랜덤 숫자로 생성
 /// </summary>
 public static class FinalCodeAnswerGenerator
 {
     public const int FinalCodeLength = 6;          // 최종 정답 길이
     public const int RevealedCountPerHint = 3;     // 힌트 1개당 공개 칸 수
     public const int HintCountPerZone = 3;         // Zone당 힌트 개수
+
     private const int MaxGenerateAttempts = 2000;  // 생성 최대 재시도 횟수
+    private const int MaxMaskAttempts = 200;       // 가짜 마스크 생성 최대 재시도 횟수
 
     /// <summary>
     /// 최종 생성 결과 전체 데이터.
@@ -39,7 +43,7 @@ public static class FinalCodeAnswerGenerator
             if (FinalDigits == null || FinalDigits.Length != FinalCodeLength)
                 return string.Empty;
 
-            string result = string.Empty; // 최종 문자열 누적
+            string result = string.Empty;
 
             for (int i = 0; i < FinalDigits.Length; i++)
                 result += FinalDigits[i].ToString();
@@ -53,17 +57,17 @@ public static class FinalCodeAnswerGenerator
     /// </summary>
     public static FinalCodeAnswerData Generate(int seed)
     {
-        SeedRandom rng = new SeedRandom(seed); // 시드 기반 랜덤 생성기
+        SeedRandom rng = new SeedRandom(seed);
 
         for (int attempt = 0; attempt < MaxGenerateAttempts; attempt++)
         {
-            FinalCodeAnswerData result = TryGenerateSingleSet(rng); // 한 번 생성 시도
+            FinalCodeAnswerData result = TryGenerateSingleSet(rng);
             if (result != null)
                 return result;
         }
 
-        Debug.LogError("[FinalCodeAnswerGenerator] 유효한 힌트 세트를 생성하지 못했습니다.");
-        return CreateFallbackData(seed); // 방어용 fallback 반환
+        Debug.LogError("[FinalCodeAnswerGenerator] 유효한 힌트 세트를 생성하지 못했습니다. Fallback 데이터를 사용합니다.");
+        return CreateFallbackData(seed);
     }
 
     /// <summary>
@@ -72,32 +76,65 @@ public static class FinalCodeAnswerGenerator
     /// </summary>
     private static FinalCodeAnswerData TryGenerateSingleSet(SeedRandom rng)
     {
-        FinalCodeAnswerData data = new FinalCodeAnswerData(); // 결과 컨테이너 생성
+        FinalCodeAnswerData data = new FinalCodeAnswerData();
 
         // 1. 최종 정답 6자리 생성
         for (int i = 0; i < FinalCodeLength; i++)
             data.FinalDigits[i] = rng.NextInt(1, 10); // 1~9, 중복 허용
 
         // 2. 진짜 힌트 쌍의 공개 마스크 생성
-        bool[] trueAMask = BuildRandomRevealMask(rng);     // A 진짜 힌트 공개 패턴
-        bool[] trueBMask = BuildComplementMask(trueAMask); // B 진짜 힌트는 정확한 상보 패턴
+        bool[] trueAMask = BuildRandomRevealMask(rng);
+        bool[] trueBMask = BuildComplementMask(trueAMask);
 
         // 3. 진짜 힌트 생성
-        FinalCodeHintData trueAHint = BuildHint(data.FinalDigits, trueAMask); // 진짜 A 힌트
-        FinalCodeHintData trueBHint = BuildHint(data.FinalDigits, trueBMask); // 진짜 B 힌트
+        // 진짜 힌트만 최종 정답 숫자를 사용한다.
+        FinalCodeHintData trueAHint = BuildAnswerHint(data.FinalDigits, trueAMask);
+        FinalCodeHintData trueBHint = BuildAnswerHint(data.FinalDigits, trueBMask);
 
-        data.ZoneAHints.Add(trueAHint); // A 첫 슬롯에 진짜 힌트 임시 배치
-        data.ZoneBHints.Add(trueBHint); // B 첫 슬롯에 진짜 힌트 임시 배치
-        data.TrueAHintIndex = 0;        // 진짜 A 인덱스 초기값
-        data.TrueBHintIndex = 0;        // 진짜 B 인덱스 초기값
+        data.ZoneAHints.Add(trueAHint);
+        data.ZoneBHints.Add(trueBHint);
+
+        data.TrueAHintIndex = 0;
+        data.TrueBHintIndex = 0;
+
+        List<bool[]> zoneAMasks = new List<bool[]> { CopyMask(trueAMask) };
+        List<bool[]> zoneBMasks = new List<bool[]> { CopyMask(trueBMask) };
 
         // 4. 가짜 A 힌트 2개 생성
+        // 가짜 A는 trueBMask와 상보가 되면 안 된다.
         for (int i = 1; i < HintCountPerZone; i++)
-            data.ZoneAHints.Add(BuildFakeHint(data.FinalDigits, trueBMask, rng));
+        {
+            bool[] fakeAMask = BuildFakeMask(
+                rng,
+                sameZoneMasks: zoneAMasks,
+                oppositeZoneMasks: zoneBMasks);
+
+            if (fakeAMask == null)
+                return null;
+
+            zoneAMasks.Add(CopyMask(fakeAMask));
+
+            // 가짜 힌트 숫자는 정답에서 가져오지 않고 시드 기반 랜덤 숫자로 만든다.
+            data.ZoneAHints.Add(BuildRandomDigitHint(fakeAMask, rng));
+        }
 
         // 5. 가짜 B 힌트 2개 생성
+        // 가짜 B는 현재 존재하는 모든 A 마스크와 상보가 되면 안 된다.
         for (int i = 1; i < HintCountPerZone; i++)
-            data.ZoneBHints.Add(BuildFakeHint(data.FinalDigits, trueAMask, rng));
+        {
+            bool[] fakeBMask = BuildFakeMask(
+                rng,
+                sameZoneMasks: zoneBMasks,
+                oppositeZoneMasks: zoneAMasks);
+
+            if (fakeBMask == null)
+                return null;
+
+            zoneBMasks.Add(CopyMask(fakeBMask));
+
+            // 가짜 힌트 숫자는 정답에서 가져오지 않고 시드 기반 랜덤 숫자로 만든다.
+            data.ZoneBHints.Add(BuildRandomDigitHint(fakeBMask, rng));
+        }
 
         // 6. Zone 내부 순서 셔플
         ShuffleHints(rng, data.ZoneAHints, ref data.TrueAHintIndex);
@@ -115,18 +152,47 @@ public static class FinalCodeAnswerGenerator
     /// </summary>
     private static bool[] BuildRandomRevealMask(SeedRandom rng)
     {
-        bool[] revealed = new bool[FinalCodeLength];    // 공개 여부 배열
-        List<int> indices = new List<int>(FinalCodeLength); // 인덱스 후보
+        bool[] revealed = new bool[FinalCodeLength];
+        List<int> indices = new List<int>(FinalCodeLength);
 
         for (int i = 0; i < FinalCodeLength; i++)
             indices.Add(i);
 
-        rng.Shuffle(indices); // 공개 위치 섞기
+        rng.Shuffle(indices);
 
         for (int i = 0; i < RevealedCountPerHint; i++)
-            revealed[indices[i]] = true; // 3칸만 공개
+            revealed[indices[i]] = true;
 
         return revealed;
+    }
+
+    /// <summary>
+    /// 가짜 힌트용 공개 마스크를 만든다.
+    /// 
+    /// 조건
+    /// - 공개 칸은 정확히 3개
+    /// - 같은 Zone 안에서 기존 마스크와 중복되면 안 됨
+    /// - 반대 Zone의 어떤 마스크와도 정확한 상보 관계가 되면 안 됨
+    /// </summary>
+    private static bool[] BuildFakeMask(
+        SeedRandom rng,
+        List<bool[]> sameZoneMasks,
+        List<bool[]> oppositeZoneMasks)
+    {
+        for (int attempt = 0; attempt < MaxMaskAttempts; attempt++)
+        {
+            bool[] candidate = BuildRandomRevealMask(rng);
+
+            if (ContainsSameMask(sameZoneMasks, candidate))
+                continue;
+
+            if (IsComplementOfAny(oppositeZoneMasks, candidate))
+                continue;
+
+            return candidate;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -134,7 +200,7 @@ public static class FinalCodeAnswerGenerator
     /// </summary>
     private static bool[] BuildComplementMask(bool[] sourceMask)
     {
-        bool[] complement = new bool[FinalCodeLength]; // 상보 결과
+        bool[] complement = new bool[FinalCodeLength];
 
         for (int i = 0; i < FinalCodeLength; i++)
             complement[i] = !sourceMask[i];
@@ -143,11 +209,12 @@ public static class FinalCodeAnswerGenerator
     }
 
     /// <summary>
-    /// 최종 정답과 공개 마스크를 기반으로 힌트 1개를 만든다.
+    /// 진짜 힌트 생성.
+    /// 공개된 칸에는 최종 정답 숫자를 넣는다.
     /// </summary>
-    private static FinalCodeHintData BuildHint(int[] finalDigits, bool[] revealMask)
+    private static FinalCodeHintData BuildAnswerHint(int[] finalDigits, bool[] revealMask)
     {
-        FinalCodeHintData hint = new FinalCodeHintData(); // 새 힌트 생성
+        FinalCodeHintData hint = new FinalCodeHintData();
 
         for (int i = 0; i < FinalCodeLength; i++)
             hint.SetCell(i, finalDigits[i], revealMask[i]);
@@ -156,69 +223,71 @@ public static class FinalCodeAnswerGenerator
     }
 
     /// <summary>
-    /// 진짜 상대 힌트와 절대 완성되지 않도록 가짜 힌트를 만든다.
-    /// 
-    /// 조건
-    /// - 공개 칸 수는 3개 유지
-    /// - 진짜 상대 힌트의 공개 마스크와 정확한 상보가 되면 안 된다
+    /// 가짜 힌트 생성.
+    /// 공개된 칸에는 최종 정답이 아니라 시드 기반 랜덤 숫자를 넣는다.
     /// </summary>
-    private static FinalCodeHintData BuildFakeHint(int[] finalDigits, bool[] trueCounterpartMask, SeedRandom rng)
+    private static FinalCodeHintData BuildRandomDigitHint(bool[] revealMask, SeedRandom rng)
     {
-        for (int attempt = 0; attempt < 200; attempt++)
-        {
-            bool[] fakeMask = BuildRandomRevealMask(rng); // 후보 마스크 생성
-
-            if (AreMasksExactComplement(fakeMask, trueCounterpartMask))
-                continue; // 진짜 상대 힌트와 완전 상보면 안 됨
-
-            return BuildHint(finalDigits, fakeMask);
-        }
-
-        // fallback: 일부러 완성 불가능한 구조 생성
-        bool[] fallbackMask = BuildComplementMask(trueCounterpartMask); // 일단 상보 생성
-        fallbackMask[0] = !fallbackMask[0]; // 한 칸 뒤집기
-        fallbackMask[1] = !fallbackMask[1]; // 공개 수 보정용 한 칸 더 뒤집기
-        return BuildHint(finalDigits, NormalizeRevealCount(fallbackMask, rng));
-    }
-
-    /// <summary>
-    /// 공개 칸 수를 정확히 3개로 맞춘다.
-    /// </summary>
-    private static bool[] NormalizeRevealCount(bool[] sourceMask, SeedRandom rng)
-    {
-        bool[] result = new bool[FinalCodeLength]; // 결과 마스크
-        List<int> revealedIndices = new List<int>(); // 공개 칸 목록
-        List<int> hiddenIndices = new List<int>();   // 비공개 칸 목록
+        FinalCodeHintData hint = new FinalCodeHintData();
 
         for (int i = 0; i < FinalCodeLength; i++)
         {
-            result[i] = sourceMask[i];
-
-            if (result[i])
-                revealedIndices.Add(i);
-            else
-                hiddenIndices.Add(i);
+            int randomDigit = rng.NextInt(1, 10); // 1~9 랜덤, 중복 허용
+            hint.SetCell(i, randomDigit, revealMask[i]);
         }
 
-        while (revealedIndices.Count > RevealedCountPerHint)
+        return hint;
+    }
+
+    /// <summary>
+    /// 같은 마스크가 이미 존재하는지 확인한다.
+    /// </summary>
+    private static bool ContainsSameMask(List<bool[]> masks, bool[] target)
+    {
+        if (masks == null || target == null)
+            return false;
+
+        for (int i = 0; i < masks.Count; i++)
         {
-            int removeIndex = rng.NextInt(0, revealedIndices.Count); // 제거 대상
-            int cellIndex = revealedIndices[removeIndex];            // 실제 칸 인덱스
-            result[cellIndex] = false;                               // 비공개 처리
-            revealedIndices.RemoveAt(removeIndex);                   // 공개 목록 제거
-            hiddenIndices.Add(cellIndex);                            // 비공개 목록 추가
+            if (AreMasksSame(masks[i], target))
+                return true;
         }
 
-        while (revealedIndices.Count < RevealedCountPerHint && hiddenIndices.Count > 0)
+        return false;
+    }
+
+    /// <summary>
+    /// target이 masks 중 하나와 상보 관계인지 확인한다.
+    /// </summary>
+    private static bool IsComplementOfAny(List<bool[]> masks, bool[] target)
+    {
+        if (masks == null || target == null)
+            return false;
+
+        for (int i = 0; i < masks.Count; i++)
         {
-            int addIndex = rng.NextInt(0, hiddenIndices.Count); // 추가 대상
-            int cellIndex = hiddenIndices[addIndex];            // 실제 칸 인덱스
-            result[cellIndex] = true;                           // 공개 처리
-            hiddenIndices.RemoveAt(addIndex);                   // 비공개 목록 제거
-            revealedIndices.Add(cellIndex);                     // 공개 목록 추가
+            if (AreMasksExactComplement(masks[i], target))
+                return true;
         }
 
-        return result;
+        return false;
+    }
+
+    /// <summary>
+    /// 두 공개 마스크가 완전히 같은지 검사한다.
+    /// </summary>
+    private static bool AreMasksSame(bool[] a, bool[] b)
+    {
+        if (a == null || b == null || a.Length != FinalCodeLength || b.Length != FinalCodeLength)
+            return false;
+
+        for (int i = 0; i < FinalCodeLength; i++)
+        {
+            if (a[i] != b[i])
+                return false;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -232,10 +301,26 @@ public static class FinalCodeAnswerGenerator
         for (int i = 0; i < FinalCodeLength; i++)
         {
             if (a[i] == b[i])
-                return false; // 둘 다 공개 또는 둘 다 비공개면 상보 아님
+                return false;
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// 마스크 복사본을 만든다.
+    /// </summary>
+    private static bool[] CopyMask(bool[] source)
+    {
+        bool[] copy = new bool[FinalCodeLength];
+
+        if (source == null)
+            return copy;
+
+        for (int i = 0; i < FinalCodeLength && i < source.Length; i++)
+            copy[i] = source[i];
+
+        return copy;
     }
 
     /// <summary>
@@ -245,7 +330,7 @@ public static class FinalCodeAnswerGenerator
     {
         for (int i = hints.Count - 1; i > 0; i--)
         {
-            int swapIndex = rng.NextInt(0, i + 1); // 교환 대상
+            int swapIndex = rng.NextInt(0, i + 1);
 
             if (swapIndex == i)
                 continue;
@@ -267,9 +352,12 @@ public static class FinalCodeAnswerGenerator
     /// </summary>
     private static bool HasExactlyOneValidPair(FinalCodeAnswerData data)
     {
-        int validPairCount = 0; // 유효 조합 수
-        int validAIndex = -1;   // 유효한 A 인덱스
-        int validBIndex = -1;   // 유효한 B 인덱스
+        if (data == null || data.ZoneAHints == null || data.ZoneBHints == null)
+            return false;
+
+        int validPairCount = 0;
+        int validAIndex = -1;
+        int validBIndex = -1;
 
         for (int a = 0; a < data.ZoneAHints.Count; a++)
         {
@@ -283,12 +371,12 @@ public static class FinalCodeAnswerGenerator
                 validBIndex = b;
 
                 if (validPairCount > 1)
-                    return false; // 2개 이상이면 실패
+                    return false;
             }
         }
 
         if (validPairCount != 1)
-            return false; // 0개여도 실패
+            return false;
 
         return validAIndex == data.TrueAHintIndex && validBIndex == data.TrueBHintIndex;
     }
@@ -307,11 +395,11 @@ public static class FinalCodeAnswerGenerator
 
         for (int i = 0; i < FinalCodeLength; i++)
         {
-            bool aRevealed = aHint.IsRevealed(i); // A 공개 여부
-            bool bRevealed = bHint.IsRevealed(i); // B 공개 여부
+            bool aRevealed = aHint.IsRevealed(i);
+            bool bRevealed = bHint.IsRevealed(i);
 
             if (aRevealed == bRevealed)
-                return false; // 둘 다 공개거나 둘 다 비공개면 실패
+                return false;
         }
 
         return true;
@@ -325,7 +413,7 @@ public static class FinalCodeAnswerGenerator
     /// </summary>
     public static int[] BuildCombinedCode(FinalCodeHintData aHint, FinalCodeHintData bHint)
     {
-        int[] result = new int[FinalCodeLength]; // 조합 결과
+        int[] result = new int[FinalCodeLength];
 
         for (int i = 0; i < FinalCodeLength; i++)
         {
@@ -344,26 +432,35 @@ public static class FinalCodeAnswerGenerator
     /// </summary>
     private static FinalCodeAnswerData CreateFallbackData(int seed)
     {
-        SeedRandom rng = new SeedRandom(seed + 9999); // fallback 전용 시드
+        SeedRandom rng = new SeedRandom(seed + 9999);
 
-        FinalCodeAnswerData data = new FinalCodeAnswerData(); // 결과 컨테이너
+        FinalCodeAnswerData data = new FinalCodeAnswerData();
 
         for (int i = 0; i < FinalCodeLength; i++)
             data.FinalDigits[i] = rng.NextInt(1, 10);
 
-        bool[] aMask = new bool[FinalCodeLength] { true, false, true, false, true, false };  // 진짜 A 패턴
-        bool[] bMask = new bool[FinalCodeLength] { false, true, false, true, false, true };  // 진짜 B 패턴
+        bool[] trueAMask = new bool[FinalCodeLength] { true, false, true, false, true, false };
+        bool[] trueBMask = BuildComplementMask(trueAMask);
 
-        data.ZoneAHints.Add(BuildHint(data.FinalDigits, aMask)); // 진짜 A
-        data.ZoneAHints.Add(BuildHint(data.FinalDigits, new bool[FinalCodeLength] { true, true, false, false, true, false }));   // 가짜 A
-        data.ZoneAHints.Add(BuildHint(data.FinalDigits, new bool[FinalCodeLength] { false, true, true, false, false, true }));   // 가짜 A
+        bool[] fakeAMask1 = new bool[FinalCodeLength] { true, true, true, false, false, false };
+        bool[] fakeAMask2 = new bool[FinalCodeLength] { false, false, true, true, true, false };
 
-        data.ZoneBHints.Add(BuildHint(data.FinalDigits, bMask)); // 진짜 B
-        data.ZoneBHints.Add(BuildHint(data.FinalDigits, new bool[FinalCodeLength] { true, false, false, true, false, true }));   // 가짜 B
-        data.ZoneBHints.Add(BuildHint(data.FinalDigits, new bool[FinalCodeLength] { false, false, true, true, true, false }));   // 가짜 B
+        bool[] fakeBMask1 = new bool[FinalCodeLength] { true, false, false, true, true, false };
+        bool[] fakeBMask2 = new bool[FinalCodeLength] { false, true, true, false, false, true };
+
+        data.ZoneAHints.Add(BuildAnswerHint(data.FinalDigits, trueAMask));
+        data.ZoneAHints.Add(BuildRandomDigitHint(fakeAMask1, rng));
+        data.ZoneAHints.Add(BuildRandomDigitHint(fakeAMask2, rng));
+
+        data.ZoneBHints.Add(BuildAnswerHint(data.FinalDigits, trueBMask));
+        data.ZoneBHints.Add(BuildRandomDigitHint(fakeBMask1, rng));
+        data.ZoneBHints.Add(BuildRandomDigitHint(fakeBMask2, rng));
 
         data.TrueAHintIndex = 0;
         data.TrueBHintIndex = 0;
+
+        if (!HasExactlyOneValidPair(data))
+            Debug.LogError("[FinalCodeAnswerGenerator] Fallback 데이터 검증 실패");
 
         return data;
     }
