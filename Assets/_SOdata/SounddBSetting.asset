@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c824bbd71315fe24cbd276e370e661ea, type: 3}
+  m_Name: SounddBSetting
+  m_EditorClassIdentifier: Assembly-CSharp::SounddBSetting
+  whiteNoisedB: 30
+  naturalThreshold_Whisper: -45
+  naturalDB_Whisper: 30
+  naturalThreshold_Normal: -30
+  naturalDB_Normal: 38
+  naturalThreshold_Loud: -20
+  naturalDB_Loud: 41
+  naturalDB_Shout: 43
+  walkieThreshold_Whisper: -45
+  walkieDB_Whisper: 36
+  walkieThreshold_Normal: -30
+  walkieDB_Normal: 44
+  walkieThreshold_Loud: -20
+  walkieDB_Loud: 47
+  walkieDB_Shout: 49
+  footstepDB_Crouch: 26
+  footstepDB_Walk: 31
+  footstepDB_Run: 34
+  puzzleFailSounddB: 49
+  radioRepairSounddB: 41
+  radioLureSounddB: 47
+  radioSoundInterval: 0.5
