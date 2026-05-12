@@ -28,17 +28,18 @@ public class RescueZoneDoor : NetworkBehaviour
     //크리처의 문 제어를 위한 정적 딕셔너리
     private static Dictionary<Zone, List<RescueZoneDoor>> doors = new Dictionary<Zone, List<RescueZoneDoor>>();
 
+    private void Awake()
+    {
+        //초기 회전값 캐싱
+        closedRotation = transform.localRotation;
+        targetOpenRotation = closedRotation * Quaternion.Euler(openRotation);
+    }
+
     public override void Spawned()
     {
         //딕셔너리에 자신을 등록
         if (!doors.ContainsKey(myZone)) doors[myZone] = new List<RescueZoneDoor>();
-        if (!doors[myZone].Contains(this)) doors[myZone].Add(this);
-
-        closedRotation = transform.localRotation;
-
-        //설정된 각도만큼 더해진 회전값을 '열림' 상태로 사전 계산
-        closedRotation = transform.localRotation;
-        targetOpenRotation = closedRotation * Quaternion.Euler(openRotation);
+        if (!doors[myZone].Contains(this)) doors[myZone].Add(this);        
 
         if (HasStateAuthority)
         {            
@@ -127,7 +128,11 @@ public class RescueZoneDoor : NetworkBehaviour
     {
         if (doors.TryGetValue(zone, out List<RescueZoneDoor> zoneDoors))
         {
-            foreach (var door in zoneDoors) door.OpenDoor();
+            foreach (var door in zoneDoors)
+            {
+                if (door.HasStateAuthority) door.OpenDoor();
+                else door.RPC_RequestOpenDoor();
+            }
             Debug.Log($"[RescueZoneDoor] {zone}의 모든 문({zoneDoors.Count}개)이 동시에 개방됩니다.");
         }
     }
@@ -137,7 +142,11 @@ public class RescueZoneDoor : NetworkBehaviour
     {
         if (doors.TryGetValue(zone, out List<RescueZoneDoor> zoneDoors))
         {
-            foreach (var door in zoneDoors) door.CloseDoor();
+            foreach (var door in zoneDoors)
+            {
+                if (door.HasStateAuthority) door.CloseDoor();
+                else door.RPC_RequestCloseDoor();
+            }
             Debug.Log($"[RescueZoneDoor] {zone}의 모든 문({zoneDoors.Count}개)이 닫힙니다.");
         }
     }
