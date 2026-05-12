@@ -153,7 +153,7 @@ public class PlayerVoiceController : NetworkBehaviour
         if (playerController.NetPlayerState == PlayerState.Dead ||
             playerController.NetPlayerState == PlayerState.Escaped)
         {
-            VoiceManager.Instance?.SwitchToSpectatorMode(playerController.NetZone);
+            VoiceManager.Instance?.SetSpectatotrSendGroup();
         }
     }
 
