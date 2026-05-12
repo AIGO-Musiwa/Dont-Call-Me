@@ -139,15 +139,14 @@ public class VoiceManager : MonoBehaviour
     }
 
     // 관전 모드 - 사망/탈출한 플레이어끼리만 소통
-    public void SwitchToSpectatorMode(Zone targetZone)
+    public void SwitchToSpectatorMode()
     {
         if (recorder == null) FetchComponents();
         if (recorder == null) return;
 
         recorder.InterestGroup = Constants.GROUP_SPECTATOR;
-        UpdateSpectatorZone(targetZone);
 
-        Debug.Log($"[VoiceManager] 관전 모드 → {targetZone} 구독 + GROUP_SPECTATOR 송신");
+        Debug.Log("[VoiceManager] 관전 모드 → GROUP_SPECTATOR 송신 전환");
     }
 
     // 관전 대상 구역 변경 시 구독 갱신
@@ -221,7 +220,7 @@ public class VoiceManager : MonoBehaviour
             recorder.InterestGroup = Constants.GROUP_WALKIE;
 
             // 같은 구역 팀원도 GROUP_WALKIE 구독 추가
-            ApplyGroup(new byte[] { myGroup });
+            ApplyGroup(new byte[] { myGroup, Constants.GROUP_WALKIE });
             Debug.Log("[VoiceManager] PTT ON → GROUP_WALKIE 송신 + 팀원 구독 추가");
         }
         else
