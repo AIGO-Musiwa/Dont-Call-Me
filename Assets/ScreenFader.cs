@@ -63,7 +63,8 @@ public class ScreenFader : MonoBehaviour
         while (timer < duration)
         {
             timer += Time.deltaTime;
-            // 알파값을 부드럽게 보간
+
+            //알파값을 부드럽게 보간
             color.a = Mathf.Lerp(startAlpha, targetAlpha, timer / duration);
             fadeImage.color = color;
             yield return null;
