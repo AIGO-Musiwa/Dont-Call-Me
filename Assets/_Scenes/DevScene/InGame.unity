@@ -28569,11 +28569,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1754437313}
   m_SourcePrefab: {fileID: 100100000, guid: 77c1ab1ad906a9b49ac4b7fff815a945, type: 3}
---- !u!4 &200511368 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -9010054183265243930, guid: 77c1ab1ad906a9b49ac4b7fff815a945, type: 3}
-  m_PrefabInstance: {fileID: 200511367}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &200511369 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -1733665865587716012, guid: 77c1ab1ad906a9b49ac4b7fff815a945, type: 3}
@@ -74141,7 +74136,7 @@ Transform:
   - {fileID: 1320261039}
   - {fileID: 1261147456}
   - {fileID: 1161638895}
-  - {fileID: 200511368}
+  - {fileID: 937541131}
   m_Father: {fileID: 1834669448}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &506991965
@@ -79957,6 +79952,11 @@ MonoBehaviour:
   m_SelectedFaces: 
   m_SelectedEdges: []
   m_SelectedVertices: 
+--- !u!4 &538616499 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 77c1ab1ad906a9b49ac4b7fff815a945, type: 3}
+  m_PrefabInstance: {fileID: 1641809744}
+  m_PrefabAsset: {fileID: 0}
 --- !u!43 &540228770
 Mesh:
   m_ObjectHideFlags: 0
@@ -140194,6 +140194,11 @@ MonoBehaviour:
   m_SelectedFaces: 
   m_SelectedEdges: []
   m_SelectedVertices: 
+--- !u!4 &937541131 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 77c1ab1ad906a9b49ac4b7fff815a945, type: 3}
+  m_PrefabInstance: {fileID: 200511367}
+  m_PrefabAsset: {fileID: 0}
 --- !u!43 &939202931
 Mesh:
   m_ObjectHideFlags: 0
@@ -193869,7 +193874,7 @@ Transform:
   - {fileID: 257835365}
   - {fileID: 234689740}
   - {fileID: 2125674151}
-  - {fileID: 1641809745}
+  - {fileID: 538616499}
   m_Father: {fileID: 177005523}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1294640926
@@ -235070,6 +235075,7 @@ GameObject:
   - component: {fileID: 1599335063}
   - component: {fileID: 1599335060}
   - component: {fileID: 1599335064}
+  - component: {fileID: 1599335065}
   m_Layer: 0
   m_Name: CM_CapturedCamera
   m_TagString: Untagged
@@ -235154,6 +235160,19 @@ MonoBehaviour:
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
   FollowOffset: {x: 0, y: 0, z: 0}
+--- !u!114 &1599335065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1599335059}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4afa82ae3200b82408d605c3dbdd1e38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineRotateWithFollowTarget
+  Damping: 0
 --- !u!1 &1601686368
 GameObject:
   m_ObjectHideFlags: 0
@@ -238503,11 +238522,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1641809747}
   m_SourcePrefab: {fileID: 100100000, guid: 77c1ab1ad906a9b49ac4b7fff815a945, type: 3}
---- !u!4 &1641809745 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -9010054183265243930, guid: 77c1ab1ad906a9b49ac4b7fff815a945, type: 3}
-  m_PrefabInstance: {fileID: 1641809744}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1641809746 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 136856404779038914, guid: 77c1ab1ad906a9b49ac4b7fff815a945, type: 3}
@@ -251321,6 +251335,7 @@ GameObject:
   - component: {fileID: 1725611431}
   - component: {fileID: 1725611428}
   - component: {fileID: 1725611432}
+  - component: {fileID: 1725611433}
   m_Layer: 0
   m_Name: CM_PlayerCamera
   m_TagString: Untagged
@@ -251405,6 +251420,19 @@ MonoBehaviour:
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
   FollowOffset: {x: 0, y: 0, z: 0}
+--- !u!114 &1725611433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1725611427}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4afa82ae3200b82408d605c3dbdd1e38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineRotateWithFollowTarget
+  Damping: 0
 --- !u!1 &1726416819
 GameObject:
   m_ObjectHideFlags: 0
@@ -285820,7 +285848,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 1062911
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
