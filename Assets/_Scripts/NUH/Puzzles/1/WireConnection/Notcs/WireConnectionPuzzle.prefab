@@ -501,6 +501,7 @@ GameObject:
   - component: {fileID: 7344414718244947792}
   - component: {fileID: 6417612792351888109}
   - component: {fileID: 875444891473085272}
+  - component: {fileID: 4539412287056153412}
   m_Layer: 6
   m_Name: Handle_Baked
   m_TagString: Untagged
@@ -602,6 +603,22 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.0015035348, y: 0.0014630324, z: 0.0003641436}
   m_Center: {x: -0.00062069565, y: 4.656613e-10, z: -0.000028810673}
+--- !u!114 &4539412287056153412
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 826086574678601789}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16108519fd2b13a4588051cb8cb27195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemOutlineController
+  outlineLayerName: ItemOutline
+  targetRenderers:
+  - {fileID: 6417612792351888109}
+  - {fileID: 3964923358962942533}
 --- !u!1 &949070937305606644
 GameObject:
   m_ObjectHideFlags: 0
