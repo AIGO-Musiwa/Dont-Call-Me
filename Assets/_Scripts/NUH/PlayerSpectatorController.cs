@@ -498,7 +498,7 @@ public class PlayerSpectatorController : MonoBehaviour
             return;
 
         VoiceManager.Instance?.SetSpectatingTarget(target);
-        VoiceManager.Instance?.UpdateSpectatorZone(target.NetZone);
+        VoiceManager.Instance?.SwitchToSpectatorMode(target.NetZone);
     }
 
     /// <summary>
