@@ -70,7 +70,9 @@ public class PlayerKCCMotor : MonoBehaviour
         if (!_initialized || _simpleKCC == null)
             return;
 
-        if (!lookLocked)
+        bool canUseNormalLook = CanUseNormalLook(lookLocked);
+
+        if (canUseNormalLook)
             ApplyLook(input);
 
         bool canMove = CanMove(movementLocked);
@@ -139,6 +141,22 @@ public class PlayerKCCMotor : MonoBehaviour
             angle -= 360f;
 
         return angle;
+    }
+
+
+    /// <summary>
+    /// Normal 상태에서만 KCC LookRotation을 갱신할 수 있는지 판단한다.
+    /// Captured 상태의 시야 회전은 CapturedCameraController가 별도 pivot으로 처리한다.
+    /// </summary>
+    private bool CanUseNormalLook(bool lookLocked)
+    {
+        if (lookLocked)
+            return false;
+
+        if (_controller == null)
+            return true;
+
+        return _controller.NetPlayerState == PlayerState.Normal;
     }
 
     /// <summary>

@@ -6,14 +6,15 @@ using Unity.Cinemachine;
 /// <summary>
 /// Cinemachine Orbital Follow 기반 관전 컨트롤러.
 /// - 로컬 플레이어가 Dead / Escaped 상태가 되면 관전 모드로 진입한다.
-/// - 관전 중에는 평상시 1인칭 카메라를 끄고 spectator rig를 켠다.
+/// - 실제 화면 전환은 LocalCameraModeController의 Cinemachine Priority 제어가 담당한다.
+/// - 이 스크립트는 관전 대상, Orbit 입력, Zoom 입력, 사운드 기준 Transform 갱신만 관리한다.
 /// - 관전 대상은 Normal + Captured만 허용한다.
 /// - 좌클릭 / 우클릭 계열 입력으로 대상 전환, 마우스 이동으로 Orbit, 휠로 Zoom을 처리한다.
 /// </summary>
 public class PlayerSpectatorController : MonoBehaviour
 {
     [Header("참조")]
-    [SerializeField] private Camera spectatorCamera;                      // 관전 화면을 실제로 출력하는 카메라
+    [SerializeField] private Camera mainCamera;                      // 실제 화면과 AudioListener를 담당하는 씬 카메라
     [SerializeField] private CinemachineCamera spectatorOrbitCamera;      // 관전용 가상 카메라
     [SerializeField] private InputActionReference lookAction;             // 관전 회전 입력 액션
     [SerializeField] private InputActionReference zoomAction;             // 관전 줌 입력 액션
@@ -36,16 +37,14 @@ public class PlayerSpectatorController : MonoBehaviour
     private PlayerController _owner;                                      // 이 관전 컨트롤러를 사용하는 로컬 플레이어
     private CinemachineOrbitalFollow _orbitalFollow;                      // Orbit / Zoom 값을 실제로 적용할 Cinemachine 컴포넌트
 
-    private Camera _ownerGameplayCamera;                                  // 평상시 1인칭 시점 카메라
-
     private readonly List<PlayerController> _targets = new();             // 현재 관전 가능한 플레이어 목록
     private int _targetIndex;                                             // 현재 선택된 관전 대상 인덱스
 
     private bool _isSpectating;                                           // 현재 관전 모드 진입 여부
 
     /// <summary>
-    /// 로컬 플레이어를 연결하고 관전 리그와 평상시 카메라 참조를 초기화한다.
-    /// PlayerController.Spawned()가 모든 플레이어에서 호출하므로
+    /// 로컬 플레이어를 연결하고 관전 입력과 사운드 기준 참조를 초기화한다.
+    /// PlayerController.Spawned()가 모든 플레이어에서 호출되므로
     /// 여기서 반드시 로컬 플레이어만 owner로 받도록 방어한다.
     /// </summary>
     public void Initialize(PlayerController owner)
@@ -54,7 +53,7 @@ public class PlayerSpectatorController : MonoBehaviour
         if (owner == null)
             return;
 
-        // 관전 카메라는 로컬 플레이어만 사용하므로 InputAuthority가 없는 객체는 owner로 삼지 않는다.
+        // 관전 컨트롤러는 로컬 플레이어만 사용하므로 InputAuthority가 없는 객체는 owner로 삼지 않는다.
         if (!owner.HasInputAuthority)
             return;
 
@@ -68,14 +67,10 @@ public class PlayerSpectatorController : MonoBehaviour
         if (spectatorOrbitCamera != null)
             _orbitalFollow = spectatorOrbitCamera.GetComponent<CinemachineOrbitalFollow>();
 
-        // 로컬 플레이어의 평상시 1인칭 카메라를 캐싱한다.
-        if (_owner.LookView != null)
-            _ownerGameplayCamera = _owner.LookView.ViewCamera;
+        // 실제 출력 카메라와 관전용 Cinemachine Camera는 Priority 전환 대상으로 유지한다.
+        EnsureCameraObjectsEnabled();
 
-        // 초기에는 관전 상태가 아니므로 spectator rig를 꺼둔다.
-        SetSpectatorRigActive(false);
-
-        // 초기에는 평상시 카메라만 켜두는 모드로 맞춘다.
+        // 초기 상태는 일반 플레이 기준으로 사운드 기준 Transform을 맞춘다.
         ApplyCameraMode(false);
 
         // 관전 Orbit 기본값을 준비한다.
@@ -88,14 +83,14 @@ public class PlayerSpectatorController : MonoBehaviour
     /// </summary>
     private void LateUpdate()
     {
-        // owner가 없거나 로컬 플레이어가 아니면 아무것도 하지 않는다
+        // owner가 없거나 로컬 플레이어가 아니면 아무것도 하지 않는다.
         if (_owner == null || !_owner.HasInputAuthority)
             return;
 
-        // Dead / Escaped 이면 관전 상태로 본다
+        // Dead / Escaped 이면 관전 상태로 본다.
         bool shouldSpectate = _owner.IsSpectatorState();
 
-        // 관전 상태가 아니면 필요 시 관전 모드 종료
+        // 관전 상태가 아니면 필요 시 관전 모드를 종료한다.
         if (!shouldSpectate)
         {
             if (_isSpectating)
@@ -104,31 +99,30 @@ public class PlayerSpectatorController : MonoBehaviour
             return;
         }
 
-        // 아직 관전 모드가 아니라면 최초 진입 처리
+        // 아직 관전 모드가 아니라면 최초 진입 처리한다.
         if (!_isSpectating)
             EnterSpectatorMode();
 
-        // 현재 대상이 유효한지 점검하고 필요 시 목록 갱신
+        // 현재 대상이 유효한지 점검하고 필요 시 목록을 갱신한다.
         RefreshTargetsIfNeeded();
 
-        // 좌클릭 / 우클릭으로 관전 대상 전환
+        // 좌클릭 / 우클릭으로 관전 대상 전환을 처리한다.
         ProcessTargetSwitchInput();
 
-        // 마우스 이동으로 orbit 값 갱신
+        // 마우스 이동으로 orbit 값을 갱신한다.
         ApplyOrbitInput();
 
-        // 휠 입력으로 줌 값을 갱신
+        // 휠 입력으로 줌 값을 갱신한다.
         ApplyZoomInput();
 
-        // 현재 대상 anchor를 Follow / LookAt에 적용
+        // 현재 대상 anchor를 Follow / LookAt에 적용한다.
         ApplyCurrentTarget();
     }
 
     /// <summary>
     /// 관전 모드에 진입한다.
-    /// - Orbit 값을 초기화하고
-    /// - 관전 대상 목록을 갱신하고
-    /// - 카메라 출력을 관전 모드로 전환한다.
+    /// Orbit 값을 초기화하고, 관전 대상 목록을 갱신하고, 현재 관전 대상에 카메라를 연결한다.
+    /// 실제 화면 전환은 LocalCameraModeController의 Priority 제어가 담당한다.
     /// </summary>
     private void EnterSpectatorMode()
     {
@@ -136,16 +130,15 @@ public class PlayerSpectatorController : MonoBehaviour
         ResetOrbitState();                    // 관전 진입 시 Orbit 기본값 복원
         RefreshTargets();                     // 현재 관전 가능한 대상 목록 구성
         ClampTargetIndex();                   // 대상 인덱스를 안전 범위로 보정
-        ApplyCameraMode(true);                // 평상시 카메라를 끄고 관전 카메라를 켠다.
+        ApplyCameraMode(true);                // 관전 상태 기준으로 사운드 기준을 갱신한다.
         ApplyCurrentTarget();                 // 첫 관전 대상에 Follow / LookAt 적용
         NotifySpectatorTarget();              // 관전 대상 보이스 구역 적용
     }
 
     /// <summary>
     /// 관전 모드를 종료한다.
-    /// - 대상 목록 / 입력 상태를 초기화하고
-    /// - Follow / LookAt을 해제하고
-    /// - 카메라 출력을 평상시 모드로 되돌린다.
+    /// 대상 목록과 Follow / LookAt을 해제하고 사운드 기준을 일반 플레이 상태로 되돌린다.
+    /// 실제 화면 전환은 LocalCameraModeController의 Priority 제어가 담당한다.
     /// </summary>
     private void ExitSpectatorMode()
     {
@@ -160,7 +153,7 @@ public class PlayerSpectatorController : MonoBehaviour
             spectatorOrbitCamera.LookAt = null;
         }
 
-        // 평상시 카메라를 다시 켜고 관전 카메라는 끈다.
+        // 일반 플레이 상태 기준으로 사운드 기준을 갱신한다.
         ApplyCameraMode(false);
 
         // 관전 대상 초기화
@@ -241,8 +234,7 @@ public class PlayerSpectatorController : MonoBehaviour
     }
 
     /// <summary>
-    /// 현재 타겟이 사라졌거나 상태가 바뀌었을 때만
-    /// 대상 목록을 다시 구성한다.
+    /// 현재 타겟이 사라졌거나 상태가 바뀌었을 때만 대상 목록을 다시 구성한다.
     /// 매 프레임 전체 검색 비용을 줄이기 위한 최소 갱신용 함수다.
     /// </summary>
     private void RefreshTargetsIfNeeded()
@@ -284,13 +276,16 @@ public class PlayerSpectatorController : MonoBehaviour
     }
 
     /// <summary>
-    /// 현재 선택된 플레이어의 관전 anchor를 찾아
-    /// Cinemachine Follow / LookAt 대상으로 적용한다.
+    /// 현재 선택된 플레이어의 관전 anchor를 찾아 Cinemachine Follow / LookAt 대상으로 적용한다.
     /// </summary>
     private void ApplyCurrentTarget()
     {
         // 관전 카메라가 없거나 타겟이 없으면 종료.
         if (spectatorOrbitCamera == null || _targets.Count == 0)
+            return;
+
+        // 현재 인덱스가 유효하지 않으면 종료.
+        if (_targetIndex < 0 || _targetIndex >= _targets.Count)
             return;
 
         // 현재 인덱스의 플레이어를 가져온다.
@@ -356,33 +351,36 @@ public class PlayerSpectatorController : MonoBehaviour
         _orbitalFollow.Radius = Mathf.Clamp(nextRadius, minDistance, maxDistance);
     }
 
+    /// <summary>
+    /// 관전 대상 전환 입력을 처리한다.
+    /// previousTargetAction은 이전 대상, nextTargetAction은 다음 대상으로 순환한다.
+    /// </summary>
     private void ProcessTargetSwitchInput()
     {
         // 관전 중이 아니면 대상 전환 입력 처리 x
-        if(!_isSpectating)
+        if (!_isSpectating)
             return;
 
         // 이전 대상 입력 액션이 이번 프레임에 눌렸는지 확인
-        bool previousPressed = 
-            previousTargetAction != null && 
-            previousTargetAction.action != null && 
+        bool previousPressed =
+            previousTargetAction != null &&
+            previousTargetAction.action != null &&
             previousTargetAction.action.WasPressedThisFrame();
 
         // 다음 대상 입력 액션이 이번 프레임에 눌렸는지 확인
-        bool nextPressed = 
-            nextTargetAction != null && 
-            nextTargetAction.action != null && 
+        bool nextPressed =
+            nextTargetAction != null &&
+            nextTargetAction.action != null &&
             nextTargetAction.action.WasPressedThisFrame();
 
         // 좌클릭 계열 입력으로 이전 대상 선택
-        if(previousPressed)
+        if (previousPressed)
             SelectPreviousTarget();
 
         // 우클릭 계열 입력으로 다음 대상 선택
-        if(nextPressed)
+        if (nextPressed)
             SelectNextTarget();
     }
-
 
     /// <summary>
     /// 다음 관전 대상으로 순환한다.
@@ -397,8 +395,8 @@ public class PlayerSpectatorController : MonoBehaviour
         if (_targetIndex >= _targets.Count)
             _targetIndex = 0; // 마지막이면 처음으로 순환
 
-        ApplyCurrentTarget(); // 새 대상에 바로 카메라 적용
-        NotifySpectatorTarget(); // 관전 대상 보이스 구역 갱신
+        ApplyCurrentTarget();      // 새 대상에 바로 카메라 적용
+        NotifySpectatorTarget();   // 관전 대상 보이스 구역 갱신
     }
 
     /// <summary>
@@ -414,64 +412,30 @@ public class PlayerSpectatorController : MonoBehaviour
         if (_targetIndex < 0)
             _targetIndex = _targets.Count - 1; // 처음이면 마지막으로 순환
 
-        ApplyCurrentTarget(); // 새 대상에 바로 카메라 적용
-        NotifySpectatorTarget(); // 관전 대상 보이스 구역 갱신
+        ApplyCurrentTarget();      // 새 대상에 바로 카메라 적용
+        NotifySpectatorTarget();   // 관전 대상 보이스 구역 갱신
     }
 
     /// <summary>
-    /// spectator rig 자체의 활성 상태를 토글한다.
-    /// - 실제 출력 카메라
-    /// - 관전 가상 카메라
-    /// 두 오브젝트를 함께 켜고 끈다.
+    /// 실제 출력 카메라와 관전용 Cinemachine Camera가 비활성화되어 있으면 다시 켠다.
+    /// 실제 카메라 모드 전환은 GameObject ON/OFF가 아니라 Cinemachine Priority로 처리한다.
     /// </summary>
-    private void SetSpectatorRigActive(bool active)
+    private void EnsureCameraObjectsEnabled()
     {
-        if (spectatorCamera != null)
-            spectatorCamera.gameObject.SetActive(active);
+        if (mainCamera != null && !mainCamera.gameObject.activeSelf)
+            mainCamera.gameObject.SetActive(true);
 
-        if (spectatorOrbitCamera != null)
-            spectatorOrbitCamera.gameObject.SetActive(active);
+        if (spectatorOrbitCamera != null && !spectatorOrbitCamera.gameObject.activeSelf)
+            spectatorOrbitCamera.gameObject.SetActive(true);
     }
 
     /// <summary>
-    /// 로컬 플레이어의 평상시 1인칭 카메라 활성 상태를 토글한다.
-    /// 관전 모드에서는 false, 일반 모드에서는 true가 된다.
-    /// </summary>
-    private void SetOwnerGameplayCameraActive(bool active)
-    {
-        // 평상시 카메라 GameObject 자체를 켜고 끈다.
-        if (_ownerGameplayCamera != null)
-            _ownerGameplayCamera.gameObject.SetActive(active);
-    }
-
-    /// <summary>
-    /// 관전 카메라 출력 활성 상태를 토글한다.
-    /// 관전 모드에서는 true, 일반 모드에서는 false가 된다.
-    /// </summary>
-    private void SetSpectatorOutputActive(bool active)
-    {
-        // spectator rig 전체를 켜고 끈다.
-        SetSpectatorRigActive(active);
-    }
-
-    /// <summary>
-    /// 현재 카메라 모드를 일괄 적용한다.
-    /// - spectating == true  : 평상시 카메라 OFF, 관전 카메라 ON
-    /// - spectating == false : 평상시 카메라 ON,  관전 카메라 OFF
+    /// 관전 상태 변경 시 카메라 리그를 유지하고, 음성/무전기 시스템의 기준 Transform을 갱신한다.
+    /// 실제 화면 전환은 LocalCameraModeController의 Cinemachine Priority 제어가 담당한다.
     /// </summary>
     private void ApplyCameraMode(bool spectating)
     {
-        if (spectating)
-        {
-            SetOwnerGameplayCameraActive(false); // 1인칭 카메라 끄기
-            SetSpectatorOutputActive(true);      // 관전 카메라 켜기
-        }
-        else
-        {
-            SetSpectatorOutputActive(false);     // 관전 카메라 끄기
-            SetOwnerGameplayCameraActive(true);  // 1인칭 카메라 켜기
-        }
-
+        EnsureCameraObjectsEnabled();
         NotifySoundOrigin(spectating);
     }
 
@@ -520,37 +484,79 @@ public class PlayerSpectatorController : MonoBehaviour
         return target.transform;
     }
 
-    // 현재 관전 대상을 VoiceManager에 알림
+    /// <summary>
+    /// 현재 관전 대상을 VoiceManager에 알려 관전 보이스 구역을 갱신한다.
+    /// </summary>
     private void NotifySpectatorTarget()
     {
-        if (_targets.Count == 0 || _targetIndex < 0 || _targetIndex >= _targets.Count) return;
+        if (_targets.Count == 0 || _targetIndex < 0 || _targetIndex >= _targets.Count)
+            return;
 
         PlayerController target = _targets[_targetIndex];
-        if (target == null) return;
+        if (target == null)
+            return;
 
         VoiceManager.Instance?.SetSpectatingTarget(target);
         VoiceManager.Instance?.UpdateSpectatorZone(target.NetZone);
     }
 
+    /// <summary>
+    /// 현재 상태에 맞는 사운드 기준 Transform을 PlayerVoiceController와 WalkieTalkieItem에 전달한다.
+    /// 일반 상태에서는 플레이어의 시야 기준 Transform을 사용하고,
+    /// 관전 상태에서는 실제 출력 카메라의 AudioListener Transform을 사용한다.
+    /// </summary>
     private void NotifySoundOrigin(bool spectating)
     {
-        if (_owner == null) return;
+        if (_owner == null)
+            return;
 
-        // 관전 진입 시 → 관전 카메라 AudioListener
-        // 관전 종료 시 → 1인칭 카메라 AudioListener
         Transform soundOrigin = spectating
-            ? spectatorCamera.transform
-            : _ownerGameplayCamera.transform;
+            ? GetSpectatorSoundOrigin()
+            : GetOwnerGameplaySoundOrigin();
+
+        if (soundOrigin == null)
+            return;
 
         // PlayerVoiceController에 주입
         _owner.GetComponent<PlayerVoiceController>()?.SetListenerTransform(soundOrigin);
 
         // WalkieTalkieItem에 주입
         var walkies = WalkieTalkieManager.Instance?.GetAllWalkieTalkies();
-        if (walkies == null) return;
+        if (walkies == null)
+            return;
 
         foreach (var walkie in walkies)
             walkie?.SetListenerTransform(soundOrigin);
+    }
+
+    /// <summary>
+    /// 관전 중 사용할 사운드 기준 Transform을 반환한다.
+    /// 실제 출력 카메라의 AudioListener가 있으면 그 Transform을 우선 사용한다.
+    /// </summary>
+    private Transform GetSpectatorSoundOrigin()
+    {
+        if (mainCamera != null)
+            return mainCamera.transform;
+
+        if (spectatorOrbitCamera != null)
+            return spectatorOrbitCamera.transform;
+
+        return null;
+    }
+
+    /// <summary>
+    /// 일반 플레이 상태에서 사용할 사운드 기준 Transform을 반환한다.
+    /// PlayerPrefab 내부 MainCamera가 제거된 구조이므로 Camera 컴포넌트가 아니라 LookView의 ViewOrigin을 사용한다.
+    /// </summary>
+    private Transform GetOwnerGameplaySoundOrigin()
+    {
+        if (_owner == null)
+            return null;
+
+        if (_owner.LookView != null && _owner.LookView.ViewOrigin != null)
+            return _owner.LookView.ViewOrigin;
+
+        return _owner.transform;
     }
 
     /// <summary>

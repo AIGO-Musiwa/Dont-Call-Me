@@ -36,6 +36,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [SerializeField] private float leftHandDropImpulse = 2.0f;           // 왼손 드랍 임펄스
 
     [Header("포획")]
+    [SerializeField] private GameObject capturedRescueHitbox;            // 포획 상태에서 구출 판정을 위한 히트박스
     [SerializeField] private float captureTransitionSeconds = 1.0f;      // 포획 전환 연출 시간
     [SerializeField] private float traumaPenaltyCapture1 = 10f;          // 첫 포획 후유증 증가량
     [SerializeField] private float traumaPenaltyCapture2 = 20f;          // 두 번째 포획 후유증 증가량
@@ -43,6 +44,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [SerializeField] private float traumaIncreasePerSecond = 1f;         // 포획 중 초당 후유증 증가량
     [SerializeField] private float traumaDeathThreshold = 100f;          // 후유증 사망 임계값
     [SerializeField] private float rescueBaseTimeSeconds = 100f;         // 기본 구조 제한 시간
+    
 
     [Networked, OnChangedRender(nameof(OnPlayerStateChanged))]
     public PlayerState NetPlayerState { get; set; }                      // 현재 플레이어 상태
@@ -77,6 +79,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
     private int _lastInteractRequestTick = -1;                           // 마지막 일반 상호작용 요청 tick
     private bool _prevWalkiePressed;                                     // 이전 tick 무전기 입력 상태
+    private bool _lastCapturedRescueHitboxActive;                        // 마지막으로 구출 감지 Trigger 활성 상태
 
     private ChangeDetector stateChangeDetector;                          // PlayerState 변경 감지기
     private ItemOutlineController _lastHighlightedOutline;               // 마지막으로 강조 중인 외곽선 장치
@@ -133,6 +136,10 @@ public class PlayerController : NetworkBehaviour, IInteractable
             {
                 Debug.LogWarning("[HUD] 씬에서 HUDController를 찾을 수 없습니다. HUD 프리팹이 배치되었는지 확인하세요.");
             }
+
+            LocalCameraModeController cameraModeController = UnityEngine.Object.FindFirstObjectByType<LocalCameraModeController>(FindObjectsInactive.Include); // 씬 로컬 카메라 리그 탐색
+            if (cameraModeController != null)
+                cameraModeController.RegisterLocalPlayer(this);          // 로컬 플레이어 카메라 Target 등록
         }
 
         var bodySync = GetComponent<PlayerBodySync>();                   // 원격 바디 동기화 스크립트 탐색
@@ -144,6 +151,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
         stateChangeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState); // 상태 변경 감지기 생성
 
         if (!AllPlayers.Contains(this)) AllPlayers.Add(this);
+
+        ApplyCapturedRescueHitboxState(true);                                            // 포획 구출 히트박스 상태 초기화
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState)
@@ -227,6 +236,11 @@ public class PlayerController : NetworkBehaviour, IInteractable
             if (GetHeldWalkieTalkie() != null)
                 RPC_RequestPTT(false);
         }
+    }
+
+    public override void Render()
+    {
+        ApplyCapturedRescueHitboxState(false);
     }
 
     /// <summary>
@@ -318,9 +332,33 @@ public class PlayerController : NetworkBehaviour, IInteractable
         }
     }
 
+    public Transform NormalCameraTarget
+    {
+        get
+        {
+            return LookView != null ? LookView.NormalCameraTarget : transform; // Normal 상태 시야 기준 Transform 반환
+        }
+    }
+
+    public Transform CapturedCameraTarget
+    {
+        get
+        {
+            return LookView != null ? LookView.CapturedCameraTarget : NormalCameraTarget; // Captured 상태 카메라 기준 Transform 반환
+        }
+    }
+
+    public Transform CurrentViewOrigin
+    {
+        get
+        {
+            return LookView != null ? LookView.ViewOrigin : transform; // 현재 상태에 맞는 시야 기준 Transform 반환
+        }
+    }
+
     public Transform GetCameraLightRoot()
     {
-        return LookView != null ? LookView.GetCameraLightRoot() : null;  // 카메라 기준 손전등 루트 반환
+        return LookView != null ? LookView.GetCameraLightRoot() : null;  // 손전등 라이트가 따라갈 기준 루트 반환
     }
 
     public void SetInputLock(bool movementLocked, bool lookLocked)
@@ -354,6 +392,26 @@ public class PlayerController : NetworkBehaviour, IInteractable
     public bool IsCaptureActive()
     {
         return NetPlayerState == PlayerState.Captured && NetCapturePhase == CapturePhase.Active; // 현재 포획 활성 상태인지
+    }
+
+    /// <summary>
+    /// 포획 활성 상태일 때만 구출 Raycast 감지용 Trigger 오브젝트 켜기
+    /// </summary>
+    private void ApplyCapturedRescueHitboxState(bool force)
+    {
+        if (capturedRescueHitbox == null)
+            return;
+
+        bool shouldActive = NetPlayerState == PlayerState.Captured &&
+            NetCapturePhase == CapturePhase.Active;
+
+        if (!force &&
+            _lastCapturedRescueHitboxActive == shouldActive &&
+            capturedRescueHitbox.activeSelf == shouldActive)
+            return;
+
+        capturedRescueHitbox.SetActive(shouldActive);                                       // 포획 활성 상태에 따라 히트박스 활성화
+        _lastCapturedRescueHitboxActive = shouldActive;                                     // 상태 기록
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
@@ -801,7 +859,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureTransitionTimer = TickTimer.CreateFromSeconds(Runner, captureTransitionSeconds); // 전환 타이머 시작
         NetCaptureExpireTimer = TickTimer.None;                           // 사망 타이머 초기화
 
-        SetInputLock(true, false);                                        // 이동 잠금, 시야는 허용
+        SetInputLock(true, true);                                         // 포획 상태에서는 일반 이동과 일반 시야 회전을 모두 잠근다
 
         ServerForceDropAllHeldItems();                                    // 들고 있던 아이템 강제 드랍
         ApplyImmediateTraumaOnCapture();                                  // 즉시 후유증 증가
@@ -862,7 +920,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
         MovePlayerToWorldPose(NetCaptureAnchorPosition, NetCaptureAnchorRotation); // 구조 구역으로 이동
 
-        SetInputLock(true, false);                                        // 이동 잠금, 시야는 허용
+        SetInputLock(true, true);                                         // 포획 상태에서는 일반 이동과 일반 시야 회전을 모두 잠근다
 
         float remainSeconds = Mathf.Max(0f, rescueBaseTimeSeconds - NetAftereffectPercent); // 남은 구조 가능 시간 계산
         NetCaptureExpireTimer = TickTimer.CreateFromSeconds(Runner, remainSeconds); // 사망 타이머 시작
