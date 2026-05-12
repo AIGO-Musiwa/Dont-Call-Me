@@ -221,7 +221,7 @@ public class VoiceManager : MonoBehaviour
             recorder.InterestGroup = Constants.GROUP_WALKIE;
 
             // 같은 구역 팀원도 GROUP_WALKIE 구독 추가
-            ApplyGroup(new byte[] { myGroup });
+            ApplyGroup(new byte[] { myGroup, Constants.GROUP_WALKIE });
             Debug.Log("[VoiceManager] PTT ON → GROUP_WALKIE 송신 + 팀원 구독 추가");
         }
         else
