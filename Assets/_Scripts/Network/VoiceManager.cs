@@ -139,15 +139,14 @@ public class VoiceManager : MonoBehaviour
     }
 
     // 관전 모드 - 사망/탈출한 플레이어끼리만 소통
-    public void SwitchToSpectatorMode(Zone targetZone)
+    public void SwitchToSpectatorMode()
     {
         if (recorder == null) FetchComponents();
         if (recorder == null) return;
 
         recorder.InterestGroup = Constants.GROUP_SPECTATOR;
-        UpdateSpectatorZone(targetZone);
 
-        Debug.Log($"[VoiceManager] 관전 모드 → {targetZone} 구독 + GROUP_SPECTATOR 송신");
+        Debug.Log("[VoiceManager] 관전 모드 → GROUP_SPECTATOR 송신 전환");
     }
 
     // 관전 대상 구역 변경 시 구독 갱신
