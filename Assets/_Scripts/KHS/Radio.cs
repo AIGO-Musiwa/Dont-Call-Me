@@ -171,6 +171,7 @@ public class Radio : NetworkBehaviour, IHoldInteractable
             return; // 안전 잠금 시간 중에는 작동 무시
 
         CurrentState = RadioState.Active; // 라디오 작동 상태로 변경
+        GameEventLogger.Instance?.AddRadioUsed(myZone);
         Debug.Log("<color=green>[라디오]</color> 유인 모드 가동!");
         Invoke(nameof(SetDisabled), lureDuration); // 일정 시간 뒤 종료 상태로 전환
     }

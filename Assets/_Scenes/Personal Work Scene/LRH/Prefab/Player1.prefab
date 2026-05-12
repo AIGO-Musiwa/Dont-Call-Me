@@ -458,7 +458,7 @@ MonoBehaviour:
   proximityPanRange: 0.8
   obstructionMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 520
   perWallAttenuation: 0.75
   maxWallCount: 3
 --- !u!114 &6872417279680758967
@@ -532,11 +532,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 783aafc31e0c25c46a21c8c184d5c6e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WalkieTalkieNoiseFilter
-  highPassCutoff: 0.6
-  carrierFrequency: 2400
-  ringModDepth: 0.6
-  distortionAmount: 0.6
-  outputGain: 2.5
+  highPassCutoff: 0.5
+  carrierFrequency: 1800
+  ringModDepth: 0.5
+  distortionAmount: 0.5
+  outputGain: 3
 --- !u!114 &-160800329123288355
 MonoBehaviour:
   m_ObjectHideFlags: 0
