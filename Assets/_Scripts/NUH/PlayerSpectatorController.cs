@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Unity.Cinemachine;
 
 /// <summary>
 /// Cinemachine Orbital Follow 기반 관전 컨트롤러.
@@ -567,6 +568,16 @@ public class PlayerSpectatorController : MonoBehaviour
     {
         if (!_isSpectating || _targets.Count == 0 || _targetIndex < 0 || _targetIndex >= _targets.Count)
             return "대상 없음";
+
+        var runner = GameLauncher.Instance?.Runner;
+
+        foreach (var player in runner.ActivePlayers)
+        {
+            var data = runner.GetPlayerObject(player)?.GetComponent<PlayerData>();
+            
+            if (data.GetPlayerController() == _targets[_targetIndex])
+                return data.Nickname.ToString();
+        }
 
         return _targets[_targetIndex].gameObject.name;
     }
