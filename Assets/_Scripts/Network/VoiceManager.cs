@@ -1,6 +1,7 @@
 using Fusion;
 using Photon.Realtime;
 using Photon.Voice.Unity;
+using System.Data;
 using UnityEngine;
 using static Unity.Collections.Unicode;
 
@@ -139,12 +140,13 @@ public class VoiceManager : MonoBehaviour
     }
 
     // 관전 모드 - 사망/탈출한 플레이어끼리만 소통
-    public void SwitchToSpectatorMode()
+    public void SwitchToSpectatorMode(Zone targetZone)
     {
         if (recorder == null) FetchComponents();
         if (recorder == null) return;
 
         recorder.InterestGroup = Constants.GROUP_SPECTATOR;
+        UpdateSpectatorZone(targetZone);
 
         Debug.Log("[VoiceManager] 관전 모드 → GROUP_SPECTATOR 송신 전환");
     }
