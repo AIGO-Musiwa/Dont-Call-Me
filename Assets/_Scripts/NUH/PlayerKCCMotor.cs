@@ -27,6 +27,8 @@ public class PlayerKCCMotor : MonoBehaviour
     private SimpleKCC _simpleKCC;
     private Rigidbody _rigidbody;
 
+    private PlayerDebuffHandler _debuffHandler;
+
     private bool _initialized;
 
     public SimpleKCC KCC => _simpleKCC;
@@ -265,12 +267,17 @@ public class PlayerKCCMotor : MonoBehaviour
     /// </summary>
     private float GetCurrentSpeed(PlayerNetworkInput input)
     {
+        float baseSpeed;
+
         if (IsCrouching)
-            return crouchSpeed;
+            baseSpeed = crouchSpeed;
+        else if (input.Buttons.IsSet(InputButtons.Sprint))
+            baseSpeed = runSpeed;
+        else
+            baseSpeed = walkSpeed;
 
-        if (input.Buttons.IsSet(InputButtons.Sprint))
-            return runSpeed;
-
-        return walkSpeed;
+        // 서브 크리처 이속 감소 디버프 배율 적용
+        float multiplier = _debuffHandler != null ? _debuffHandler.NetSpeedMultiplier : 1f;
+        return baseSpeed * multiplier;
     }
 }
