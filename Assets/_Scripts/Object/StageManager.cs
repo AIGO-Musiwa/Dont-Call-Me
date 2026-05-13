@@ -13,6 +13,7 @@ using UnityEngine.InputSystem;
 /// - Zone별 Stage3 완료 보고를 받아 3막(Act3) 진입 여부를 판단한다.
 /// - 3막(Act3) 발동, 셔터/조명/사이렌 같은 전역 맵 변화를 담당한다.
 /// - Zone별 Stage2 진행도를 읽어서 키카드 보상 판정을 제공한다.
+/// - 맵에 고정 배치된 구제구역 퍼즐에 라운드 seed 기반 정답 seed를 주입한다.
 /// </summary>
 public class StageManager : NetworkBehaviour
 {
@@ -42,7 +43,11 @@ public class StageManager : NetworkBehaviour
     [SerializeField] private GameObject zoneB_StairB_Top;    // ZoneB B계단 상단 차단벽 (3F-2F)
     [SerializeField] private GameObject zoneB_StairB_Bottom; // ZoneB B계단 하단 차단벽 (2F-1F)
 
-    [Header("관전 대기실 (Dead Room)")]    
+    [Header("구제구역 퍼즐")]
+    [SerializeField] private RescueZonePuzzle zoneARescueZonePuzzle; // ZoneA 고정 구제구역 퍼즐
+    [SerializeField] private RescueZonePuzzle zoneBRescueZonePuzzle; // ZoneB 고정 구제구역 퍼즐
+
+    [Header("관전 대기실 (Dead Room)")]
     [SerializeField] private Transform deadRespawnPoint;
 
     [Header("디버그")]
@@ -51,9 +56,8 @@ public class StageManager : NetworkBehaviour
     [Networked, OnChangedRender(nameof(OnAct3StateChanged))]
     public NetworkBool IsAct3Active { get; set; } // 3막 진행 여부 네트워크 동기화 값
 
-    //방장이 뽑은 셔터 패턴 결과를 저장할 네트워크 변수
-    [Networked] private NetworkBool NetZoneAPattern1 { get; set; }
-    [Networked] private NetworkBool NetZoneBPattern1 { get; set; }
+    [Networked] private NetworkBool NetZoneAPattern1 { get; set; } // ZoneA 셔터 패턴
+    [Networked] private NetworkBool NetZoneBPattern1 { get; set; } // ZoneB 셔터 패턴
 
     [Networked, OnChangedRender(nameof(OnStage1CompletedChangedRender))]
     private NetworkBool NetZoneAStage1Completed { get; set; } // ZoneA Stage1 완료 승인 여부
@@ -61,82 +65,85 @@ public class StageManager : NetworkBehaviour
     [Networked, OnChangedRender(nameof(OnStage1CompletedChangedRender))]
     private NetworkBool NetZoneBStage1Completed { get; set; } // ZoneB Stage1 완료 승인 여부
 
-    //Zone별 Stage3 완료 상태
     [Networked] private NetworkBool NetZoneAStage3Completed { get; set; } // ZoneA Stage3 완료 여부
     [Networked] private NetworkBool NetZoneBStage3Completed { get; set; } // ZoneB Stage3 완료 여부
 
-    //탈출 버튼 동시 입력 관련 네트워크 변수
-    [Networked] public NetworkBool IsEscapeButtonExposed { get; private set; }
+    [Networked] public NetworkBool IsEscapeButtonExposed { get; private set; } // 기존 호환용 전역 탈출 버튼 노출 값
     [Networked] public NetworkBool IsZoneAEscapeButtonExposed { get; private set; } // ZoneA 탈출 버튼 노출 여부
     [Networked] public NetworkBool IsZoneBEscapeButtonExposed { get; private set; } // ZoneB 탈출 버튼 노출 여부
-    [Networked] public NetworkBool IsZoneAEscapePressed { get; set; }
-    [Networked] public NetworkBool IsZoneBEscapePressed { get; set; }
-    [Networked] private TickTimer EscapeInputTimer { get; set; }
+    [Networked] public NetworkBool IsZoneAEscapePressed { get; set; } // ZoneA 탈출 버튼 입력 여부
+    [Networked] public NetworkBool IsZoneBEscapePressed { get; set; } // ZoneB 탈출 버튼 입력 여부
+    [Networked] private TickTimer EscapeInputTimer { get; set; } // 동시 입력 제한 타이머
 
-    //텔레포트가 이미 완료된 플레이어들을 기억하여 무한 워프를 방지하는 로컬 셋
-    private HashSet<NetworkId> _teleportedPlayers = new HashSet<NetworkId>();
+    [Networked] private NetworkBool NetRescueZonePuzzlesSeedApplied { get; set; } // 구제구역 퍼즐 seed 주입 완료 여부
 
-    //옵저버 시스템 고장 방지를 위한 3초 지연 타이머 딕셔너리
-    private Dictionary<NetworkId, TickTimer> _deadTeleportTimers = new Dictionary<NetworkId, TickTimer>();
-    private float _findRespawnTimer = 0f;
+    private readonly HashSet<NetworkId> _teleportedPlayers = new(); // 이미 DeadRoom으로 보낸 플레이어 ID
+    private readonly Dictionary<NetworkId, TickTimer> _deadTeleportTimers = new(); // 사망/탈출 후 지연 텔레포트 대기 목록
+    private float _findRespawnTimer; // Dead_Respawn 재탐색 타이머
 
     private void Update()
     {
-        if (!HasStateAuthority) return;
+        if (!HasStateAuthority)
+            return;
 
-        // 현재 연결된 키보드 장치 가져오기
-        var keyboard = Keyboard.current;
-        if (keyboard == null) return;
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null)
+            return;
 
-        // F11키가 이번 프레임에 눌렸는지 확인
         if (keyboard.f11Key.wasPressedThisFrame)
-        {
             DebugCheatSkipAllToEscapeButton();
-        }
     }
 
     public override void Spawned()
     {
         if (Instance == null)
-            Instance = this; // 싱글톤 설정
+            Instance = this;
 
         if (HasStateAuthority)
         {
-            IsAct3Active = false; // 게임 시작 시 3막 비활성화
-            NetZoneAStage1Completed = false; // ZoneA Stage1 완료 플래그 초기화
-            NetZoneBStage1Completed = false; // ZoneB Stage1 완료 플래그 초기화
-            NetZoneAStage3Completed = false; // ZoneA Stage3 완료 플래그 초기화
-            NetZoneBStage3Completed = false; // ZoneB Stage3 완료 플래그 초기화
+            IsAct3Active = false;
 
-            IsZoneAEscapeButtonExposed = false; // ZoneA 버튼 비노출
-            IsZoneBEscapeButtonExposed = false; // ZoneB 버튼 비노출
-            IsZoneAEscapePressed = false;       // ZoneA 입력 상태 초기화
-            IsZoneBEscapePressed = false;       // ZoneB 입력 상태 초기화
-            EscapeInputTimer = TickTimer.None;  // 동시 입력 타이머 초기화
+            NetZoneAStage1Completed = false;
+            NetZoneBStage1Completed = false;
+            NetZoneAStage3Completed = false;
+            NetZoneBStage3Completed = false;
 
-            SetAllStairBlocksActive(false); // 시작 시 계단 차단벽 전부 비활성화
-            SetStage3DoorOpen(Zone.ZoneA, false); // ZoneA 3단계 진입 문 닫기
-            SetStage3DoorOpen(Zone.ZoneB, false); // ZoneB 3단계 진입 문 닫기
+            IsEscapeButtonExposed = false;
+            IsZoneAEscapeButtonExposed = false;
+            IsZoneBEscapeButtonExposed = false;
+            IsZoneAEscapePressed = false;
+            IsZoneBEscapePressed = false;
+            EscapeInputTimer = TickTimer.None;
+
+            NetZoneAPattern1 = false;
+            NetZoneBPattern1 = false;
+
+            NetRescueZonePuzzlesSeedApplied = false;
+
+            SetAllStairBlocksActive(false);
+            SetStage3DoorOpen(Zone.ZoneA, false);
+            SetStage3DoorOpen(Zone.ZoneB, false);
+
+            ServerTryInitializeRescueZonePuzzlesFromRoundSeed();
         }
 
-        ApplyStage1CompletedStateToLocalObjects(); // 현재 Networked Stage1 완료 상태를 로컬 오브젝트에 반영
+        ApplyStage1CompletedStateToLocalObjects();
     }
 
     public override void FixedUpdateNetwork()
     {
-        if (!HasStateAuthority) return;
+        if (!HasStateAuthority)
+            return;
 
-        //동시 입력 타이머 처리
+        ServerTryInitializeRescueZonePuzzlesFromRoundSeed();
+
         if (EscapeInputTimer.IsRunning)
         {
-            //양쪽 모두 입력 완료 시 탈출(3막) 발동
             if (IsZoneAEscapePressed && IsZoneBEscapePressed)
             {
                 EscapeInputTimer = TickTimer.None;
                 TriggerAct3();
             }
-
-            //시간 초과 시 입력 초기화
             else if (EscapeInputTimer.Expired(Runner))
             {
                 IsZoneAEscapePressed = false;
@@ -146,73 +153,165 @@ public class StageManager : NetworkBehaviour
             }
         }
 
-        //알림을 받은 플레이어들만 모아서 지연 텔레포트 처리
         ProcessPendingTeleports();
     }
 
-    #region 죽은 플레이어 강제 전송
-    /// <summary>
-    /// PlayerController에서 사망/탈출 이벤트 발생 시 워프 대상 위치로 이동시키는 함수. 
-    /// </summary>
+    #region 구제구역 퍼즐
 
+    /// <summary>
+    /// RoundSeedManager에서 현재 라운드 seed를 확보한 뒤,
+    /// ZoneA / ZoneB 구제구역 퍼즐에 seed를 주입한다.
+    /// RoundSeedManager의 Spawn 순서가 StageManager보다 늦을 수 있으므로
+    /// Spawned와 FixedUpdateNetwork에서 안전하게 재시도한다.
+    /// </summary>
+    private void ServerTryInitializeRescueZonePuzzlesFromRoundSeed()
+    {
+        if (!HasStateAuthority)
+            return;
+
+        if (NetRescueZonePuzzlesSeedApplied)
+            return;
+
+        RoundSeedManager seedManager = RoundSeedManager.Instance;
+        if (seedManager == null)
+        {
+            LogWarning("RoundSeedManager.Instance가 아직 없습니다. 구제구역 seed 초기화를 대기합니다.");
+            return;
+        }
+
+        seedManager.EnsureRoundSeed();
+
+        if (!seedManager.HasValidSeed)
+        {
+            LogWarning("RoundSeedManager에 아직 유효한 seed가 없습니다. 구제구역 seed 초기화를 대기합니다.");
+            return;
+        }
+
+        int roundSeed = seedManager.CurrentSeed;
+        ServerInitializeRescueZonePuzzles(roundSeed);
+    }
+
+    /// <summary>
+    /// 라운드 seed 기반으로 ZoneA / ZoneB 구제구역 퍼즐에 base seed를 주입한다.
+    /// 구제구역 퍼즐은 맵 고정 배치 오브젝트이므로 PuzzleSpawnManager가 아니라 StageManager가 직접 관리한다.
+    /// </summary>
+    private void ServerInitializeRescueZonePuzzles(int roundSeed)
+    {
+        if (!HasStateAuthority)
+            return;
+
+        if (NetRescueZonePuzzlesSeedApplied)
+            return;
+
+        int zoneASeed = BuildRescueZoneBaseSeed(roundSeed, Zone.ZoneA);
+        int zoneBSeed = BuildRescueZoneBaseSeed(roundSeed, Zone.ZoneB);
+
+        if (zoneARescueZonePuzzle != null)
+            zoneARescueZonePuzzle.ServerApplyBaseAnswerSeed(zoneASeed);
+        else
+            LogWarning("ZoneA RescueZonePuzzle 참조가 비어 있습니다.");
+
+        if (zoneBRescueZonePuzzle != null)
+            zoneBRescueZonePuzzle.ServerApplyBaseAnswerSeed(zoneBSeed);
+        else
+            LogWarning("ZoneB RescueZonePuzzle 참조가 비어 있습니다.");
+
+        NetRescueZonePuzzlesSeedApplied = true;
+
+        Log($"구제구역 퍼즐 seed 적용 완료 | RoundSeed={roundSeed} | ZoneASeed={zoneASeed} | ZoneBSeed={zoneBSeed}");
+    }
+
+    /// <summary>
+    /// 라운드 seed와 Zone을 섞어서 구제구역 퍼즐 전용 base seed를 만든다.
+    /// ZoneA / ZoneB가 같은 라운드 안에서도 서로 다른 정답을 갖도록 Zone 값을 포함한다.
+    /// </summary>
+    private int BuildRescueZoneBaseSeed(int roundSeed, Zone zone)
+    {
+        unchecked
+        {
+            int seed = roundSeed;
+            seed = seed * 31 + 91027; // 구제구역 퍼즐 전용 salt
+            seed = seed * 31 + (int)zone;
+
+            if (seed == 0)
+                seed = 1;
+
+            return seed;
+        }
+    }
+
+    #endregion
+
+    #region 죽은 플레이어 강제 전송
+
+    /// <summary>
+    /// PlayerController에서 사망/탈출 이벤트 발생 시 DeadRoom으로 이동시키기 위해 호출한다.
+    /// </summary>
     public void RequestTeleportToDeadRoom(PlayerController player)
     {
-        if (!HasStateAuthority) return;
-        if (player == null || !player.Object.IsValid) return;
+        if (!HasStateAuthority)
+            return;
+
+        if (player == null || !player.Object.IsValid)
+            return;
 
         NetworkId playerId = player.Object.Id;
 
-        //아직 워프되지 않았고, 타이머도 돌고 있지 않다면
         if (!_teleportedPlayers.Contains(playerId) && !_deadTeleportTimers.ContainsKey(playerId))
         {
-            //옵저버 시스템 전환을 기다려주기 위해 타이머 시작
             _deadTeleportTimers[playerId] = TickTimer.CreateFromSeconds(Runner, 1.0f);
-            Log($"[{player.gameObject.name}] 사망/탈출 이벤트 수신! 옵저버 전환을 위해 1초 후 DeadRoom으로 이동합니다.");
+            Log($"[{player.gameObject.name}] 사망/탈출 이벤트 수신. 1초 후 DeadRoom으로 이동합니다.");
         }
     }
 
     private void ProcessPendingTeleports()
     {
-        if (_deadTeleportTimers.Count == 0) return;
+        if (_deadTeleportTimers.Count == 0)
+            return;
 
         if (deadRespawnPoint == null)
         {
             _findRespawnTimer += Runner.DeltaTime;
+
             if (_findRespawnTimer > 1.0f)
             {
                 _findRespawnTimer = 0f;
+
                 GameObject respawnObject = GameObject.Find("Dead_Respawn");
-                if (respawnObject != null) deadRespawnPoint = respawnObject.transform;
+                if (respawnObject != null)
+                    deadRespawnPoint = respawnObject.transform;
             }
 
-            //찾지 못했다면 강제 이동 보류
-            if (deadRespawnPoint == null) return;
+            if (deadRespawnPoint == null)
+                return;
         }
 
-        //2. 3초 타이머가 만료된 플레이어 선별
-        List<NetworkId> readyToTeleport = new List<NetworkId>();
-        foreach (var kvp in _deadTeleportTimers)
+        List<NetworkId> readyToTeleport = new();
+
+        foreach (KeyValuePair<NetworkId, TickTimer> pair in _deadTeleportTimers)
         {
-            if (kvp.Value.Expired(Runner)) readyToTeleport.Add(kvp.Key);
+            if (pair.Value.Expired(Runner))
+                readyToTeleport.Add(pair.Key);
         }
 
-        //실제 텔레포트 실행
-        foreach (var playerId in readyToTeleport)
+        foreach (NetworkId playerId in readyToTeleport)
         {
             _deadTeleportTimers.Remove(playerId);
             _teleportedPlayers.Add(playerId);
 
-            if (Runner.TryFindObject(playerId, out NetworkObject playerObj))
-            {
-                PlayerController player = playerObj.GetComponent<PlayerController>();
-                if (player != null)
-                {
-                    if (player.KCCMotor != null) player.KCCMotor.WarpToPose(deadRespawnPoint.position, deadRespawnPoint.rotation);
-                    else player.transform.SetPositionAndRotation(deadRespawnPoint.position, deadRespawnPoint.rotation);
+            if (!Runner.TryFindObject(playerId, out NetworkObject playerObj))
+                continue;
 
-                    Log($"[{player.gameObject.name}] DeadRoom으로 강제 이동 완료.");
-                }
-            }        
+            PlayerController player = playerObj.GetComponent<PlayerController>();
+            if (player == null)
+                continue;
+
+            if (player.KCCMotor != null)
+                player.KCCMotor.WarpToPose(deadRespawnPoint.position, deadRespawnPoint.rotation);
+            else
+                player.transform.SetPositionAndRotation(deadRespawnPoint.position, deadRespawnPoint.rotation);
+
+            Log($"[{player.gameObject.name}] DeadRoom으로 강제 이동 완료.");
         }
     }
 
@@ -233,8 +332,8 @@ public class StageManager : NetworkBehaviour
             if (NetZoneAStage1Completed)
                 return;
 
-            NetZoneAStage1Completed = true; // ZoneA 완료 승인 기록
-            ApplyStage1CompletedStateToLocalObjects(); // Host 로컬 오브젝트 즉시 반영
+            NetZoneAStage1Completed = true;
+            ApplyStage1CompletedStateToLocalObjects();
 
             Log("ZoneA Stage1 완료 승인 | ZoneA Stage2 화면 ON | ZoneA Stage3 문 OPEN");
             return;
@@ -243,8 +342,8 @@ public class StageManager : NetworkBehaviour
         if (NetZoneBStage1Completed)
             return;
 
-        NetZoneBStage1Completed = true; // ZoneB 완료 승인 기록
-        ApplyStage1CompletedStateToLocalObjects(); // Host 로컬 오브젝트 즉시 반영
+        NetZoneBStage1Completed = true;
+        ApplyStage1CompletedStateToLocalObjects();
 
         Log("ZoneB Stage1 완료 승인 | ZoneB Stage2 화면 ON | ZoneB Stage3 문 OPEN");
     }
@@ -255,21 +354,18 @@ public class StageManager : NetworkBehaviour
     private void SetStage3DoorOpen(Zone zone, bool isOpen)
     {
         GameObject[] targetDoor = zone == Zone.ZoneA ? zoneAStage3Door : zoneBStage3Door;
-        if (targetDoor == null) return;
+        if (targetDoor == null)
+            return;
 
         foreach (GameObject door in targetDoor)
         {
             if (door != null)
-            {
-                //막는 오브젝트 기준: 열림이면 비활성화, 닫힘이면 활성화
                 door.SetActive(!isOpen);
-            }
         }
     }
 
     /// <summary>
     /// Stage1 완료 Networked 값이 바뀌었을 때 모든 클라이언트에서 호출된다.
-    /// 여기서 로컬 Stage2 화면/Stage3 문 상태를 동기화한다.
     /// </summary>
     private void OnStage1CompletedChangedRender()
     {
@@ -278,7 +374,6 @@ public class StageManager : NetworkBehaviour
 
     /// <summary>
     /// Networked Stage1 완료 상태를 현재 클라이언트의 로컬 오브젝트에 반영한다.
-    /// SetActive는 네트워크 동기화가 아니므로 각 클라이언트에서 직접 호출되어야 한다.
     /// </summary>
     private void ApplyStage1CompletedStateToLocalObjects()
     {
@@ -290,7 +385,6 @@ public class StageManager : NetworkBehaviour
 
     /// <summary>
     /// 씬에 존재하는 모든 Stage2ScreenGate에게 현재 StageManager 상태를 다시 반영하게 한다.
-    /// 각 Stage2 퍼즐은 자기 Stage2ScreenRoot만 직접 관리한다.
     /// </summary>
     private void RefreshAllStage2ScreenGates()
     {
@@ -313,7 +407,6 @@ public class StageManager : NetworkBehaviour
 
     /// <summary>
     /// 특정 Zone의 Stage1 완료 승인 여부를 반환한다.
-    /// Stage2 화면 표시 조건으로 사용한다.
     /// </summary>
     public bool IsZoneStage1Completed(Zone zone)
     {
@@ -369,11 +462,6 @@ public class StageManager : NetworkBehaviour
 
     /// <summary>
     /// 특정 Zone의 Stage3 최종 퍼즐이 해결되었음을 PuzzleProgressManager가 보고할 때 호출한다.
-    /// 
-    /// 현재 규칙
-    /// - 어느 한 Zone이라도 Stage3 완료 보고가 들어오면 Act3를 발동한다.
-    /// - 이미 보고된 Zone이면 중복 처리하지 않는다.
-    /// - 이미 Act3 상태면 재발동하지 않는다.
     /// </summary>
     public void ReportZoneStage3Completed(Zone zone)
     {
@@ -385,19 +473,20 @@ public class StageManager : NetworkBehaviour
             if (NetZoneAStage3Completed)
                 return;
 
-            NetZoneAStage3Completed = true; // ZoneA Stage3 완료 기록
-            IsZoneAEscapeButtonExposed = true;  // ZoneA 탈출 버튼 노출
-            Log("ZoneA Stage3 완료 보고 수신");
-        }
-        else
-        {
-            if (NetZoneBStage3Completed)
-                return;
+            NetZoneAStage3Completed = true;
+            IsZoneAEscapeButtonExposed = true;
 
-            NetZoneBStage3Completed = true; // ZoneB Stage3 완료 기록
-            IsZoneBEscapeButtonExposed = true;  // ZoneB 탈출 버튼 노출
-            Log("ZoneB Stage3 완료 보고 수신");
+            Log("ZoneA Stage3 완료 보고 수신");
+            return;
         }
+
+        if (NetZoneBStage3Completed)
+            return;
+
+        NetZoneBStage3Completed = true;
+        IsZoneBEscapeButtonExposed = true;
+
+        Log("ZoneB Stage3 완료 보고 수신");
     }
 
     #endregion
@@ -405,32 +494,40 @@ public class StageManager : NetworkBehaviour
     #region 3막 이벤트 로직
 
     /// <summary>
-    /// 3막(Act3)을 발동한다.
+    /// 해당 Zone의 탈출 버튼 입력을 처리한다.
     /// </summary>
-    
     public void TryPressEscapeButton(Zone zone)
     {
-        if (!HasStateAuthority) return;
-        if (IsAct3Active) return;
+        if (!HasStateAuthority)
+            return;
 
-        if (zone == Zone.ZoneA) IsZoneAEscapePressed = true;
-        if (zone == Zone.ZoneB) IsZoneBEscapePressed = true;
+        if (IsAct3Active)
+            return;
 
-        //타이머가 돌고 있지 않으면 0.5초 타이머 시간 (동시 입력 판정)
+        if (zone == Zone.ZoneA)
+            IsZoneAEscapePressed = true;
+
+        if (zone == Zone.ZoneB)
+            IsZoneBEscapePressed = true;
+
         if (!EscapeInputTimer.IsRunning)
         {
             EscapeInputTimer = TickTimer.CreateFromSeconds(Runner, 3.0f);
-            Log($"{zone} 탈출 버튼 입력! 3.0초 대기 시작");
+            Log($"{zone} 탈출 버튼 입력. 3.0초 대기 시작");
         }
     }
 
+    /// <summary>
+    /// 3막(Act3)을 발동한다.
+    /// </summary>
     public void TriggerAct3()
     {
-        if (!HasStateAuthority || IsAct3Active) return;
+        if (!HasStateAuthority || IsAct3Active)
+            return;
 
         IsAct3Active = true;
 
-        // 버튼 재입력 방지
+        IsEscapeButtonExposed = false;
         IsZoneAEscapeButtonExposed = false;
         IsZoneBEscapeButtonExposed = false;
         IsZoneAEscapePressed = false;
@@ -441,9 +538,12 @@ public class StageManager : NetworkBehaviour
         foreach (CreatureAI creature in allCreature)
             creature.ApplyAct3Multipliers(true);
 
-        //3막 발동시 씬에 있는 모든 퍼즐 기계에서 키카드를 뱉어내라고 시도
-        FinalCodePuzzle[] finalCodePuzzles = FindObjectsByType<FinalCodePuzzle>(FindObjectsInactive.Exclude,FindObjectsSortMode.None);
-        foreach (FinalCodePuzzle puzzle in finalCodePuzzles) puzzle.TrySpawnRewardKeycard();
+        FinalCodePuzzle[] finalCodePuzzles = FindObjectsByType<FinalCodePuzzle>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        foreach (FinalCodePuzzle puzzle in finalCodePuzzles)
+            puzzle.TrySpawnRewardKeycard();
 
         NetZoneAPattern1 = Random.value > 0.5f;
         NetZoneBPattern1 = Random.value > 0.5f;
@@ -458,14 +558,16 @@ public class StageManager : NetworkBehaviour
         Log("3막(Act3) 진입 완료 | 크리처 강화 | 계단 차단 | 조명/사이렌 발동");
     }
 
-    //IsAct3Active가 true로 변할 때 모든 클라이언트(방장+접속자)에서 동시 실행
+    /// <summary>
+    /// IsAct3Active가 true로 변할 때 모든 클라이언트에서 호출된다.
+    /// </summary>
     private void OnAct3StateChanged()
     {
-        if (IsAct3Active)
-        {
-            ApplySyncedPatternToZone(Zone.ZoneA, NetZoneAPattern1);
-            ApplySyncedPatternToZone(Zone.ZoneB, NetZoneBPattern1);
-        }
+        if (!IsAct3Active)
+            return;
+
+        ApplySyncedPatternToZone(Zone.ZoneA, NetZoneAPattern1);
+        ApplySyncedPatternToZone(Zone.ZoneB, NetZoneBPattern1);
     }
 
     /// <summary>
@@ -490,7 +592,7 @@ public class StageManager : NetworkBehaviour
             if (zoneB_StairB_Top != null) zoneB_StairB_Top.SetActive(!isPattern1);
         }
 
-        Log($"[{zone}] 3막 계단 차단 완료 (동기화됨)");
+        Log($"[{zone}] 3막 계단 차단 완료");
     }
 
     /// <summary>
@@ -515,13 +617,9 @@ public class StageManager : NetworkBehaviour
         if (sirenAudioSource == null)
             return;
 
-        //사이렌이 울리기 직전(또는 동시)에 셔터 소리를 단 한 번만 겹쳐서 재생
         if (shutterCloseClip != null)
-        {
             sirenAudioSource.PlayOneShot(shutterCloseClip);
-        }
 
-        //사이렌 루프 재생 로직
         if (sirenClip != null)
         {
             sirenAudioSource.clip = sirenClip;
@@ -558,35 +656,31 @@ public class StageManager : NetworkBehaviour
     [ContextMenu("Debug/치트: 1&2&3 단계 즉시 패스 (F11)")]
     private void DebugCheatSkipAllToEscapeButton()
     {
-        if (!HasStateAuthority) return;
+        if (!HasStateAuthority)
+            return;
 
-        //1단계 완료 강제 승인
         ReportZoneStage1Completed(Zone.ZoneA);
         ReportZoneStage1Completed(Zone.ZoneB);
 
         ReportZoneStage3Completed(Zone.ZoneA);
         ReportZoneStage3Completed(Zone.ZoneB);
 
-        //맵에 있는 모든 퍼즐 검색
-        PuzzleInteractableBase[] allPuzzles = FindObjectsByType<PuzzleInteractableBase>(FindObjectsInactive.Include, FindObjectsSortMode.None);        
-        foreach (var puzzle in allPuzzles)
+        PuzzleInteractableBase[] allPuzzles = FindObjectsByType<PuzzleInteractableBase>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        foreach (PuzzleInteractableBase puzzle in allPuzzles)
         {
-            //3단계 퍼즐(FinalCodePuzzle)까지 포함해서 전부 다 풀어버림
-            if (puzzle == null) continue;
+            if (puzzle == null)
+                continue;
 
             if (puzzle is FinalCodePuzzle finalCodePuzzle)
-            {
-                // 3단계 전용 완료 함수 실행
                 finalCodePuzzle.HandleSolved();
-            }
             else
-            {
-                // 일반 1, 2단계 퍼즐 완료
                 puzzle.DebugForceSolve();
-            }
         }
 
-        Log("<color=magenta><b>[CHEAT] F11 입력!</b></color> 3단계까지 모두 패스했습니다! 탈출 버튼에 불이 들어옵니다.");
+        Log("<color=magenta><b>[CHEAT] F11 입력!</b></color> 3단계까지 모두 패스했습니다. 탈출 버튼에 불이 들어옵니다.");
     }
 
     [ContextMenu("Debug/3단계 완료 강제 승인 (탈출 버튼 노출)")]
@@ -604,11 +698,8 @@ public class StageManager : NetworkBehaviour
             return;
         }
 
-        NetZoneAStage3Completed = true;
-        NetZoneBStage3Completed = true;
-
-        //아직 3막이 아니면 탈출 버튼 강제 노출 적용
-        if (!IsAct3Active) IsEscapeButtonExposed = true;        
+        ReportZoneStage3Completed(Zone.ZoneA);
+        ReportZoneStage3Completed(Zone.ZoneB);
 
         Log("디버그 | 양쪽 Zone Stage3 완료 강제 승인 및 탈출 버튼 노출");
     }
