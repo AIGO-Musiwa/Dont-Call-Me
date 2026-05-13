@@ -6,21 +6,23 @@ using UnityEngine;
 /// 2-3 시약 제조 퍼즐의 Action 힌트 화면 표시 담당.
 /// 
 /// 역할
-/// - 행동 힌트 3쌍(아이콘 + 숫자)을 좌->우로 표시한다.
+/// - 행동 힌트 3쌍(Material 아이콘 + 숫자)을 좌->우로 표시한다.
+/// - 벽면 힌트이므로 SpriteRenderer 대신 Quad / MeshRenderer / Material 기반으로 표시한다.
 /// </summary>
 public class ReagentActionHintView : MonoBehaviour
 {
-    [Header("행동 힌트 아이콘 SpriteRenderer")]
-    [SerializeField] private List<SpriteRenderer> actionHintIconRenderers = new(); // 행동 힌트 아이콘 3칸 SpriteRenderer 목록
+    [Header("행동 힌트 아이콘 MeshRenderer")]
+    [SerializeField] private List<MeshRenderer> actionHintIconRenderers = new(); // 행동 힌트 아이콘 3칸 MeshRenderer 목록
 
     [Header("행동 힌트 숫자 TextMeshPro")]
     [SerializeField] private List<TextMeshPro> actionHintNumberTexts = new(); // 행동 힌트 숫자 3칸 TextMeshPro 목록
 
-    [Header("행동 아이콘 스프라이트")]
-    [SerializeField] private Sprite heatSprite; // 가열(불 모양) 스프라이트
-    [SerializeField] private Sprite coolSprite; // 냉각(눈결정 모양) 스프라이트
+    [Header("행동 아이콘 Material")]
+    [SerializeField] private Material heatMaterial; // 가열 아이콘 Material
+    [SerializeField] private Material coolMaterial; // 냉각 아이콘 Material
 
-    [Header("텍스트 색상")]
+    [Header("표시 색상")]
+    [SerializeField] private Color actionIconColor = Color.white; // 행동 힌트 아이콘 기본 색상
     [SerializeField] private Color actionNumberColor = Color.white; // 행동 힌트 숫자 기본 색상
 
     [Header("화면 상태 루트")]
@@ -28,6 +30,16 @@ public class ReagentActionHintView : MonoBehaviour
 
     [Header("디버그")]
     [SerializeField] private bool enableDebugLog = true; // 디버그 로그 출력 여부
+
+    private MaterialPropertyBlock _propertyBlock; // Material 에셋을 직접 수정하지 않고 렌더러별 색상만 바꾸기 위한 블록
+
+    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+    private static readonly int ColorId = Shader.PropertyToID("_Color");
+
+    private void Awake()
+    {
+        EnsurePropertyBlock();
+    }
 
     /// <summary>
     /// 행동 힌트 3쌍(아이콘 + 숫자)을 좌->우 순서대로 표시한다.
@@ -48,10 +60,7 @@ public class ReagentActionHintView : MonoBehaviour
             SetActionHint(i, actionSteps[i].ActionType, actionSteps[i].ProgressIndex); // 각 행동 힌트 반영
 
         for (int i = count; i < actionHintIconRenderers.Count; i++)
-        {
-            if (actionHintIconRenderers[i] != null)
-                actionHintIconRenderers[i].sprite = null; // 남는 아이콘 칸 비우기
-        }
+            ClearActionIcon(i); // 남는 아이콘 칸 비우기
 
         for (int i = count; i < actionHintNumberTexts.Count; i++)
         {
@@ -74,13 +83,13 @@ public class ReagentActionHintView : MonoBehaviour
         if (index >= actionHintNumberTexts.Count)
             return;
 
-        SpriteRenderer iconRenderer = actionHintIconRenderers[index]; // 대상 아이콘 렌더러 참조
+        MeshRenderer iconRenderer = actionHintIconRenderers[index]; // 대상 아이콘 렌더러 참조
         TextMeshPro numberText = actionHintNumberTexts[index]; // 대상 숫자 텍스트 참조
 
         if (iconRenderer != null)
         {
-            iconRenderer.sprite = GetActionSprite(actionType); // 행동 타입에 맞는 아이콘 스프라이트 적용
-            iconRenderer.color = Color.white;
+            Material iconMaterial = GetActionMaterial(actionType);
+            ApplyIconMaterial(iconRenderer, iconMaterial, actionIconColor);
         }
 
         if (numberText != null)
@@ -99,13 +108,7 @@ public class ReagentActionHintView : MonoBehaviour
             monitorRoot.SetActive(true); // 기본 힌트 화면 표시
 
         for (int i = 0; i < actionHintIconRenderers.Count; i++)
-        {
-            if (actionHintIconRenderers[i] == null)
-                continue;
-
-            actionHintIconRenderers[i].sprite = null; // 행동 아이콘 비우기
-            actionHintIconRenderers[i].color = Color.white;
-        }
+            ClearActionIcon(i); // 행동 아이콘 비우기
 
         for (int i = 0; i < actionHintNumberTexts.Count; i++)
         {
@@ -120,19 +123,84 @@ public class ReagentActionHintView : MonoBehaviour
     }
 
     /// <summary>
-    /// 행동 타입에 대응하는 아이콘 스프라이트를 반환한다.
+    /// 행동 타입에 대응하는 아이콘 Material을 반환한다.
     /// </summary>
-    private Sprite GetActionSprite(ReagentActionType actionType)
+    private Material GetActionMaterial(ReagentActionType actionType)
     {
         switch (actionType)
         {
             case ReagentActionType.Heat:
-                return heatSprite;
+                return heatMaterial;
             case ReagentActionType.Cool:
-                return coolSprite;
+                return coolMaterial;
             default:
                 return null;
         }
+    }
+
+    /// <summary>
+    /// 특정 아이콘 칸에 Material을 적용하고 표시한다.
+    /// </summary>
+    private void ApplyIconMaterial(MeshRenderer renderer, Material material, Color color)
+    {
+        if (renderer == null)
+            return;
+
+        if (material == null)
+        {
+            renderer.enabled = false;
+            renderer.sharedMaterial = null;
+            return;
+        }
+
+        renderer.sharedMaterial = material;
+        renderer.enabled = true;
+
+        ApplyRendererColor(renderer, color);
+    }
+
+    /// <summary>
+    /// 특정 아이콘 칸을 숨긴다.
+    /// </summary>
+    private void ClearActionIcon(int index)
+    {
+        if (index < 0 || index >= actionHintIconRenderers.Count)
+            return;
+
+        MeshRenderer renderer = actionHintIconRenderers[index];
+        if (renderer == null)
+            return;
+
+        renderer.enabled = false;
+        renderer.sharedMaterial = null;
+    }
+
+    /// <summary>
+    /// MaterialPropertyBlock으로 렌더러별 색상을 적용한다.
+    /// Material 에셋 자체는 변경하지 않는다.
+    /// </summary>
+    private void ApplyRendererColor(MeshRenderer renderer, Color color)
+    {
+        if (renderer == null)
+            return;
+
+        EnsurePropertyBlock();
+
+        renderer.GetPropertyBlock(_propertyBlock);
+
+        _propertyBlock.SetColor(BaseColorId, color);
+        _propertyBlock.SetColor(ColorId, color);
+
+        renderer.SetPropertyBlock(_propertyBlock);
+    }
+
+    /// <summary>
+    /// MaterialPropertyBlock 인스턴스를 보장한다.
+    /// </summary>
+    private void EnsurePropertyBlock()
+    {
+        if (_propertyBlock == null)
+            _propertyBlock = new MaterialPropertyBlock();
     }
 
     /// <summary>
