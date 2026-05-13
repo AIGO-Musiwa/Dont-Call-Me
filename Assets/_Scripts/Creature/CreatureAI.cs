@@ -720,7 +720,7 @@ public class CreatureAI : NetworkBehaviour
         foreach (PlayerController p in PlayerController.AllPlayers)
         {
             //갇히는 구역에 있고, 상태가 Normal인 플레이어가 있는지 확인
-            if (p.NetZone == myZone && p.NetPlayerState == PlayerState.Normal)
+            if (p != target && p.NetZone == myZone && p.NetPlayerState == PlayerState.Normal)
             {
                 hasNormalPlayerInRescueZone = true;
                 break;
@@ -732,6 +732,7 @@ public class CreatureAI : NetworkBehaviour
             RescueZoneDoor.CloseAllDoorsInZone(myZone);
             Debug.Log($"<color=red>[문 닫힘 디버그]</color> 조건을 만족하는 생존자가 없어 문이 닫혔습니다!");
         }
+
         else Debug.Log($"[CreatureAI] {myZone} 구출 구역에 생존자(Normal)가 있어 문을 닫지 않습니다!");
 
         //포획 시 해당 구역의 구출 구역 문 강제 폐쇄

@@ -16,14 +16,14 @@ public class RescueZoneDoor : NetworkBehaviour
     public AudioClip doorOpenSound;
 
     //네트워크를 통해 모든 클라이언트에게 공유되는 문 개방 상태
-    [Networked] public NetworkBool IsOpen { get; set; }
+    [Networked] public NetworkBool IsOpen { get; set; }    
+
+    //첫 포획 감금 전까지 초기 '강제 열림' 상태를 유지하기 위한 로컬 플래그
+    [Networked] public NetworkBool IsInitialForcedOpen { get; set; }
 
     //초기 문이 닫힌 상태와 목표로 하는 문이 열린 상태의 회전값 캐싱 
     private Quaternion closedRotation;
     private Quaternion targetOpenRotation;
-
-    //첫 포획 감금 전까지 초기 '강제 열림' 상태를 유지하기 위한 로컬 플래그
-    [Networked] public NetworkBool IsInitialForcedOpen { get; set; }
 
     //크리처의 문 제어를 위한 정적 딕셔너리
     private static Dictionary<Zone, List<RescueZoneDoor>> doors = new Dictionary<Zone, List<RescueZoneDoor>>();
@@ -97,10 +97,9 @@ public class RescueZoneDoor : NetworkBehaviour
         {
             //이제부터 Render의 정상 동기화 로직이 작동하도록 고정 플래그 해제
             if (IsInitialForcedOpen) IsInitialForcedOpen = false;
-
-            //문이 열려있다가 닫치는 순가 퍼즐 리셋
             if (IsOpen)
             {
+                //문이 열려있다가 닫치는 순가 퍼즐 리셋
                 IsOpen = false;
 
                 //문이 닫힐 때 해당 구역의 퍼즐을 리셋
@@ -180,8 +179,8 @@ public class RescueZoneDoor : NetworkBehaviour
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    private void RPC_RequestOpenDoor() => OpenDoor();
+    public void RPC_RequestOpenDoor() => OpenDoor();
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    private void RPC_RequestCloseDoor() => CloseDoor();
+    public void RPC_RequestCloseDoor() => CloseDoor();
 }
