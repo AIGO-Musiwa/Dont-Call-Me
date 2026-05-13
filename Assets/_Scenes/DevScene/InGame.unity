@@ -9,7 +9,7 @@ OcclusionCullingSettings:
     smallestHole: 0.25
     backfaceThreshold: 100
   m_SceneGUID: 37ba492afe3044b468b8e2741bf7a7e5
-  m_OcclusionCullingData: {fileID: 36300000, guid: 867f1f57e48b405439d5f38cec1a303e, type: 2}
+  m_OcclusionCullingData: {fileID: 36300000, guid: 290fc77060f96774e930d406c55b8b9a, type: 2}
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
@@ -31350,10 +31350,7 @@ PrefabInstance:
       addedObject: {fileID: 1856441348}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8ab0099669d055f4b9b2f618eaeadaca, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1856441349}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8ab0099669d055f4b9b2f618eaeadaca, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1856441352}
+      addedObject: {fileID: 1856441355}
   m_SourcePrefab: {fileID: 100100000, guid: 8ab0099669d055f4b9b2f618eaeadaca, type: 3}
 --- !u!4 &220870826 stripped
 Transform:
@@ -271290,7 +271287,7 @@ VideoPlayer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1856441347}
-  m_Enabled: 1
+  m_Enabled: 0
   m_VideoClip: {fileID: 0}
   m_TargetCameraAlpha: 1
   m_TargetCamera3DLayout: 0
@@ -271309,7 +271306,7 @@ VideoPlayer:
   - {fileID: 0}
   m_DirectAudioVolumes:
   - 1
-  m_Url: https://youtu.be/G8GaQdW2wHc?si=2azZr9HlG2K4L82r
+  m_Url: 
   m_EnabledAudioTracks: 01
   m_DirectAudioMutes: 00
   m_ControlledAudioTrackCount: 1
@@ -271319,7 +271316,7 @@ VideoPlayer:
   m_WaitForFirstFrame: 1
   m_FrameReadyEventEnabled: 0
   m_VideoShaders: []
---- !u!114 &1856441349
+--- !u!114 &1856441355
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -271328,28 +271325,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1856441347}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6f51438de7493496c87c7a2918e755e0, type: 3}
+  m_Script: {fileID: 11500000, guid: 3768fe280903842fdaa2a016022624f1, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: YoutubePlayer::YoutubePlayer.Components.InvidiousVideoPlayer
-  InvidiousInstance: {fileID: 1856441352}
-  VideoId: 
-  ProxyVideo: 1
-  Itag: 
-  CheckForBlockedStreams: 1
---- !u!114 &1856441352
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1856441347}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3fcf9aaa4cc4c4c8591b505ba333932a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: YoutubePlayer::YoutubePlayer.Components.InvidiousInstance
-  InstanceType: 1
-  CustomInstanceUrl: 
+  m_EditorClassIdentifier: YoutubePlayer::YoutubePlayer.YoutubePlayer
+  youtubeUrl: https://www.youtube.com/watch?v=D54StAZFUrc
 --- !u!1 &1859319798
 GameObject:
   m_ObjectHideFlags: 0
