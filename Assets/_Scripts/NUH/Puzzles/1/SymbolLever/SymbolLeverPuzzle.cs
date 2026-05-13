@@ -15,50 +15,50 @@ using UnityEngine;
 public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
 {
     [Header("설정")]
-    [SerializeField] private int leverCount = 6;                         // 레버 개수
-    [SerializeField] private int totalSymbolCount = 30;                  // 전체 문양 종류 수
+    [SerializeField] private int leverCount = 6;                             // 레버 개수
+    [SerializeField] private int totalSymbolCount = 30;                      // 전체 문양 종류 수
 
     [Header("레버 참조")]
-    [SerializeField] private List<SymbolLeverView> leverViews = new();   // 각 레버 뷰
-    [SerializeField] private List<SymbolSpriteDisplay> leverSymbolDisplays = new(); // 각 레버 옆 문양 표시
+    [SerializeField] private List<SymbolLeverView> leverViews = new();       // 각 레버 뷰
+    [SerializeField] private List<SymbolMaterialDisplay> leverSymbolDisplays = new(); // 각 레버 옆 문양 표시
 
-    [Header("문양 스프라이트 풀")]
-    [SerializeField] private List<Sprite> symbolSprites = new();         // 문양 ID와 대응되는 스프라이트 목록
+    [Header("문양 Material 풀")]
+    [SerializeField] private List<Material> symbolMaterials = new();         // 문양 ID와 대응되는 Material 목록
 
     [Header("문양 색상")]
-    [SerializeField] private Color normalSymbolColor = Color.white;      // 기본 문양 색상
-    [SerializeField] private Color failSymbolColor = Color.red;          // 실패 깜빡임 색상
-    [SerializeField] private Color solvedSymbolColor = Color.green;      // 성공 색상
+    [SerializeField] private Color normalSymbolColor = Color.white;          // 기본 문양 색상
+    [SerializeField] private Color failSymbolColor = Color.red;              // 실패 깜빡임 색상
+    [SerializeField] private Color solvedSymbolColor = Color.green;          // 성공 색상
 
     [Header("실패 연출")]
-    [SerializeField] private int failBlinkCount = 3;                     // 실패 시 깜빡임 횟수
-    [SerializeField] private float failBlinkOnTime = 0.15f;              // 빨간색 유지 시간
-    [SerializeField] private float failBlinkOffTime = 0.15f;             // 기본색 유지 시간
-    [SerializeField] private bool lockInputDuringFailEffect = true;      // 실패 연출 중 입력 잠금 여부
+    [SerializeField] private int failBlinkCount = 3;                         // 실패 시 깜빡임 횟수
+    [SerializeField] private float failBlinkOnTime = 0.15f;                  // 빨간색 유지 시간
+    [SerializeField] private float failBlinkOffTime = 0.15f;                 // 기본색 유지 시간
+    [SerializeField] private bool lockInputDuringFailEffect = true;          // 실패 연출 중 입력 잠금 여부
 
     [Header("디버그")]
-    [SerializeField] private bool enableDebugLog = true;                 // 디버그 로그 여부
+    [SerializeField] private bool enableDebugLog = true;                     // 디버그 로그 여부
 
-    private readonly List<int> _selectedSymbolIds = new();               // 이번 판에 선택된 6개 문양
-    private readonly List<int> _leverSymbolIds = new();                  // 레버 0~5에 배치된 문양 ID
-    private readonly List<int> _answerSequence = new();                  // 정답 순서
-    private bool _hasAnswerSeed;                                         // 시드 적용 완료 여부
+    private readonly List<int> _selectedSymbolIds = new();                   // 이번 판에 선택된 6개 문양
+    private readonly List<int> _leverSymbolIds = new();                      // 레버 0~5에 배치된 문양 ID
+    private readonly List<int> _answerSequence = new();                      // 정답 순서
+    private bool _hasAnswerSeed;                                             // 시드 적용 완료 여부
 
-    private Coroutine _failVisualRoutine;                                // 실패 시각 연출 코루틴
-    private int _lastHandledFailSerial = -1;                             // 중복 실패 연출 방지용
+    private Coroutine _failVisualRoutine;                                    // 실패 시각 연출 코루틴
+    private int _lastHandledFailSerial = -1;                                 // 중복 실패 연출 방지용
 
-    [Networked] private int NetCurrentStep { get; set; }                 // 현재 몇 단계까지 맞췄는지
+    [Networked] private int NetCurrentStep { get; set; }                     // 현재 몇 단계까지 맞췄는지
 
     [Networked, OnChangedRender(nameof(OnPulledMaskChanged))]
-    private int NetPulledMask { get; set; }                              // 내려간 레버 비트마스크
+    private int NetPulledMask { get; set; }                                  // 내려간 레버 비트마스크
 
     [Networked, OnChangedRender(nameof(OnFailEffectTriggered))]
-    private int NetFailEffectSerial { get; set; }                        // 실패 연출 이벤트 카운터
+    private int NetFailEffectSerial { get; set; }                            // 실패 연출 이벤트 카운터
 
     [Networked, OnChangedRender(nameof(OnSolvedVisualChanged))]
-    private NetworkBool NetSolvedVisual { get; set; }                    // 성공 문양 색상 표시 여부
+    private NetworkBool NetSolvedVisual { get; set; }                        // 성공 문양 색상 표시 여부
 
-    [Networked] private NetworkBool NetInputLocked { get; set; }         // 입력 잠금 여부
+    [Networked] private NetworkBool NetInputLocked { get; set; }             // 입력 잠금 여부
 
     /// <summary>
     /// 현재 레버 입력이 잠겨 있는지 반환한다.
@@ -165,7 +165,8 @@ public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         }
 
         //TODO_Sound - 문양 레버 조작
-        if (audioModule != null) audioModule.PlaySound(SoundType.InteractHeavy);
+        if (audioModule != null)
+            audioModule.PlaySound(SoundType.InteractHeavy);
 
         int inputSymbolId = _leverSymbolIds[interactableId];
         int expectedSymbolId = _answerSequence[NetCurrentStep];
@@ -341,7 +342,7 @@ public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
     }
 
     /// <summary>
-    /// 레버 옆 문양 스프라이트를 적용한다.
+    /// 레버 옆 문양 Material을 적용한다.
     /// </summary>
     private void ApplyLeverSymbolVisuals()
     {
@@ -359,8 +360,9 @@ public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
             }
 
             int symbolId = _leverSymbolIds[i];
-            Sprite sprite = GetSymbolSprite(symbolId);
-            leverSymbolDisplays[i].SetSprite(sprite);
+            Material material = GetSymbolMaterial(symbolId);
+
+            leverSymbolDisplays[i].SetMaterial(material);
             leverSymbolDisplays[i].SetColor(normalSymbolColor);
         }
     }
@@ -424,12 +426,12 @@ public class SymbolLeverPuzzle : PuzzleInteractableBase, IPuzzleSeedReceiver
         return ids;
     }
 
-    private Sprite GetSymbolSprite(int symbolId)
+    private Material GetSymbolMaterial(int symbolId)
     {
-        if (symbolId < 0 || symbolId >= symbolSprites.Count)
+        if (symbolId < 0 || symbolId >= symbolMaterials.Count)
             return null;
 
-        return symbolSprites[symbolId];
+        return symbolMaterials[symbolId];
     }
 
     protected override void ServerInteract(PlayerController actor)
