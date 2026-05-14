@@ -41,6 +41,9 @@ public class ScreenFader : MonoBehaviour
     public void FadeOut(float duration = 2.0f)
     {
         if (fadeImage == null) return;
+
+        //페이드 아웃 시작 시 이미지 활성화
+        fadeImage.gameObject.SetActive(true);
         StopAllCoroutines();
         StartCoroutine(FadeRoutine(fadeImage.color.a, 1f, duration));
     }
@@ -51,6 +54,9 @@ public class ScreenFader : MonoBehaviour
     public void FadeIn(float duration = 2.0f)
     {
         if (fadeImage == null) return;
+
+        //페이드 인 시작 시 이미지 활성화 (알파값이 0이 될 때까지 유지)
+        fadeImage.gameObject.SetActive(true);
         StopAllCoroutines();
         StartCoroutine(FadeRoutine(fadeImage.color.a, 0f, duration));
     }
