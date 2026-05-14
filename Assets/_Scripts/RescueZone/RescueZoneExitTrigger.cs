@@ -16,7 +16,7 @@ public class RescueZoneExitTrigger : MonoBehaviour
         //방을 빠져나간 오브젝트가 플레이어인지 확인
         PlayerController player = other.GetComponentInParent<PlayerController>();
 
-        if (player != null && player.NetZone == myZone)
+        if (player != null)
         {
             //신규 진입 플레이어 딕셔너리 등록
             if (!playerColliders.ContainsKey(player)) playerColliders[player] = 0;
@@ -33,7 +33,7 @@ public class RescueZoneExitTrigger : MonoBehaviour
     {
         PlayerController player = other.GetComponentInParent<PlayerController>();
 
-        if (player != null && player.NetZone == myZone)
+        if (player != null)
         {
             if (playerColliders.ContainsKey(player))
             {
