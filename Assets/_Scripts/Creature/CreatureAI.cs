@@ -381,6 +381,10 @@ public class CreatureAI : NetworkBehaviour
         //씬에 있는 모든 플레이어를 찾아 가져옴
         PlayerController[] allPlayer = FindObjectsByType<PlayerController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
 
+        //시야에 보이는 플레이어 중 가장 가까운 플레이어를 타겟으로 설정
+        Transform closestVisiblePlayer = null;
+        float minVisibleDistance = float.MaxValue;
+
         foreach (PlayerController p in allPlayer)
         {
             //크리처 담당 구역과 플레이어 소속 구역이 다르면 무시
@@ -389,9 +393,14 @@ public class CreatureAI : NetworkBehaviour
             //플레이어가 정상 상태(생존)가 아니면 무시
             if (p.NetPlayerState != PlayerState.Normal) continue;
 
+            Vector3 myFlatPos = new Vector3(transform.position.x, 0, transform.position.z);
+            Vector3 targetFlatPos = new Vector3(p.transform.position.x, 0, p.transform.position.z);
+            float currentDist = Vector3.Distance(myFlatPos, targetFlatPos);
+            float currentYDiff = Mathf.Abs(transform.position.y - p.transform.position.y);
+
             //플레이어가 어딘가에 숨어있는 상태인지 확인
             if (p.NetHideState != HideState.None)
-            {                                
+            {
                 //몰래 숨었지만 크리처가 수색 중 너무 가까이 와서 은신 발각 범위에 들어온 경우 포획
                 if (sensor.CheckHiddenPlayerDetect(p.transform, p.NetHideState))
                 {
@@ -402,13 +411,8 @@ public class CreatureAI : NetworkBehaviour
                 //내가 지금 촞고 있는 타겟이라면, 강제 포획
                 if (currentState == CreatureState.Chaser && playerTarget == p.transform)
                 {
-                    Vector3 flatCreaturePos = new Vector3(transform.position.x, 0, transform.position.z);
-                    Vector3 flatTargetPos = new Vector3(p.transform.position.x, 0, p.transform.position.z);
-                    float dist = Vector3.Distance(flatCreaturePos, flatTargetPos);
-                    float yDiff = Mathf.Abs(transform.position.y - p.transform.position.y);
-
                     //포획 가능 거리를 늘려 캐비닛 앞에서 비비는 즉시 포획 모션 발동
-                    if (dist <= 2.5f && yDiff <= 2.0f)
+                    if (currentDist <= 2.5f && currentYDiff <= 2.0f)
                     {
                         ExecuteCapture(p);
                         return true;
@@ -420,57 +424,57 @@ public class CreatureAI : NetworkBehaviour
             }
 
             //상태나 시야각에 상관 없이 직접 닿았을 때 강제 포획
-            Vector3 myFlatPos = new Vector3(transform.position.x, 0, transform.position.z);
-            Vector3 targetFlatPos = new Vector3(p.transform.position.x, 0, p.transform.position.z);
-
-            float currentDist = Vector3.Distance(myFlatPos, targetFlatPos);
-            float currentYDiff = Mathf.Abs(transform.position.y - p.transform.position.y);
-
             if (currentDist <= sensor.touchCaptureRange && currentYDiff <= 2.0f)
             {
                 ExecuteCapture(p);
                 return true;
             }
 
-            //추적 중 포획 거리 내에 들어왔는지 확인 (안 숨은 상태)
-            if (currentState == CreatureState.Chaser && playerTarget == p.transform)
+            //타겟이 아니더라도 크리처의 포획 범위 앞을 지나가는 플레이어가 있으면 바로 잡음
+            if (sensor.CheckCaptureCondition(p.transform))
             {
-                //포획 조건 만족 시 포획 실행
-                if (sensor.CheckCaptureCondition(p.transform))
-                {
-                    ExecuteCapture(p);
-                    return true;
-                }
-            }
-
-            //플레이어가 시야에 들어왔는지 확인
-            if (sensor.CheckLineOfSight(p.transform))
-            {
-                //새로운 위협 발견 시 기존 수색 즉시 강제 종료
-                currentSearchPhase = SearchPhase.None;
-
-                //타겟 설정 및 타겟 위치 저장
-                playerTarget = p.transform;
-                targetLocation = playerTarget.position;
-
-                //추적 상태가 아닐 경우 추적 상태로 전환
-                if (currentState != CreatureState.Chaser)
-                {
-                    currentState = CreatureState.Chaser;
-
-                    //추적 속도 변경
-                    motor.SetSpeed(chaseSpeed);
-
-                    //무전 코스트 초기화
-                    walkieTracker.ResetCost();
-
-                    stuckTimer = 0f;
-                }
-
-                //플레이어를 발견했으므로 탐색 중단하고 트루 반환
+                ExecuteCapture(p);
                 return true;
             }
+
+            //현재 보이는 플레이어들 중에서 가장 가까운 거리를 기억
+            if (sensor.CheckLineOfSight(p.transform))
+            {
+                if (currentDist < minVisibleDistance)
+                {
+                    minVisibleDistance = currentDist;
+                    closestVisiblePlayer = p.transform;
+                }
+            }
         }
+
+        //시야에 들어온 플레이어가 한 명이라도 있을 경우
+        if (closestVisiblePlayer != null)
+        {
+            //새로운 위협 발견 시 기존 수색 즉시 강제 종료
+            currentSearchPhase = SearchPhase.None;
+
+            //타겟 설정 및 타겟 위치 저장
+            playerTarget = closestVisiblePlayer;
+            targetLocation = playerTarget.position;
+
+            //추적 상태가 아닐 경우 추적 상태로 전환
+            if (currentState != CreatureState.Chaser)
+            {
+                currentState = CreatureState.Chaser;
+
+                //추적 속도 변경
+                motor.SetSpeed(chaseSpeed);
+
+                //무전 코스트 초기화
+                walkieTracker.ResetCost();
+
+                stuckTimer = 0f;
+            }
+
+            //플레이어를 발견했으므로 탐색 중단하고 트루 반환
+            return true;
+        }           
 
         return false;
     }

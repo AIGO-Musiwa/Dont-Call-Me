@@ -97,17 +97,15 @@ public class RescueZoneDoor : NetworkBehaviour
         {
             //이제부터 Render의 정상 동기화 로직이 작동하도록 고정 플래그 해제
             if (IsInitialForcedOpen) IsInitialForcedOpen = false;
-            if (IsOpen)
-            {
-                //문이 열려있다가 닫치는 순가 퍼즐 리셋
-                IsOpen = false;
+            
+            //문이 열려있다가 닫치는 순간 퍼즐 리셋
+            IsOpen = false;
 
-                //문이 닫힐 때 해당 구역의 퍼즐을 리셋
-                RescueZonePuzzle[] puzzles = FindObjectsByType<RescueZonePuzzle>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-                foreach (var puzzle in puzzles)
-                {
-                    if (puzzle.PuzzleZone == this.myZone) puzzle.RegeneratePuzzle();
-                }
+            //문이 닫힐 때 해당 구역의 퍼즐을 리셋
+            RescueZonePuzzle[] puzzles = FindObjectsByType<RescueZonePuzzle>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            foreach (var puzzle in puzzles)
+            {
+                if (puzzle.PuzzleZone == this.myZone) puzzle.RegeneratePuzzle();
             }
         }
     }
