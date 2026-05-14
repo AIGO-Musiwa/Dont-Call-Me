@@ -17,6 +17,9 @@ public class CreatureWalkieTracker : MonoBehaviour
     private float currentWalkieCost = 0f;
     private bool isAct3 = false;
 
+    // 서브 크리처 NoiseEnhancer 기믹용 코스트 배율
+    private float costRateMultiplier = 1f;
+
     // 로그 중복 방지용
     private const float LogInterval = 1f;
     private float _logTimer = 0f;
@@ -25,6 +28,12 @@ public class CreatureWalkieTracker : MonoBehaviour
     {
         //3막 이벤트 발생 시 플래그 발동
         isAct3 = act3Active;
+    }
+
+    // 무전 코스트 누적 배율 설정
+    public void SetCostRateMultiplier(float multiplier)
+    {
+        costRateMultiplier = Mathf.Max(0f, multiplier);
     }
 
     public void ResetCost()
@@ -93,7 +102,7 @@ public class CreatureWalkieTracker : MonoBehaviour
         //증감량 계산 (Idle 0값 처리)
         float costChange = 0f;
 
-        if (isAccumulating) costChange = costRate * deltaTime;
+        if (isAccumulating) costChange = costRate * costRateMultiplier * deltaTime;
 
         //코스트가 남아있을 때만 감쇠
         else if (isDecaying && currentWalkieCost > 0f) costChange = -costDecayRate * deltaTime;
