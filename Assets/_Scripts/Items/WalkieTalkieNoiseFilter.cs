@@ -26,6 +26,9 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
     // 서브 크리처 기믹용 강화 상태 체크 여부
     private bool isEnhanced = false;
 
+    // 피치 변조 활성 상태 (isActive && isEnhanced일 때만 true)
+    private bool isPitchActive = false;
+
     // 강화 시 덮어쓸 파라미터 원본 값 저장
     private float originalHighPassCutoff;
     private float originalCarrierFrequency;
@@ -41,6 +44,16 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
     private double ringPhase;       // 링 변조 위상 누적값 (사인파를 연속적으로 생성하기 위해 샘플마다 누적)
     private int sampleRate;         // 오디오 샘플링 레이트
 
+    // ── 피치 시프트(강화 상태 전용) ─────────────────────
+    [Header("피치 시프트 설정 (강화 상태 전용)")]
+    [Tooltip("피치 배율. 0.5 = 괴물 목소리, 2.0 = 헬륨가스 목소리")]
+    [SerializeField, Range(0.1f, 4.0f)] private float pitchFactor = 0.1f;
+
+    // 피치 시프트용 링 버퍼
+    private float[] pitchRingBuffer;
+    private int pitchBufferWritePos = 0;
+    private double pitchBufferReadPos = 0.0;
+
     private void Awake()
     {
         sampleRate = AudioSettings.outputSampleRate;
@@ -50,6 +63,11 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
         originalCarrierFrequency = carrierFrequency;
         originalRingModDepth = ringModDepth;
         originalDistortionAmount = distortionAmount;
+
+        // 피치 시프트용 링버퍼: 1초 분량
+        pitchRingBuffer = new float[sampleRate];
+        pitchBufferWritePos = 0;
+        pitchBufferReadPos = 0.0;
     }
 
     // ── 외부 API ─────────────────────────────────────────
@@ -59,14 +77,22 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
     {
         isActive = active;
 
+        // 무전 수신 시작 시 isEnhanced 상태도 반영
+        UpdatePitchActive();
+
         // 비활성화 시 위상 초기화 -> 다음 활성화 시 깔끔하게 시작
         if (!active)
+        {
             ringPhase = 0;
+            pitchBufferWritePos = 0;
+            pitchBufferReadPos = 0.0;
+        }
     }
 
     // 서브 크리처 NoiseEnhancer 기믹
     public void SetEnhancedNoise(bool active, float intensity = 1f)
     {
+        Debug.Log($"[NoiseFilter] SetEnhancedNoise active={active}, isActive={isActive}");
         if (active == isEnhanced) return;
         isEnhanced = active;
 
@@ -74,10 +100,10 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
         {
             intensity = Mathf.Clamp01(intensity);
 
-            highPassCutoff = Mathf.Lerp(originalHighPassCutoff, 0.95f, intensity);
+            highPassCutoff = Mathf.Lerp(originalHighPassCutoff, 0.9f, intensity);
             carrierFrequency = Mathf.Lerp(originalCarrierFrequency, 2800f, intensity);
-            ringModDepth = Mathf.Lerp(originalRingModDepth, 0.95f, intensity);
-            distortionAmount = Mathf.Lerp(originalDistortionAmount, 0.92f, intensity);
+            ringModDepth = Mathf.Lerp(originalRingModDepth, 1f, intensity);
+            distortionAmount = Mathf.Lerp(originalDistortionAmount, 1f, intensity);
         }
         else
         {
@@ -86,6 +112,14 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
             ringModDepth = originalRingModDepth;
             distortionAmount = originalDistortionAmount;
         }
+
+        // 현재 무전 수신 중이면 피치 변조도 즉시 반영
+        UpdatePitchActive();
+    }
+
+    private void UpdatePitchActive()
+    {
+        isPitchActive = isActive && isEnhanced;
     }
 
     // ── OnAudioFilterRead ─────────────────────────────────
@@ -97,7 +131,15 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
     {
         if (!isActive) return;
 
-        // 채널 수 변경 시 상태값 ㅊ기화
+        // ── 강화 상태: 고정 피치 시프트 + HPF + 링변조 + 디스토션 ──
+        if (isEnhanced)
+        {
+            for (int i = 0; i < data.Length; i++)
+                data[i] *= 0.2f;
+            return;
+        }
+
+        // ── 일반 상태: HPF + 링변조 + 디스토션 ───────────
         if (hpfPrev == null || channelCount != channels)
         {
             channelCount = channels;
@@ -105,10 +147,7 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
             hpfPrevOut = new float[channels];
         }
 
-        // α 계산: 높을수록 저음 차단이 강해짐 (0.5 ~ 0.95 범위 권장)
         float alpha = 0.5f + highPassCutoff * 0.45f;
-
-        // 링 변조 위상 증가량 (샘플당): 위상 = 2π × 주파수 / 샘플레이트
         double phaseIncrement = (System.Math.PI * 2.0 * carrierFrequency) / sampleRate;
 
         for (int i = 0; i < data.Length; i++)
@@ -118,28 +157,20 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
             if (ch == 0)
             {
                 ringPhase += phaseIncrement;
-
-                // 위상이 2π를 넘으면 초기화 (정밀도 유지)
                 if (ringPhase >= System.Math.PI * 2.0)
                     ringPhase -= System.Math.PI * 2.0;
             }
 
-            // 현재 샘플의 링 변조 사인파 값 계산
-            // System.Math.Sin은 오디오 스레드에서 안전
             float carrier = 0.5f + (float)System.Math.Sin(ringPhase) * 0.5f;
-
             float input = data[i];
 
-            // High Pass Filter
             float hpfOut = alpha * (hpfPrevOut[ch] + input - hpfPrev[ch]);
             hpfPrev[ch] = input;
             hpfPrevOut[ch] = hpfOut;
 
-            // 링 변조 (원본과 변조 신호를 ringModDepth 비율로 블렌딩)
             float ringMod = hpfOut * carrier;
             float modulated = Mathf.Lerp(hpfOut, ringMod, ringModDepth);
 
-            // Distortion (소프트 클리핑)
             float distorted = modulated;
             if (distortionAmount > 0f)
             {

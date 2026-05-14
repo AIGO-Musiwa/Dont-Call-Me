@@ -47,8 +47,6 @@ public class PlayerDebuffHandler : NetworkBehaviour
     // 이속 감소 디버프 적용
     public void ApplySlowDebuff(NetworkId sourceId)
     {
-        if (!HasStateAuthority) return;
-
         // 같은 소스면 타이머 갱신만
         if (slowSourceId == sourceId)
         {
@@ -70,8 +68,6 @@ public class PlayerDebuffHandler : NetworkBehaviour
     // 이속 감소 디버프 즉시 해제
     public void RemoveSlowDebuffBySource(NetworkId sourceId)
     {
-        if (!HasStateAuthority) return;
-
         //자신이 건 디버프만 해제
         if (slowSourceId != sourceId) return;
 

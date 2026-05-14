@@ -311,6 +311,16 @@ public class WalkieTalkieItem : ItemObject
         voicedBMultiplier = Mathf.Max(1f, multiplier);
     }
 
+    // 송신자 구역 플레이어들의 NoiseFilter에 강화/해제를 적용.
+    public void SetSenderNoiseEnhanced(bool enhanced, float intensity)
+    {
+        foreach (var filter in senderZoneNoiseFilters)
+        {
+            if (filter != null)
+                filter.SetEnhancedNoise(enhanced, intensity);
+        }
+    }
+
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_EmitWalkieSound(float voicedB)
     {

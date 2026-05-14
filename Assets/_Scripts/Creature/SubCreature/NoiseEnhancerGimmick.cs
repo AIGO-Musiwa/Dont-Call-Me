@@ -4,26 +4,23 @@ using UnityEngine;
 
 public class NoiseEnhancerGimmick : MonoBehaviour, ISubCreatureGimmick
 {
-    [Header("³ëÀÌÁî °­È­ ¼³Á¤")]
-    [Tooltip("³ëÀÌÁî °­È­ °­µµ 0 ~ 1")]
+    [Header("ë…¸ì´ì¦ˆ ê°•í™” ì„¤ì •")]
+    [Tooltip("ë…¸ì´ì¦ˆ ê°•í™” ê°•ë„ 0 ~ 1")]
     [Range(0f, 1f)]
     public float noiseIntensity = 0.9f;
 
-    [Header("dB ¹èÀ² ¼³Á¤")]
-    [Tooltip("¹«Àü ¹ßÇà dB ¹èÀ². 1 = Á¤»ó, 2 = Å©¸®Ã³°¡ 2¹è ¿¹¹ÎÇÏ°Ô ¹İÀÀ")]
+    [Header("dB ë°°ìœ¨ ì„¤ì •")]
+    [Tooltip("ë¬´ì „ ë°œí–‰ dB ë°°ìœ¨. 1 = ì •ìƒ, 2 = í¬ë¦¬ì²˜ê°€ 2ë°° ì˜ˆë¯¼í•˜ê²Œ ë°˜ì‘")]
     public float voicedBMultiplier = 1.2f;
 
-    [Header("ÄÚ½ºÆ® ¹èÀ² ¼³Á¤")]
-    [Tooltip("¹«Àü ÄÚ½ºÆ® ´©Àû ¹èÀ². 1 = Á¤»ó, 2 = 2¹è ºü¸£°Ô ´©Àû")]
+    [Header("ì½”ìŠ¤íŠ¸ ë°°ìœ¨ ì„¤ì •")]
+    [Tooltip("ë¬´ì „ ì½”ìŠ¤íŠ¸ ëˆ„ì  ë°°ìœ¨. 1 = ì •ìƒ, 2 = 2ë°° ë¹ ë¥´ê²Œ ëˆ„ì ")]
     public float costRateMultiplier = 1.5f;
 
     private SubCreatureSensor sensor;
     private SubCreatureController controller;
 
-    // ³ëÀÌÁî °­È­ ÁßÀÎ ÇÃ·¹ÀÌ¾îÀÇ NetworkId ÃßÀû (RPC ÇØÁ¦¿ë)
-    private readonly List<NetworkId> noisedPlayerIds = new();
-
-    // ¹èÀ²À» Àû¿ëÇÑ ÂüÁ¶
+    // ë°°ìœ¨ì„ ì ìš©í•œ ì°¸ì¡°
     private CreatureWalkieTracker affectedTracker = null;
     private WalkieTalkieItem affectedWalkie = null;
 
@@ -33,99 +30,62 @@ public class NoiseEnhancerGimmick : MonoBehaviour, ISubCreatureGimmick
         this.controller = controller;
     }
 
-    #region ISubCreatureGimmick ±¸Çö
+    #region ISubCreatureGimmick êµ¬í˜„
 
     public void OnActivate()
     {
-        noisedPlayerIds.Clear();
+        Debug.Log($"[NoiseEnhancer] OnActivate í˜¸ì¶œ ({controller.myZone})");
 
-        // ¹üÀ§ ¾È ÇÃ·¹ÀÌ¾î ³ëÀÌÁî °­È­
-        ApplyToPlayersInRange();
+        // ìˆ˜ì‹  êµ¬ì—­ ë¬´ì „ê¸°ì˜ ì†¡ì‹ ì NoiseFilter ê°•í™”
+        ApplySenderNoiseEnhanced(true);
 
-        // ¼ö½Å ±¸¿ª ¹«Àü±â dB ¹èÀ² Àû¿ë
+        // ìˆ˜ì‹  êµ¬ì—­ ë¬´ì „ê¸° dB ë°°ìœ¨ ì ìš©
         ApplyVoicedBMultiplier();
 
-        // ¸ŞÀÎ Å©¸®Ã³ ÄÚ½ºÆ® ¹èÀ² Àû¿ë
+        // ë©”ì¸ í¬ë¦¬ì²˜ ì½”ìŠ¤íŠ¸ ë°°ìœ¨ ì ìš©
         ApplyCostMultiplier();
 
-        Debug.Log($"[NoiseEnhancerGimmick] È°¼ºÈ­ ({controller.myZone})");
+        Debug.Log($"[NoiseEnhancerGimmick] í™œì„±í™” ({controller.myZone})");
     }
 
-    public void OnTick(float deltaTime)
-    {
-        // ¹üÀ§ ÀÌÅ» ÇÃ·¹ÀÌ¾î ³ëÀÌÁî ÇØÁ¦ °¨½Ã
-        UpdateNoiseRange();
-    }
+    public void OnTick(float deltaTime) { }
 
     public void OnDeactivate()
     {
-        // ³ëÀÌÁî °­È­ ÁßÀÎ ¸ğµç ÇÃ·¹ÀÌ¾î ÇØÁ¦
-        foreach (NetworkId id in noisedPlayerIds)
-            controller.RPC_SetEnhanceNoise(id, false, 0f);
+        // ì†¡ì‹ ì NoiseFilter ê°•í™” í•´ì œ
+        ApplySenderNoiseEnhanced(false);
 
-        noisedPlayerIds.Clear();
-
-        // ¹«Àü±â dB ¹èÀ² º¹±¸
+        // ë¬´ì „ê¸° dB ë°°ìœ¨ ë³µêµ¬
         RestoreVoicedBMultiplier();
 
-        // ÄÚ½ºÆ® ¹èÀ² º¹±¸
+        // ì½”ìŠ¤íŠ¸ ë°°ìœ¨ ë³µêµ¬
         RestoreCostMultiplier();
 
-        Debug.Log($"[NoiseEnhancerGimmick] ºñÈ°¼ºÈ­ ({controller.myZone})");
+        Debug.Log($"[NoiseEnhancerGimmick] ë¹„í™œì„±í™” ({controller.myZone})");
     }
 
     #endregion
 
-    #region ³ëÀÌÁî ÇÊÅÍ Ã³¸®
+    #region ë…¸ì´ì¦ˆ í•„í„° ì²˜ë¦¬
 
-    private void ApplyToPlayersInRange()
+    private void ApplySenderNoiseEnhanced(bool enhanced)
     {
-        foreach (PlayerController pc in sensor.GetPlayersInRange())
+        WalkieTalkieItem walkie = WalkieTalkieManager.Instance?.GetWalkieTalkieByZone(controller.myZone);
+        if (walkie == null)
         {
-            NetworkObject no = pc.GetComponent<NetworkObject>();
-            if (no == null || noisedPlayerIds.Contains(no.Id)) continue;
-
-            controller.RPC_SetEnhanceNoise(no.Id, true, noiseIntensity);
-            noisedPlayerIds.Add(no.Id);
-        }
-    }
-
-    private void UpdateNoiseRange()
-    {
-        // ÇöÀç ¹üÀ§ ¾È ÇÃ·¹ÀÌ¾î NetworkId ¼öÁı
-        HashSet<NetworkId> inRangeIds = new();
-        foreach (PlayerController pc in sensor.GetPlayersInRange())
-        {
-            NetworkObject no = pc.GetComponent<NetworkObject>();
-            if (no != null) inRangeIds.Add(no.Id);
+            Debug.LogWarning($"[NoiseEnhancerGimmick] {controller.myZone} ë¬´ì „ê¸°ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŒ");
+            return;
         }
 
-        // »õ·Î ¹üÀ§¿¡ µé¾î¿Â ÇÃ·¹ÀÌ¾î Àû¿ë
-        foreach (NetworkId id in inRangeIds)
-        {
-            if (!noisedPlayerIds.Contains(id))
-            {
-                controller.RPC_SetEnhanceNoise(id, true, noiseIntensity);
-                noisedPlayerIds.Add(id);
-            }
-        }
-
-        // ¹üÀ§¸¦ ÀÌÅ»ÇÑ ÇÃ·¹ÀÌ¾î ÇØÁ¦
-        for (int i = noisedPlayerIds.Count - 1; i >= 0; i--)
-        {
-            if (!inRangeIds.Contains(noisedPlayerIds[i]))
-            {
-                controller.RPC_SetEnhanceNoise(noisedPlayerIds[i], false, 0f);
-                noisedPlayerIds.RemoveAt(i);
-            }
-        }
+        walkie.SetSenderNoiseEnhanced(enhanced, enhanced ? noiseIntensity : 0f);
+        Debug.Log($"[NoiseEnhancerGimmick] SetSenderNoiseEnhanced({enhanced}) â†’ {controller.myZone}");
     }
 
     #endregion
 
-    #region ¹«Àü±â dB ¹èÀ² Ã³¸®
+    #region ë¬´ì „ê¸° dB ë°°ìœ¨ ì²˜ë¦¬
 
-    // ¼ö½Å ±¸¿ª ¹«Àü±â¿¡ dB ¹èÀ² Àû¿ë
+    // ìˆ˜ì‹  êµ¬ì—­ ë¬´ì „ê¸°ì— dB ë°°ìœ¨ ì ìš©
     private void ApplyVoicedBMultiplier()
     {
         WalkieTalkieItem walkie = WalkieTalkieManager.Instance?.GetWalkieTalkieByZone(controller.myZone);
@@ -144,7 +104,7 @@ public class NoiseEnhancerGimmick : MonoBehaviour, ISubCreatureGimmick
 
     #endregion
 
-    #region ÄÚ½ºÆ® ¹èÀ² Ã³¸®
+    #region ì½”ìŠ¤íŠ¸ ë°°ìœ¨ ì²˜ë¦¬
 
     private void ApplyCostMultiplier()
     {

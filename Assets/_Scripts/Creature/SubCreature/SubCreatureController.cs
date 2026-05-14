@@ -1,5 +1,4 @@
 using Fusion;
-using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -31,7 +30,7 @@ public class SubCreatureController : NetworkBehaviour
     // ── 내부 상태 (호스트 전용) ───────────────────────────
 
     private float stateTimer = 0f;
-    private int currentRelocateIndex = -1;
+    public int currentRelocateIndex = -1;
 
     #region 초기화
 
@@ -154,16 +153,42 @@ public class SubCreatureController : NetworkBehaviour
     {
         if (relocatePoints == null || relocatePoints.Length == 0) return;
 
-        // 현재 인덱스를 제외한 후보 목록
-        List<int> candidates = new();
-        for (int i = 0; i < relocatePoints.Length; i++)
+        SubCreatureSpawner spawner = SubCreatureSpawner.Instance;
+
+        int chosen;
+        if (spawner != null)
         {
-            if (i != currentRelocateIndex) candidates.Add(i);
+            // 현재 점유 해제
+            if (currentRelocateIndex >= 0)
+                spawner.ReleasePoint(myZone, currentRelocateIndex);
+
+            // 다른 크리처가 점유하지 않은 포인트 요청
+            chosen = spawner.GetAvailablePointIndex(myZone, currentRelocateIndex, this);
+
+            // 빈 포인트가 없으면 이동 포기 (드문 케이스)
+            if (chosen < 0)
+            {
+                Debug.LogWarning($"[SubCreatureController] {myZone} 사용 가능한 포인트 없음. 이동 취소.");
+                if (currentRelocateIndex >= 0)
+                    spawner.OccupyPoint(myZone, currentRelocateIndex, this);
+                return;
+            }
+
+            // 새 포인트 점유 등록
+            spawner.OccupyPoint(myZone, chosen, this);
+        }
+        else
+        {
+            // Spawner 없을 때 폴백: 기존 랜덤 방식
+            List<int> candidates = new();
+            for (int i = 0; i < relocatePoints.Length; i++)
+            {
+                if (i != currentRelocateIndex) candidates.Add(i);
+            }
+            if (candidates.Count == 0) return;
+            chosen = candidates[Random.Range(0, candidates.Count)];
         }
 
-        if (candidates.Count == 0) return;
-
-        int chosen = candidates[Random.Range(0, candidates.Count)];
         currentRelocateIndex = chosen;
 
         Transform dest = relocatePoints[chosen];
@@ -181,23 +206,6 @@ public class SubCreatureController : NetworkBehaviour
     #endregion
 
     #region RPC
-
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    public void RPC_SetEnhanceNoise(NetworkId playerNetworkId, bool enhanced, float intensity)
-    {
-        if (!Runner.TryFindObject(playerNetworkId, out NetworkObject playerObj)) return;
-        if (!Runner.TryGetPlayerObject(Runner.LocalPlayer, out NetworkObject localPlayerData)) return;
-
-        PlayerController localPc = localPlayerData.GetComponent<PlayerData>()?.GetPlayerController();
-
-        if (localPc == null) return;
-
-        PlayerController targetPc = playerObj.GetComponent<PlayerController>();
-        if (targetPc != localPc) return;
-
-        WalkieTalkieNoiseFilter filter = localPc.GetComponent<WalkieTalkieNoiseFilter>();
-        filter?.SetEnhancedNoise(enhanced, intensity);
-    }
 
     // 텔레포트 위치 동기화
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]

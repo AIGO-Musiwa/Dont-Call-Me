@@ -1,6 +1,4 @@
 using Fusion;
-using JetBrains.Annotations;
-using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -99,7 +97,7 @@ public class SlowAndCallGimmick : MonoBehaviour, ISubCreatureGimmick
             break;
         }
 
-        if (creatureFound != callStopped)
+        if (creatureFound)
         {
             callStopped = creatureFound;
             Debug.Log($"[SlowAndCallGimmick] 메인 크리처 감지 → 호출음 영구 중단 ({controller.myZone})");
@@ -114,6 +112,7 @@ public class SlowAndCallGimmick : MonoBehaviour, ISubCreatureGimmick
         foreach (PlayerController pc in inRange)
         {
             PlayerDebuffHandler debuff = pc.GetComponent<PlayerDebuffHandler>();
+
             if (debuff == null) continue;
 
             debuff.ApplySlowDebuff(sourceId);

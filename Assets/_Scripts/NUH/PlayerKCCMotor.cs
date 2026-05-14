@@ -51,6 +51,8 @@ public class PlayerKCCMotor : MonoBehaviour
         _simpleKCC = GetComponent<SimpleKCC>();
         _rigidbody = GetComponent<Rigidbody>();
 
+        _debuffHandler = GetComponent<PlayerDebuffHandler>();
+
         if (_rigidbody != null)
             _rigidbody.isKinematic = true;
 

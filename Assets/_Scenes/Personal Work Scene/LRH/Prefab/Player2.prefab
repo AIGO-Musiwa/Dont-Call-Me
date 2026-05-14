@@ -185,8 +185,10 @@ GameObject:
   - component: {fileID: 969681772662802719}
   - component: {fileID: -2663173833969849363}
   - component: {fileID: 4781147723234491082}
+  - component: {fileID: -3108298614444829799}
   - component: {fileID: -7150383608892738858}
-  m_Layer: 0
+  - component: {fileID: 181578699575442708}
+  m_Layer: 10
   m_Name: Player2
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -236,6 +238,7 @@ MonoBehaviour:
   - {fileID: 240582007588533922}
   - {fileID: -7581908001551703947}
   - {fileID: -8854411365576175989}
+  - {fileID: -3108298614444829799}
   ForceRemoteRenderTimeframe: 0
 --- !u!54 &5971374519554222819
 Rigidbody:
@@ -409,7 +412,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4808110d45324bb4cb091e292352d61c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction
-  interactDistance: 2
+  interactDistance: 5
   interactMask:
     serializedVersion: 2
     m_Bits: 320
@@ -665,6 +668,23 @@ MonoBehaviour:
   ringModDepth: 0.5
   distortionAmount: 0.5
   outputGain: 3
+  pitchFactor: 0.1
+--- !u!114 &-3108298614444829799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827289365566288008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6411b3188b37e1f4c98af6c47baf3dd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerDebuffHandler
+  _NetSpeedMultiplier: 1
+  _NetIsSlowed: 0
+  slowMultiplier: 0.4
+  debuffDuration: 3
 --- !u!114 &-7150383608892738858
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -686,6 +706,29 @@ MonoBehaviour:
   lookSensitivity: 0.2
   resetWhenEnterCaptured: 1
   resetWhenExitCaptured: 1
+--- !u!136 &181578699575442708
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827289365566288008}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.3
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!1 &1611596538053703382
 GameObject:
   m_ObjectHideFlags: 0

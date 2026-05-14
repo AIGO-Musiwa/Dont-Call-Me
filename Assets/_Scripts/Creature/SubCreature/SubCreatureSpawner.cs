@@ -4,22 +4,29 @@ using UnityEngine;
 
 public class SubCreatureSpawner : NetworkBehaviour
 {
-    [Header("¼­ºê Å©¸®Ã³ ÇÁ¸®ÆÕ Ç®")]
-    [Tooltip("±â¹ÍÀÌ °¢°¢ ´Ù¸¥ SubCreature ÇÁ¸®ÆÕ ¹è¿­")]
+    public static SubCreatureSpawner Instance { get; private set; }
+
+    [Header("ì„œë¸Œ í¬ë¦¬ì²˜ í”„ë¦¬íŒ¹ í’€")]
+    [Tooltip("ê¸°ë¯¹ì´ ê°ê° ë‹¤ë¥¸ SubCreature í”„ë¦¬íŒ¹ ë°°ì—´")]
     public NetworkObject[] subCreaturePrefabs;
 
-    [Header("½ºÆù ÈÄº¸ À§Ä¡")]
+    [Header("ìŠ¤í° í›„ë³´ ìœ„ì¹˜")]
     public Transform[] spawnPointsZoneA;
     public Transform[] spawnPointsZoneB;
 
-    [Header("±¸¿ª´ç ¼ÒÈ¯ ¼ö")]
-    [Tooltip("°¢ ±¸¿ª¿¡¼­ ÇÁ¸®ÆÕ Ç® Áß ¸î °³¸¦ ·£´ı ¼ÒÈ¯ÇÒÁö")]
+    [Header("êµ¬ì—­ë‹¹ ì†Œí™˜ ìˆ˜")]
+    [Tooltip("ê° êµ¬ì—­ì—ì„œ í”„ë¦¬íŒ¹ í’€ ì¤‘ ëª‡ ê°œë¥¼ ëœë¤ ì†Œí™˜í• ì§€")]
     public int spawnCountPerZone = 2;
 
-    #region ÃÊ±âÈ­
+    private readonly Dictionary<int, SubCreatureController> occupiedPointsA = new();
+    private readonly Dictionary<int, SubCreatureController> occupiedPointsB = new();
+
+    #region ì´ˆê¸°í™”
 
     public override void Spawned()
     {
+        Instance = this;
+
         if (!HasStateAuthority) return;
 
         SpawnForZone(Zone.ZoneA, spawnPointsZoneA);
@@ -28,29 +35,29 @@ public class SubCreatureSpawner : NetworkBehaviour
 
     #endregion
 
-    #region ¼ÒÈ¯ Ã³¸®
+    #region ì†Œí™˜ ì²˜ë¦¬
 
     private void SpawnForZone(Zone zone, Transform[] points)
     {
         if (subCreaturePrefabs == null || subCreaturePrefabs.Length == 0)
         {
-            Debug.LogError("[SubCreatureSpawner] subCreaturePrefabs°¡ ºñ¾î ÀÖ½À´Ï´Ù.");
+            Debug.LogError("[SubCreatureSpawner] subCreaturePrefabsê°€ ë¹„ì–´ ìˆìŠµë‹ˆë‹¤.");
             return;
         }
 
         if (points == null || points.Length == 0)
         {
-            Debug.LogWarning($"[SubCreatureSpawner] {zone} ½ºÆù Æ÷ÀÎÆ®°¡ ¾ø½À´Ï´Ù.");
+            Debug.LogWarning($"[SubCreatureSpawner] {zone} ìŠ¤í° í¬ì¸íŠ¸ê°€ ì—†ìŠµë‹ˆë‹¤.");
             return;
         }
 
-        // ½ÇÁ¦ ¼ÒÈ¯ ¼ö °áÁ¤ (ÇÁ¸®ÆÕ ¼ö, ½ºÆù Æ÷ÀÎÆ® ¼ö, ¼³Á¤°ª Áß ÃÖ¼Ú°ª)
+        // ì‹¤ì œ ì†Œí™˜ ìˆ˜ ê²°ì • (í”„ë¦¬íŒ¹ ìˆ˜, ìŠ¤í° í¬ì¸íŠ¸ ìˆ˜, ì„¤ì •ê°’ ì¤‘ ìµœì†Ÿê°’)
         int count = Mathf.Min(spawnCountPerZone, subCreaturePrefabs.Length, points.Length);
 
-        // ÇÁ¸®ÆÕ ÀÎµ¦½º ¼ÅÇÃ (ºñº¹¿ø ÃßÃâ)
+        // í”„ë¦¬íŒ¹ ì¸ë±ìŠ¤ ì…”í”Œ (ë¹„ë³µì› ì¶”ì¶œ)
         List<int> prefabIndices = BuildShuffledIndices(subCreaturePrefabs.Length);
 
-        // ½ºÆù Æ÷ÀÎÆ® ÀÎµ¦½º ¼ÅÇÃ (ºñº¹¿ø ÃßÃâ)
+        // ìŠ¤í° í¬ì¸íŠ¸ ì¸ë±ìŠ¤ ì…”í”Œ (ë¹„ë³µì› ì¶”ì¶œ)
         List<int> pointIndices = BuildShuffledIndices(points.Length);
 
         for (int i = 0; i < count; i++)
@@ -60,7 +67,7 @@ public class SubCreatureSpawner : NetworkBehaviour
 
             if (prefab == null)
             {
-                Debug.LogWarning($"[SubCreatureSpawner] prefab[{prefabIndices[i]}]°¡ nullÀÔ´Ï´Ù. °Ç³Ê¶Ü.");
+                Debug.LogWarning($"[SubCreatureSpawner] prefab[{prefabIndices[i]}]ê°€ nullì…ë‹ˆë‹¤. ê±´ë„ˆëœ€.");
                 continue;
             }
 
@@ -72,30 +79,35 @@ public class SubCreatureSpawner : NetworkBehaviour
 
             if (no == null)
             {
-                Debug.LogError($"[SubCreatureSpawner] {zone} ¼­ºê Å©¸®Ã³ ¼ÒÈ¯ ½ÇÆĞ (Æ÷ÀÎÆ®: {spawnPoint.name})");
+                Debug.LogError($"[SubCreatureSpawner] {zone} ì„œë¸Œ í¬ë¦¬ì²˜ ì†Œí™˜ ì‹¤íŒ¨ (í¬ì¸íŠ¸: {spawnPoint.name})");
                 continue;
             }
 
             SubCreatureController controller = no.GetComponent<SubCreatureController>();
             if (controller == null)
             {
-                Debug.LogError($"[SubCreatureSpawner] {no.name}¿¡ SubCreatureController°¡ ¾ø½À´Ï´Ù.");
+                Debug.LogError($"[SubCreatureSpawner] {no.name}ì— SubCreatureControllerê°€ ì—†ìŠµë‹ˆë‹¤.");
                 continue;
             }
 
-            // ±¸¿ª ¹èÁ¤
+            // êµ¬ì—­ ë°°ì •
             controller.myZone = zone;
 
-            // ½ºÆù Æ÷ÀÎÆ® ¹è¿­À» relocatePoints·Î ÁÖÀÔ
+            // ìŠ¤í° í¬ì¸íŠ¸ ë°°ì—´ì„ relocatePointsë¡œ ì£¼ì…
             controller.relocatePoints = points;
 
-            Debug.Log($"[SubCreatureSpawner] {zone} / {no.name} ¼ÒÈ¯ ¿Ï·á ¡æ {spawnPoint.name}");
+            // ì´ˆê¸° ìŠ¤í° ìœ„ì¹˜ ì ìœ  ë“±ë¡
+            int spawnPointIndex = pointIndices[i];
+            GetOccupiedPoints(zone)[spawnPointIndex] = controller;
+            controller.currentRelocateIndex = spawnPointIndex;
+
+            Debug.Log($"[SubCreatureSpawner] {zone} / {no.name} ì†Œí™˜ ì™„ë£Œ â†’ {spawnPoint.name}");
         }
     }
 
     #endregion
 
-    #region À¯Æ¿
+    #region ìœ í‹¸
 
     private static List<int> BuildShuffledIndices(int length)
     {
@@ -109,6 +121,47 @@ public class SubCreatureSpawner : NetworkBehaviour
         }
 
         return indices;
+    }
+
+    #endregion
+
+    #region ì ìœ  í¬ì¸íŠ¸ ê´€ë¦¬
+
+    private Dictionary<int, SubCreatureController> GetOccupiedPoints(Zone zone)
+    {
+        return zone == Zone.ZoneA ? occupiedPointsA : occupiedPointsB;
+    }
+    public int GetAvailablePointIndex(Zone zone, int excludeIndex, SubCreatureController requester)
+    {
+        Transform[] points = zone == Zone.ZoneA ? spawnPointsZoneA : spawnPointsZoneB;
+        if (points == null || points.Length == 0) return -1;
+
+        var occupied = GetOccupiedPoints(zone);
+
+        // ì‚¬ìš© ê°€ëŠ¥í•œ í›„ë³´ ìˆ˜ì§‘ (í˜„ì¬ ì¸ë±ìŠ¤ ì œì™¸ + ë‹¤ë¥¸ í¬ë¦¬ì²˜ê°€ ì ìœ í•˜ì§€ ì•Šì€ ê³³)
+        List<int> candidates = new();
+        for (int i = 0; i < points.Length; i++)
+        {
+            if (i == excludeIndex) continue;
+            if (occupied.TryGetValue(i, out var occupant) && occupant != requester) continue;
+            candidates.Add(i);
+        }
+
+        if (candidates.Count == 0) return -1;
+
+        return candidates[Random.Range(0, candidates.Count)];
+    }
+
+    // ì ìœ  ë“±ë¡
+    public void OccupyPoint(Zone zone, int index, SubCreatureController controller)
+    {
+        GetOccupiedPoints(zone)[index] = controller;
+    }
+
+    // ì ìœ  í•´ì œ
+    public void ReleasePoint(Zone zone, int index)
+    {
+        GetOccupiedPoints(zone).Remove(index);
     }
 
     #endregion

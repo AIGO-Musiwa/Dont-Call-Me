@@ -102,7 +102,7 @@ public class CreatureWalkieTracker : MonoBehaviour
         //증감량 계산 (Idle 0값 처리)
         float costChange = 0f;
 
-        if (isAccumulating) costChange = costRate * deltaTime;
+        if (isAccumulating) costChange = costRate * costRateMultiplier * deltaTime;
 
         //코스트가 남아있을 때만 감쇠
         else if (isDecaying && currentWalkieCost > 0f) costChange = -costDecayRate * deltaTime;
