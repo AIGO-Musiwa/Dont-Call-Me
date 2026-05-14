@@ -21,11 +21,25 @@ public class EscapeZoneTrigger : MonoBehaviour
     public Transform carBoardingPoint;      //자동차 탑승 위치
     public AudioSource carSound;            //차 시동 소리 또는 발소리
 
+    [Header("탈출 시스템 설정")]
+    [Tooltip("최초 도달 후 남은 플레이어들에게 주어지는 탈출 제한 시간")]
+    public float escapeTimeLimit = 60.0f;
+
     private HashSet<PlayerController> escapingPlayers = new HashSet<PlayerController>();
+
+    //중복 연출 방지용 변수
+    private bool isVehicleCalled = false;
+
+    private void Start()
+    {
+        //초기 상태 비활성화
+        if (helicopterObject != null) helicopterObject.SetActive(false);
+        if (escapeCarObject != null) escapeCarObject.SetActive(false);
+    }
 
     private void OnTriggerEnter(Collider other)
     {
-        PlayerController player = other.GetComponentInParent<PlayerController>();        
+        PlayerController player = other.GetComponentInParent<PlayerController>();
 
         //상태 권한이 있는 서버 측의 트리거 판정에서만 탈출 요청을 보냄
         if (player != null && player.Object != null)
@@ -36,25 +50,32 @@ public class EscapeZoneTrigger : MonoBehaviour
             //아직 살아있거나 납치 중인 상태의 플레이어만 탈출 가능 (이미 탈출했거나 죽은 경우 무시)
             if (player.NetPlayerState == PlayerState.Normal || player.NetPlayerState == PlayerState.Captured)
             {
-                escapingPlayers.Add(player);                
+                escapingPlayers.Add(player);
 
                 if (player.Object.HasStateAuthority)
                 {
+                    //최초 1회만 탈출 수단 호출 및 60초 타이머 시작
+                    if (!isVehicleCalled)
+                    {
+                        isVehicleCalled = true;
+                        StartCoroutine(CallVehicleRoutine());
+                        StartCoroutine(EscapeCountdownRoutine());
+                    }
+
                     //즉시 이동 및 시야 회전 정지
                     player.SetInputLock(true, true);
-                    StartCoroutine(CinematicEscapeRoutine(player));
+                    StartCoroutine(PlayerBoardingRoutine(player));
                 }
             }
         }
     }
 
-    private IEnumerator CinematicEscapeRoutine(PlayerController player)
+    private IEnumerator CallVehicleRoutine()
     {
-        //루트별 개별 연출 실행
         if (escapeRoute == EscapeRoute.Rooftop)
         {
             //옥상 핼기 연출
-            if (player.Object.HasInputAuthority && heliSound != null) heliSound.Play();
+            if (heliSound != null) heliSound.Play();
 
             //헬기 오브젝트 활성화
             if (helicopterObject != null && heliStartPoint != null && heliLandingPoint != null)
@@ -69,29 +90,32 @@ public class EscapeZoneTrigger : MonoBehaviour
                 while (heliTime < heliDuration)
                 {
                     heliTime += Time.deltaTime;
-                    helicopterObject.transform.position = helicopterObject.transform.position = Vector3.Lerp(heliStartPoint.position, heliLandingPoint.position, heliTime / heliDuration);
+                    helicopterObject.transform.position = Vector3.Lerp(heliStartPoint.position, heliLandingPoint.position, heliTime / heliDuration);
                     yield return null;
                 }
-            }
 
-            //플레이어 강제 걷기 연출
-            if (heliBoardingPoint != null)
-            {
-                yield return StartCoroutine(MovePlayerGradually(player, heliBoardingPoint.position, 2.0f));
+                //오차 보정
+                helicopterObject.transform.position = heliLandingPoint.position;
             }
         }
-
         else if (escapeRoute == EscapeRoute.FrontDoor)
         {
             //정문 자동차/도보 연출
-            if (player.Object.HasInputAuthority && carSound != null) carSound.Play();
+            if (carSound != null) carSound.Play();
             if (escapeCarObject != null) escapeCarObject.SetActive(true);
+        }
+    }
 
-            //차문 앞(또는 도보 탈출구)으로 플레이어 강제 이동
-            if (carBoardingPoint != null)
-            {
-                yield return StartCoroutine(MovePlayerGradually(player, carBoardingPoint.position, 2.5f));
-            }
+    private IEnumerator PlayerBoardingRoutine(PlayerController player)
+    {
+        //플레이어 강제 걷기 연출
+        if (escapeRoute == EscapeRoute.Rooftop && heliBoardingPoint != null)
+        {
+            yield return StartCoroutine(MovePlayerGradually(player, heliBoardingPoint.position, 2.0f));
+        }
+        else if (escapeRoute == EscapeRoute.FrontDoor && carBoardingPoint != null)
+        {
+            yield return StartCoroutine(MovePlayerGradually(player, carBoardingPoint.position, 2.5f));
         }
 
         //공동 탈출 연출 (화면 페이드 아웃)
@@ -101,7 +125,30 @@ public class EscapeZoneTrigger : MonoBehaviour
         yield return new WaitForSeconds(2.5f);
 
         //2.5초 뒤 완전히 화면이 까맣게 된 시점에서 탈출 처리 실행
-        if (player != null && player.Object.IsValid) player.ServerEnterEscaped();        
+        if (player != null && player.Object.IsValid) player.ServerEnterEscaped();
+    }
+
+    private IEnumerator EscapeCountdownRoutine()
+    {
+        //제한 시간 대기
+        yield return new WaitForSeconds(escapeTimeLimit);
+
+        //씬 내의 모든 플레이어 탐색
+        PlayerController[] allPlayers = FindObjectsByType<PlayerController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+
+        foreach (PlayerController p in allPlayers)
+        {
+            //살아있지만 트리거를 밟지 못한 지각생 판별
+            if ((p.NetPlayerState == PlayerState.Normal || p.NetPlayerState == PlayerState.Captured) && !escapingPlayers.Contains(p))
+            {
+                //서버 권한으로 사망 처리
+                if (p.Object.HasStateAuthority)
+                {
+                    p.ServerEnterDead(); //사망 함수 연결
+                    Debug.Log($"[{p.gameObject.name}] 탈출 시간 초과로 사망 처리됨.");
+                }
+            }
+        }
     }
 
     private IEnumerator MovePlayerGradually(PlayerController player, Vector3 targetPos, float duration)
