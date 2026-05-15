@@ -38,9 +38,13 @@ public class HUDController : MonoBehaviour
     [SerializeField] private GameObject deathOverlay;             // 사망 직후 안내 UI
 
     [Header("신규 부품")]
+    [SerializeField] private GameObject deathMessagePanel;
     [SerializeField] private TextMeshProUGUI alertText; // 알람용 텍스트 (인스펙터 할당!)
     private Coroutine _itemTimer;
     private Coroutine _alertTimer;
+
+    private Coroutine _deathTimer;
+    private bool _isDeathSequenceRunning = false; // 사망 연출이 진행 중인지 확인하는 센서
 
     private ItemObject _lastItem;
     // 초기 상태를 알 수 없는 상태(-1)로 설정하여 첫 프레임에 무조건 초기화 실행
@@ -77,6 +81,9 @@ public class HUDController : MonoBehaviour
 
         if (traumaGauge == null) traumaGauge = FindInChild<Slider>("TraumaGauge");
         if (minigameUI == null) minigameUI = GetComponentInChildren<CaptureMinigameUI>(true);
+
+        // 🛠️ [수정됨] 시작 시 사망 패널 강제 소등
+        if (deathMessagePanel != null) deathMessagePanel.SetActive(false);
 
         // 시작 시 모든 그룹 초기화 (합선 방지)
         CleanUpLayout();
@@ -157,6 +164,40 @@ public class HUDController : MonoBehaviour
         {
             if (minigameUI != null) minigameUI.CloseUI();
         }
+
+        // 🛠️ [신규 추가] 사망 상태 진입 시 사망 연출 코루틴 가동
+        if (newState == PlayerState.Dead)
+        {
+            if (_deathTimer != null) StopCoroutine(_deathTimer);
+            _deathTimer = StartCoroutine(DeathSequenceRoutine());
+        }
+    }
+
+    // 🛠️ [수정됨] 독립 패널을 이용한 사망 연출
+    private System.Collections.IEnumerator DeathSequenceRoutine()
+    {
+        _isDeathSequenceRunning = true;
+
+        // 1. 관전 UI 글씨들(누구 관전중, 조작키 등)을 임시로 숨김
+        if (spectatorStatusText != null) spectatorStatusText.gameObject.SetActive(false);
+        if (spectatorTargetText != null) spectatorTargetText.gameObject.SetActive(false);
+        if (spectatorGuideText != null) spectatorGuideText.gameObject.SetActive(false);
+
+        // 2. 🛠️ 사망 전용 팝업 패널(YOU DIED) 켜기!
+        if (deathMessagePanel != null) deathMessagePanel.SetActive(true);
+
+        // 3. 1.5초 동안 대기 (플레이어에게 죽음을 인지할 시간을 줌)
+        yield return new WaitForSeconds(1.5f);
+
+        // 4. 🛠️ 사망 전용 팝업 끄기
+        if (deathMessagePanel != null) deathMessagePanel.SetActive(false);
+
+        // 5. 숨겨뒀던 관전 UI 글씨들 다시 켜기
+        if (spectatorStatusText != null) spectatorStatusText.gameObject.SetActive(true);
+        if (spectatorTargetText != null) spectatorTargetText.gameObject.SetActive(true);
+        if (spectatorGuideText != null) spectatorGuideText.gameObject.SetActive(true);
+
+        _isDeathSequenceRunning = false;
     }
 
     // 1. 아이템 이름 1.5초 출력 엔진
@@ -213,9 +254,14 @@ public class HUDController : MonoBehaviour
 
     private void UpdateSpectatorHUD()
     {
+        // 1. 배경 필터인 deathOverlay는 상태에 맞게 켜줌 (원래 코드 복구)
         if (deathOverlay != null)
             deathOverlay.SetActive(playerController.NetPlayerState == PlayerState.Dead);
 
+        // 2. 사망 연출이 진행되는 1.5초 동안은 아래의 텍스트 갱신을 멈춤
+        if (_isDeathSequenceRunning) return;
+
+        // 3. 실제 관전 텍스트 데이터 갱신
         if (playerController.SpectatorController != null)
         {
             string targetName = playerController.SpectatorController.GetCurrentTargetName();
