@@ -436,7 +436,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1186209}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -444,10 +444,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 3533438808
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -459,6 +455,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1186207}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1186209 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1186207}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &1408957
 GameObject:
   m_ObjectHideFlags: 0
@@ -9819,55 +9826,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5286463327754785079, guid: 2f7cfed56f51f88449bd99793c193d63, type: 3}
   m_PrefabInstance: {fileID: 84102201}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &85229778
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 85229780}
-  - component: {fileID: 85229779}
-  m_Layer: 0
-  m_Name: Global Volume
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &85229779
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 85229778}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
-  m_IsGlobal: 1
-  priority: 0
-  blendDistance: 0
-  weight: 1
-  sharedProfile: {fileID: 11400000, guid: 5ed51306b512f574cb483e898f121be5, type: 2}
---- !u!4 &85229780
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 85229778}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -163.40526, y: -10.397983, z: 158.46309}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!43 &87401050
 Mesh:
   m_ObjectHideFlags: 0
@@ -11718,7 +11676,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 101816498}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -11726,10 +11684,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 4117173197
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11741,6 +11695,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 101816496}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &101816498 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 101816496}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!43 &101871945
 Mesh:
   m_ObjectHideFlags: 0
@@ -16022,7 +15987,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 136046848}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -16030,10 +15995,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 891414855
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16045,6 +16006,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 136046846}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &136046848 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 136046846}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &138075147
 GameObject:
   m_ObjectHideFlags: 0
@@ -31428,7 +31400,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3252428481831826293, guid: 5386cef7b0709d446be33bdb9ef784b9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: 28
       objectReference: {fileID: 0}
     - target: {fileID: 4477478473851044865, guid: 5386cef7b0709d446be33bdb9ef784b9, type: 3}
       propertyPath: m_AnchorMax.x
@@ -31536,7 +31508,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6107757457329810167, guid: 5386cef7b0709d446be33bdb9ef784b9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: 28
       objectReference: {fileID: 0}
     - target: {fileID: 7410776512125031081, guid: 5386cef7b0709d446be33bdb9ef784b9, type: 3}
       propertyPath: m_AnchorMax.y
@@ -37959,7 +37931,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 257835366}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -37967,10 +37939,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2821954014
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -37982,6 +37950,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 257835364}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &257835366 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 257835364}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &259203437
 GameObject:
   m_ObjectHideFlags: 0
@@ -44474,7 +44453,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 308570813}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -44482,10 +44461,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2030088525
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -44497,6 +44472,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 308570811}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &308570813 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 308570811}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &308646991
 GameObject:
   m_ObjectHideFlags: 0
@@ -47803,7 +47789,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 331490488}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -47811,10 +47797,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2602319631
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -47826,6 +47808,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 331490486}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &331490488 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 331490486}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &334091031
 GameObject:
   m_ObjectHideFlags: 0
@@ -55534,9 +55527,6 @@ MonoBehaviour:
   hideType: 2
   enterPoint: {fileID: 1483069809}
   exitPoint: {fileID: 1687413314}
-  openCabinetVisual: {fileID: 0}
-  closeCabinetVisual: {fileID: 0}
-  enableDebugLog: 0
   _NetIsOccupied:
     _value: 0
 --- !u!1 &376713637
@@ -60286,7 +60276,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 403257879}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -60294,10 +60284,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2531133700
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -60309,6 +60295,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 403257877}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &403257879 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 403257877}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &404546840
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -62712,7 +62709,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 423331352}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -62720,10 +62717,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 142160830
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -62735,6 +62728,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 423331350}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &423331352 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 423331350}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &424057575
 GameObject:
   m_ObjectHideFlags: 0
@@ -72677,7 +72681,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 508249260}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -72685,10 +72689,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2397035869
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -72700,6 +72700,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 508249258}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &508249260 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 508249258}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!43 &509454857
 Mesh:
   m_ObjectHideFlags: 0
@@ -81711,9 +81722,6 @@ MonoBehaviour:
   hideType: 2
   enterPoint: {fileID: 990734124}
   exitPoint: {fileID: 1272718459}
-  openCabinetVisual: {fileID: 0}
-  closeCabinetVisual: {fileID: 0}
-  enableDebugLog: 0
   _NetIsOccupied:
     _value: 0
 --- !u!114 &556558169
@@ -87361,7 +87369,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 584286005}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -87369,10 +87377,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 1586437163
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -87384,6 +87388,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 584286003}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &584286005 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 584286003}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &584541420
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -91341,81 +91356,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 597165151}
   m_Mesh: {fileID: -3162123035750904970, guid: 4a4f85a357ba3eb469a88ac7a1d47e01, type: 3}
---- !u!1 &597768868
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 597768869}
-  - component: {fileID: 597768871}
-  - component: {fileID: 597768870}
-  m_Layer: 5
-  m_Name: EyelidTop
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &597768869
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 597768868}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 677397527}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 1000}
-  m_Pivot: {x: 0.5, y: 0}
---- !u!114 &597768870
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 597768868}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!222 &597768871
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 597768868}
-  m_CullTransparentMesh: 1
 --- !u!1 &598928669
 GameObject:
   m_ObjectHideFlags: 0
@@ -91708,7 +91648,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 600070100}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -91716,10 +91656,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2246450868
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -91731,6 +91667,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 600070098}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &600070100 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 600070098}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &601398229
 GameObject:
   m_ObjectHideFlags: 0
@@ -93145,7 +93092,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 604300923}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -93153,10 +93100,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2913222333
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -93168,6 +93111,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 604300921}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &604300923 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 604300921}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &604772923
 GameObject:
   m_ObjectHideFlags: 0
@@ -98024,7 +97978,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 653049200}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -98032,10 +97986,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 1243108057
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -98047,6 +97997,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 653049198}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &653049200 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 653049198}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &656259259
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -101004,8 +100965,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1571520154}
-  - {fileID: 597768869}
-  - {fileID: 1610714391}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -109561,7 +109520,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 716468331}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -109569,10 +109528,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 4196113197
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -109584,6 +109539,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 716468329}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &716468331 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 716468329}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &716474806
 GameObject:
   m_ObjectHideFlags: 0
@@ -110817,7 +110783,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 732077521}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -110825,10 +110791,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2342699719
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -110840,6 +110802,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 732077519}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &732077521 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 732077519}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!43 &732726056
 Mesh:
   m_ObjectHideFlags: 0
@@ -126916,7 +126889,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 835686548}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -126924,10 +126897,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 1751691344
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -126939,6 +126908,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 835686546}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &835686548 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 835686546}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &837085969
 GameObject:
   m_ObjectHideFlags: 0
@@ -128421,7 +128401,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 856112261}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -128429,10 +128409,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2709426357
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -128444,6 +128420,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 856112259}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &856112261 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 856112259}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &857947559
 GameObject:
   m_ObjectHideFlags: 0
@@ -128743,7 +128730,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 858662427}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -128751,10 +128738,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 1426449666
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -128766,6 +128749,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 858662425}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &858662427 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 858662425}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &861437678
 GameObject:
   m_ObjectHideFlags: 0
@@ -137093,7 +137087,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 908313399}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -137101,10 +137095,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 272505841
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -137116,6 +137106,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 908313397}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &908313399 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 908313397}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &908702934
 GameObject:
   m_ObjectHideFlags: 0
@@ -140562,7 +140563,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 931407269}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -140570,10 +140571,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2994404709
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -140585,6 +140582,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 931407267}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &931407269 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 931407267}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!43 &932575302
 Mesh:
   m_ObjectHideFlags: 0
@@ -145462,7 +145470,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 961805844}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -145470,10 +145478,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 1603765698
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -145485,6 +145489,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 961805842}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &961805844 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 961805842}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!43 &962803955
 Mesh:
   m_ObjectHideFlags: 0
@@ -146094,7 +146109,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 964182986}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -146102,10 +146117,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 3567481548
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -146117,6 +146128,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 964182984}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &964182986 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 964182984}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &964221992
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -147486,7 +147508,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 975006384}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -147494,10 +147516,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 3147629065
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -147509,6 +147527,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 975006382}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &975006384 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 975006382}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &975349633
 GameObject:
   m_ObjectHideFlags: 0
@@ -147962,9 +147991,6 @@ MonoBehaviour:
   hideType: 1
   enterPoint: {fileID: 1683393288}
   exitPoint: {fileID: 308646992}
-  openCabinetVisual: {fileID: 0}
-  closeCabinetVisual: {fileID: 0}
-  enableDebugLog: 0
   _NetIsOccupied:
     _value: 0
 --- !u!43 &977059709
@@ -157575,7 +157601,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1049314165}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -157583,10 +157609,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2006062611
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -157598,6 +157620,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1049314163}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1049314165 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1049314163}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &1049526006
 GameObject:
   m_ObjectHideFlags: 0
@@ -158780,7 +158813,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1053354412}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -158788,10 +158821,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2119484421
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -158803,6 +158832,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1053354410}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1053354412 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1053354410}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &1053761346
 GameObject:
   m_ObjectHideFlags: 0
@@ -161794,7 +161834,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1065324106}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -161802,10 +161842,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 1875302582
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -161817,6 +161853,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1065324104}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1065324106 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1065324104}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &1065574351
 GameObject:
   m_ObjectHideFlags: 0
@@ -165337,7 +165384,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1092201269}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -165345,10 +165392,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 980467824
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -165360,6 +165403,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1092201267}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1092201269 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1092201267}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!43 &1092463599
 Mesh:
   m_ObjectHideFlags: 0
@@ -171520,7 +171574,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1141173015}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -171528,10 +171582,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 602984454
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -171543,6 +171593,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1141173013}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1141173015 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1141173013}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!43 &1141369688
 Mesh:
   m_ObjectHideFlags: 0
@@ -174941,7 +175002,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1161638896}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -174949,10 +175010,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2376570173
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -174964,6 +175021,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1161638894}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1161638896 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1161638894}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &1161658813
 GameObject:
   m_ObjectHideFlags: 0
@@ -183137,7 +183205,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1206021661}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -183145,10 +183213,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 969608936
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -183160,6 +183224,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1206021659}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1206021661 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1206021659}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &1207313050
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -192769,9 +192844,6 @@ MonoBehaviour:
   hideType: 1
   enterPoint: {fileID: 1006674407}
   exitPoint: {fileID: 544076053}
-  openCabinetVisual: {fileID: 0}
-  closeCabinetVisual: {fileID: 0}
-  enableDebugLog: 0
   _NetIsOccupied:
     _value: 0
 --- !u!1 &1278515986
@@ -197639,9 +197711,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ScreenFader
   fadeImage: {fileID: 1571520156}
-  topEyelid: {fileID: 597768869}
-  bottomEyelid: {fileID: 1610714391}
-  globalVolume: {fileID: 85229779}
   fadeColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1 &1300979797
 GameObject:
@@ -200102,7 +200171,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1319238219}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -200110,10 +200179,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 1671506606
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -200125,6 +200190,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1319238217}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1319238219 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1319238217}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &1319308694
 GameObject:
   m_ObjectHideFlags: 0
@@ -200654,7 +200730,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1320261040}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -200662,10 +200738,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2616199156
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -200677,6 +200749,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1320261038}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1320261040 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1320261038}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &1322556059
 GameObject:
   m_ObjectHideFlags: 0
@@ -204274,7 +204357,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1339500357}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -204282,10 +204365,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 3066761196
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -204297,6 +204376,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1339500355}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1339500357 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1339500355}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &1339672020
 GameObject:
   m_ObjectHideFlags: 0
@@ -207620,7 +207710,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1360311531}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -207628,10 +207718,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 3908565304
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -207643,6 +207729,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1360311529}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1360311531 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1360311529}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &1363254093
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -214666,7 +214763,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1415311179}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -214674,10 +214771,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2795368559
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -214689,6 +214782,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1415311177}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1415311179 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1415311177}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!43 &1415622586
 Mesh:
   m_ObjectHideFlags: 0
@@ -226099,7 +226203,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1512626324}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -226107,10 +226211,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 779210376
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -226122,6 +226222,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1512626322}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1512626324 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1512626322}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &1513355281
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -229195,7 +229306,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1538827038}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -229203,10 +229314,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 1321520186
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -229218,6 +229325,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1538827036}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1538827038 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1538827036}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &1542977471
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -235567,7 +235685,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1582096590}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -235575,10 +235693,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2622400374
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -235590,6 +235704,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1582096588}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1582096590 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1582096588}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &1582749266
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -235665,7 +235790,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1582749268}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -235673,10 +235798,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 454126300
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -235688,6 +235809,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1582749266}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1582749268 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1582749266}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &1583411552
 GameObject:
   m_ObjectHideFlags: 0
@@ -238752,81 +238884,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3180198994713569532, guid: c187ed9edd5cb6944b0fbe718828f046, type: 3}
   m_PrefabInstance: {fileID: 1610093921}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1610714390
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1610714391}
-  - component: {fileID: 1610714393}
-  - component: {fileID: 1610714392}
-  m_Layer: 5
-  m_Name: EyelidBottom
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1610714391
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1610714390}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 677397527}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 1000}
-  m_Pivot: {x: 0.5, y: 1}
---- !u!114 &1610714392
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1610714390}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!222 &1610714393
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1610714390}
-  m_CullTransparentMesh: 1
 --- !u!1 &1616820255
 GameObject:
   m_ObjectHideFlags: 0
@@ -244935,7 +244992,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1662248301}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -244943,10 +245000,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 3883796826
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -244958,6 +245011,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1662248299}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1662248301 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1662248299}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &1662313125
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -246080,7 +246144,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1669815756}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -246088,10 +246152,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 531651999
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -246103,6 +246163,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1669815754}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1669815756 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1669815754}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &1670610787
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -255688,7 +255759,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1740822325}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -255696,10 +255767,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 1954377145
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -255711,6 +255778,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1740822323}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1740822325 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1740822323}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!43 &1741522393
 Mesh:
   m_ObjectHideFlags: 0
@@ -259090,7 +259168,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1773837118}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -259098,10 +259176,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2816968798
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -259113,6 +259187,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1773837116}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1773837118 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1773837116}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &1774429722
 GameObject:
   m_ObjectHideFlags: 0
@@ -260265,7 +260350,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1778207344}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -260273,10 +260358,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2807971320
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -260288,6 +260369,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1778207342}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1778207344 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1778207342}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &1778416612
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -261031,9 +261123,6 @@ MonoBehaviour:
   hideType: 2
   enterPoint: {fileID: 364987117}
   exitPoint: {fileID: 908098007}
-  openCabinetVisual: {fileID: 0}
-  closeCabinetVisual: {fileID: 0}
-  enableDebugLog: 0
   _NetIsOccupied:
     _value: 0
 --- !u!65 &1783011116
@@ -262440,7 +262529,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1790969340}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -262448,10 +262537,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 3429583109
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -262463,6 +262548,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1790969338}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1790969340 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1790969338}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &1791415779
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -291964,7 +292060,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1984784113}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -291972,10 +292068,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2640746928
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -291987,6 +292079,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 1984784111}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1984784113 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 1984784111}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1001 &1985466960
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -312281,7 +312384,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 2125674152}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -312289,10 +312392,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 3246701899
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -312304,6 +312403,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 2125674150}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2125674152 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 2125674150}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &2126101857
 GameObject:
   m_ObjectHideFlags: 0
@@ -313435,7 +313545,7 @@ PrefabInstance:
     - target: {fileID: 4011685316210575057, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 2139973401}
     - target: {fileID: 5644427166969673298, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -313443,10 +313553,6 @@ PrefabInstance:
     - target: {fileID: 5884976501803061242, guid: adea1f5c156322642a5577e011772b93, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
-      objectReference: {fileID: 0}
-    - target: {fileID: 6139559068085594461, guid: adea1f5c156322642a5577e011772b93, type: 3}
-      propertyPath: SortKey
-      value: 2583950354
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -313458,6 +313564,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3424152451445238592, guid: adea1f5c156322642a5577e011772b93, type: 3}
   m_PrefabInstance: {fileID: 2139973399}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2139973401 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3269751212840977966, guid: adea1f5c156322642a5577e011772b93, type: 3}
+  m_PrefabInstance: {fileID: 2139973399}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d2635bd3ce09e4eb02eb5f8e028ec2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HideSpotInteractable
 --- !u!1 &2140338994
 GameObject:
   m_ObjectHideFlags: 0
@@ -326620,4 +326737,3 @@ SceneRoots:
   - {fileID: 222667196}
   - {fileID: 1292003127}
   - {fileID: 677397527}
-  - {fileID: 85229780}

@@ -122,7 +122,7 @@ public class EscapeZoneTrigger : MonoBehaviour
         if (player.Object.HasInputAuthority && ScreenFader.Instance != null) ScreenFader.Instance.FadeOut(2.5f);
 
         //화면이 완전히 까맣게 변하는 시간 대기
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(3.0f);
 
         //2.5초 뒤 완전히 화면이 까맣게 된 시점에서 탈출 처리 실행
         if (player != null && player.Object.IsValid) player.ServerEnterEscaped();
