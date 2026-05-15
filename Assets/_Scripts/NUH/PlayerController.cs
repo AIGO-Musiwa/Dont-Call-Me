@@ -44,7 +44,10 @@ public class PlayerController : NetworkBehaviour, IInteractable
     [SerializeField] private float traumaIncreasePerSecond = 1f;         // 포획 중 초당 후유증 증가량
     [SerializeField] private float traumaDeathThreshold = 100f;          // 후유증 사망 임계값
     [SerializeField] private float rescueBaseTimeSeconds = 100f;         // 기본 구조 제한 시간
-    
+
+    [Header("시네마틱 설정")]
+    [Tooltip("포획에서 해제되어 Normal로 돌아갈 때 화면이 완전히 밝아지는 데 걸리는 시간")]
+    [SerializeField] private float wakeUpFadeDuration = 4.0f;
 
     [Networked, OnChangedRender(nameof(OnPlayerStateChanged))]
     public PlayerState NetPlayerState { get; set; }                      // 현재 플레이어 상태
@@ -140,6 +143,9 @@ public class PlayerController : NetworkBehaviour, IInteractable
             LocalCameraModeController cameraModeController = UnityEngine.Object.FindFirstObjectByType<LocalCameraModeController>(FindObjectsInactive.Include); // 씬 로컬 카메라 리그 탐색
             if (cameraModeController != null)
                 cameraModeController.RegisterLocalPlayer(this);          // 로컬 플레이어 카메라 Target 등록
+
+            if (ScreenFader.Instance != null)
+                ScreenFader.Instance.FadeInCinematic(wakeUpFadeDuration);// 입장 시 시네마틱 페이드인 연출
         }
 
         var bodySync = GetComponent<PlayerBodySync>();                   // 원격 바디 동기화 스크립트 탐색
@@ -924,6 +930,18 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
         float remainSeconds = Mathf.Max(0f, rescueBaseTimeSeconds - NetAftereffectPercent); // 남은 구조 가능 시간 계산
         NetCaptureExpireTimer = TickTimer.CreateFromSeconds(Runner, remainSeconds); // 사망 타이머 시작
+
+        RPC_PlayWakeUpCinematic();                                        // 깨어나는 시네마틱 재생 RPC 호출
+    }
+
+    /// <summary>
+    /// 특정 플레이어(자신)의 화면에만 눈 뜨기 연출을 실행하는 RPC 함수
+    /// </summary>
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    public void RPC_PlayWakeUpCinematic()
+    {
+        if (ScreenFader.Instance != null)
+            ScreenFader.Instance.FadeInCinematic(wakeUpFadeDuration);
     }
 
     public bool ServerExitCapturedToNormal()
