@@ -4,6 +4,11 @@ using UnityEngine;
 /// <summary>
 /// 캐비넷 / 책상 은신 포인트 공통 상호작용 스크립트.
 /// 숨을 때는 아이템을 드랍하지 않고, 좌클릭으로 즉시 입장 / 퇴장한다.
+/// 
+/// 캐비넷 전용 표시 규칙:
+/// - 아무도 숨어 있지 않으면 열린 캐비넷 모델을 켠다.
+/// - 누군가 숨어 있으면 닫힌 캐비넷 모델을 켠다.
+/// - 책상 HideSpot은 모델 토글을 하지 않는다.
 /// </summary>
 public class HideSpotInteractable : NetworkBehaviour, IInteractable
 {
@@ -12,19 +17,32 @@ public class HideSpotInteractable : NetworkBehaviour, IInteractable
     [SerializeField] private Transform enterPoint;
     [SerializeField] private Transform exitPoint;
 
-    [Networked] public NetworkBool NetIsOccupied { get; private set; }
-    [Networked] public PlayerRef NetOccupant { get; private set; }
+    [Header("캐비넷 전용 모델 표시")]
+    [SerializeField] private GameObject openCabinetVisual;   // 비어 있을 때 켜질 열린 캐비넷 모델
+    [SerializeField] private GameObject closeCabinetVisual;  // 점유 중일 때 켜질 닫힌 캐비넷 모델
+
+    [Header("디버그")]
+    [SerializeField] private bool enableDebugLog = false;    // 디버그 로그 출력 여부
+
+    [Networked, OnChangedRender(nameof(OnOccupiedChanged))]
+    public NetworkBool NetIsOccupied { get; private set; }   // 현재 은신처 점유 여부
+
+    [Networked]
+    public PlayerRef NetOccupant { get; private set; }       // 현재 은신처를 점유 중인 플레이어
 
     /// <summary>
-    /// 은신 포인트가 스폰될 때 점유 상태를 초기화한다.
+    /// 은신 포인트가 스폰될 때 점유 상태를 초기화하고,
+    /// 현재 점유 상태에 맞춰 캐비넷 모델 표시를 갱신한다.
     /// </summary>
     public override void Spawned()
     {
-        if (!HasStateAuthority)
-            return;
+        if (HasStateAuthority)
+        {
+            NetIsOccupied = false;
+            NetOccupant = PlayerRef.None;
+        }
 
-        NetIsOccupied = false;
-        NetOccupant = PlayerRef.None;
+        RefreshCabinetVisual();
     }
 
     /// <summary>
@@ -46,7 +64,8 @@ public class HideSpotInteractable : NetworkBehaviour, IInteractable
     }
 
     /// <summary>
-    /// 빈 은신처라면 입장시키고, 현재 이 은신처 안에 있는 플레이어라면 퇴장시킨다.
+    /// 빈 은신처라면 입장시키고,
+    /// 현재 이 은신처 안에 있는 플레이어라면 퇴장시킨다.
     /// </summary>
     public void Interact(PlayerController actor)
     {
@@ -63,13 +82,11 @@ public class HideSpotInteractable : NetworkBehaviour, IInteractable
         }
 
         if (actor.NetCurrentHideSpotId == Object.Id)
-        {
             ServerTryExit(actor);
-        }
     }
 
     /// <summary>
-    /// 플레이어 컨트롤러가 "숨은 상태에서 좌클릭"을 감지했을 때,
+    /// 플레이어 컨트롤러가 숨은 상태에서 좌클릭을 감지했을 때,
     /// 현재 숨고 있는 은신처에 퇴장을 요청하기 위한 진입점이다.
     /// 퇴장 실제 처리 책임은 HideSpotInteractable이 가진다.
     /// </summary>
@@ -118,7 +135,10 @@ public class HideSpotInteractable : NetworkBehaviour, IInteractable
 
         NetIsOccupied = true;
         NetOccupant = actor.Object.InputAuthority;
-        Debug.LogWarning("숨음");
+
+        RefreshCabinetVisual();
+
+        Log($"은신 입장 | HideType={hideType} | Occupant={NetOccupant}");
         return true;
     }
 
@@ -145,8 +165,45 @@ public class HideSpotInteractable : NetworkBehaviour, IInteractable
 
         NetIsOccupied = false;
         NetOccupant = PlayerRef.None;
-        Debug.LogWarning("숨은 데서 나옴");
+
+        RefreshCabinetVisual();
+
+        Log($"은신 퇴장 | HideType={hideType}");
         return true;
+    }
+
+    /// <summary>
+    /// NetIsOccupied 변경 시 모든 클라이언트에서 캐비넷 모델 표시를 갱신한다.
+    /// </summary>
+    private void OnOccupiedChanged()
+    {
+        RefreshCabinetVisual();
+    }
+
+    /// <summary>
+    /// 캐비넷 타입일 때만 현재 점유 상태에 맞춰 열린/닫힌 모델을 갱신한다.
+    /// 책상 타입은 모델 토글을 하지 않는다.
+    /// </summary>
+    private void RefreshCabinetVisual()
+    {
+        if (hideType != HideState.Cabinet)
+            return;
+
+        ApplyCabinetVisualState(NetIsOccupied);
+    }
+
+    /// <summary>
+    /// 캐비넷 모델 표시 상태를 실제로 적용한다.
+    /// occupied가 true면 닫힌 캐비넷을 켜고,
+    /// false면 열린 캐비넷을 켠다.
+    /// </summary>
+    private void ApplyCabinetVisualState(bool occupied)
+    {
+        if (openCabinetVisual != null)
+            openCabinetVisual.SetActive(!occupied);
+
+        if (closeCabinetVisual != null)
+            closeCabinetVisual.SetActive(occupied);
     }
 
     /// <summary>
@@ -157,5 +214,16 @@ public class HideSpotInteractable : NetworkBehaviour, IInteractable
     {
         targetPosition = exitPoint != null ? exitPoint.position : transform.position;
         targetRotation = exitPoint != null ? exitPoint.rotation : transform.rotation;
+    }
+
+    /// <summary>
+    /// 일반 디버그 로그를 출력한다.
+    /// </summary>
+    private void Log(string message)
+    {
+        if (!enableDebugLog)
+            return;
+
+        Debug.Log($"[HideSpotInteractable] {message}", this);
     }
 }
