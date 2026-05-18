@@ -21,19 +21,7 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
     [SerializeField, Range(0.5f, 3f)] private float outputGain = 1.5f;
 
     // 현재 노이즈 필터 활성 상태
-    private bool isActive;
-
-    // 서브 크리처 기믹용 강화 상태 체크 여부
-    private bool isEnhanced = false;
-
-    // 피치 변조 활성 상태 (isActive && isEnhanced일 때만 true)
-    private bool isPitchActive = false;
-
-    // 강화 시 덮어쓸 파라미터 원본 값 저장
-    private float originalHighPassCutoff;
-    private float originalCarrierFrequency;
-    private float originalRingModDepth;
-    private float originalDistortionAmount;
+    private bool isActive = false;
 
     // High Pass Filter 상태값 (채널별)
     // 1차 IIR High Pass: y[n] = α * (y[n-1] + x[n] - x[n-1])
@@ -44,30 +32,9 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
     private double ringPhase;       // 링 변조 위상 누적값 (사인파를 연속적으로 생성하기 위해 샘플마다 누적)
     private int sampleRate;         // 오디오 샘플링 레이트
 
-    // ── 피치 시프트(강화 상태 전용) ─────────────────────
-    [Header("피치 시프트 설정 (강화 상태 전용)")]
-    [Tooltip("피치 배율. 0.5 = 괴물 목소리, 2.0 = 헬륨가스 목소리")]
-    [SerializeField, Range(0.1f, 4.0f)] private float pitchFactor = 0.1f;
-
-    // 피치 시프트용 링 버퍼
-    private float[] pitchRingBuffer;
-    private int pitchBufferWritePos = 0;
-    private double pitchBufferReadPos = 0.0;
-
     private void Awake()
     {
         sampleRate = AudioSettings.outputSampleRate;
-
-        // 원본 파라미터 저장
-        originalHighPassCutoff = highPassCutoff;
-        originalCarrierFrequency = carrierFrequency;
-        originalRingModDepth = ringModDepth;
-        originalDistortionAmount = distortionAmount;
-
-        // 피치 시프트용 링버퍼: 1초 분량
-        pitchRingBuffer = new float[sampleRate];
-        pitchBufferWritePos = 0;
-        pitchBufferReadPos = 0.0;
     }
 
     // ── 외부 API ─────────────────────────────────────────
@@ -77,49 +44,10 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
     {
         isActive = active;
 
-        // 무전 수신 시작 시 isEnhanced 상태도 반영
-        UpdatePitchActive();
-
         // 비활성화 시 위상 초기화 -> 다음 활성화 시 깔끔하게 시작
         if (!active)
-        {
             ringPhase = 0;
-            pitchBufferWritePos = 0;
-            pitchBufferReadPos = 0.0;
-        }
-    }
 
-    // 서브 크리처 NoiseEnhancer 기믹
-    public void SetEnhancedNoise(bool active, float intensity = 1f)
-    {
-        Debug.Log($"[NoiseFilter] SetEnhancedNoise active={active}, isActive={isActive}");
-        if (active == isEnhanced) return;
-        isEnhanced = active;
-
-        if (active)
-        {
-            intensity = Mathf.Clamp01(intensity);
-
-            highPassCutoff = Mathf.Lerp(originalHighPassCutoff, 0.9f, intensity);
-            carrierFrequency = Mathf.Lerp(originalCarrierFrequency, 2800f, intensity);
-            ringModDepth = Mathf.Lerp(originalRingModDepth, 1f, intensity);
-            distortionAmount = Mathf.Lerp(originalDistortionAmount, 1f, intensity);
-        }
-        else
-        {
-            highPassCutoff = originalHighPassCutoff;
-            carrierFrequency = originalCarrierFrequency;
-            ringModDepth = originalRingModDepth;
-            distortionAmount = originalDistortionAmount;
-        }
-
-        // 현재 무전 수신 중이면 피치 변조도 즉시 반영
-        UpdatePitchActive();
-    }
-
-    private void UpdatePitchActive()
-    {
-        isPitchActive = isActive && isEnhanced;
     }
 
     // ── OnAudioFilterRead ─────────────────────────────────
@@ -130,14 +58,6 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
     private void OnAudioFilterRead(float[] data, int channels)
     {
         if (!isActive) return;
-
-        // ── 강화 상태: 고정 피치 시프트 + HPF + 링변조 + 디스토션 ──
-        if (isEnhanced)
-        {
-            for (int i = 0; i < data.Length; i++)
-                data[i] *= 0.2f;
-            return;
-        }
 
         // ── 일반 상태: HPF + 링변조 + 디스토션 ───────────
         if (hpfPrev == null || channelCount != channels)
@@ -164,13 +84,16 @@ public class WalkieTalkieNoiseFilter : MonoBehaviour
             float carrier = 0.5f + (float)System.Math.Sin(ringPhase) * 0.5f;
             float input = data[i];
 
+            // HPF
             float hpfOut = alpha * (hpfPrevOut[ch] + input - hpfPrev[ch]);
             hpfPrev[ch] = input;
             hpfPrevOut[ch] = hpfOut;
 
+            // 링 변조
             float ringMod = hpfOut * carrier;
             float modulated = Mathf.Lerp(hpfOut, ringMod, ringModDepth);
 
+            // 디스토션 (소프트 클리핑)
             float distorted = modulated;
             if (distortionAmount > 0f)
             {

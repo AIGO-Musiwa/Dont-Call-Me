@@ -6,6 +6,9 @@ public class SubCreatureSensor : MonoBehaviour
     [Header("플레이어 레이어 마스크")]
     public LayerMask playerLayerMask;
 
+    [Header("벽/바닥 레이어 마스크")]
+    public LayerMask wallLayerMask;
+
     // 현재 감지 범위 안에 있는 Normal 상태 플레이어 목록
     private readonly List<PlayerController> playersInRange = new();
 
@@ -24,7 +27,11 @@ public class SubCreatureSensor : MonoBehaviour
         PlayerController pc = other.GetComponent<PlayerController>();
         if (pc == null) return;
         if (pc.NetPlayerState != PlayerState.Normal) return;
+        if (pc.NetHideState != HideState.None) return;
         if (playersInRange.Contains(pc)) return;
+
+        // 서브 크리처와 플레이어 사이에 벽/바닥이 있으면 다른 층으로 간주
+        if (IsBlockedByWall(pc.transform.position)) return;
 
         playersInRange.Add(pc);
     }
@@ -44,7 +51,13 @@ public class SubCreatureSensor : MonoBehaviour
     public List<PlayerController> GetPlayersInRange()
     {
         // 상태가 변한 플레이어 제거
-        playersInRange.RemoveAll(pc => pc == null || pc.NetPlayerState != PlayerState.Normal);
+        // 상태가 변하거나 숨거나 벽에 막힌 플레이어 제거
+        playersInRange.RemoveAll(pc =>
+            pc == null ||
+            pc.NetPlayerState != PlayerState.Normal ||
+            pc.NetHideState != HideState.None ||
+            IsBlockedByWall(pc.transform.position));
+
         return playersInRange;
     }
 
@@ -64,5 +77,21 @@ public class SubCreatureSensor : MonoBehaviour
     public void ClearPlayers()
     {
         playersInRange.Clear();
+    }
+
+    // 서브크리처와 타겟 사이에 벽/바닥이 있으면 true 반환
+    private bool IsBlockedByWall(Vector3 targetPos)
+    {
+        if (wallLayerMask.value == 0) return false;
+
+        Vector3 dir = targetPos - transform.position;
+        float dist = dir.magnitude;
+
+        return Physics.Raycast(
+            transform.position,
+            dir.normalized,
+            dist,
+            wallLayerMask,
+            QueryTriggerInteraction.Ignore);
     }
 }
