@@ -195,7 +195,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &8304294256427294853
 Transform:
@@ -229,7 +229,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &5853147473236727311
 Transform:
@@ -282,6 +282,9 @@ MonoBehaviour:
   hideType: 2
   enterPoint: {fileID: 2587389750504385802}
   exitPoint: {fileID: 8304294256427294853}
+  openCabinetVisual: {fileID: 0}
+  closeCabinetVisual: {fileID: 0}
+  enableDebugLog: 0
   _NetIsOccupied:
     _value: 0
 --- !u!114 &5747382020015003966
@@ -296,11 +299,12 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 0
+  SortKey: 766699135
   ObjectInterest: 1
-  Flags: 262144
+  Flags: 262145
   NestedObjects: []
-  NetworkedBehaviours: []
+  NetworkedBehaviours:
+  - {fileID: 9161842576147587800}
   ForceRemoteRenderTimeframe: 0
 --- !u!1 &7457425397035120948
 GameObject:
@@ -316,7 +320,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &2587389750504385802
 Transform:
