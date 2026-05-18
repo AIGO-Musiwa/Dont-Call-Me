@@ -91,9 +91,9 @@ public enum SearchPhase
 
 public enum SubCreatureState
 {
-    Idle,               // 감지 대기 (고정 위치 유지)
-    Active,             // 기믹 발동 중
-    Relocating          // 다음 위치로 텔레포트 이동
+    Inactive,       // 비활성화 (기본 상태)
+    Active,         // 활성화 중 (activeDuration 동안 감지 대기)
+    Triggered,      // 플레이어 감지 후 (triggerDuration 동안 기믹 유지)
 }
 
 // ── 소리 ──────────────────────────────────────────────────
