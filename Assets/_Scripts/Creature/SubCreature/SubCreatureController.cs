@@ -6,66 +6,88 @@ using UnityEngine;
 public class SubCreatureController : NetworkBehaviour
 {
     [Networked, OnChangedRender(nameof(OnStateChanged))]
-    public SubCreatureState NetState { get; set; } = SubCreatureState.Idle;
+    public SubCreatureState NetState { get; set; } = SubCreatureState.Inactive;
 
     [Header("구역")]
     public Zone myZone;
 
-    [Header("서브 크리처 배치 위치 풀")]
-    [Tooltip("Reloacting 시 이 중 하나로 랜덤 텔레포트. 현재 인덱스 제외")]
-    public Transform[] relocatePoints;
-
     [Header("타이머")]
-    [Tooltip("플레이어 미감지 상태에서 이 시간이 지나면 Relocating으로 전환")]
-    public float maxIdleTime = 30f;
+    [Tooltip("활성화 후 플레이어 미감지 시 이 시간이 지나면 비활성화.")]
+    public float activeDuration = 10f;
 
-    [Tooltip("기믹 발동 후 이 시간이 지나면 Relocating으로 전환")]
-    public float activeDuration = 8f;
+    [Tooltip("플레이어 감지 후 기믹을 유지하는 시간.")]
+    public float triggerDuration = 5f;
+
+    [Header("호출음 설정")]
+    [Tooltip("메인 크리처를 자극하는 호출음 dB")]
+    public float callSoundDb = 45f;
+
+    [Tooltip("호출음 발생 주기 (초)")]
+    public float callSoundInterval = 2f;
+
+    [Header("메인 크리처 감지 설정")]
+    [Tooltip("이 범위 안에 메인 크리처가 들어오면 호출음을 멈춘다.")]
+    public float creatureDetectRange = 10f;
+
+    [Tooltip("메인 크리처 감지용 레이어 마스크")]
+    public LayerMask creatureLayerMask;
+
+    [Tooltip("층간 차단 레이어 마스크")]
+    public LayerMask wallLayerMask;
 
     // ── 컴포넌트 참조 ─────────────────────────────────────
 
     private SubCreatureSensor sensor;
-    private ISubCreatureGimmick gimmick;
 
     // ── 내부 상태 (호스트 전용) ───────────────────────────
 
     private float stateTimer = 0f;
-    public int currentRelocateIndex = -1;
+    private float callTimer = 0f;
+    private bool callStopped = false;
 
-    // 기믹 활성 상태 추적 (Active 중 플레이어 감지 여부에 따라 변경)
-    private bool isGimmickActive = false;
+    private readonly List<PlayerDebuffHandler> slowedPlayers = new();
+    private NetworkId sourceId;
 
     #region 초기화
 
     public override void Spawned()
     {
         sensor = GetComponent<SubCreatureSensor>();
-        gimmick = GetComponent<ISubCreatureGimmick>();
-
-        // 기믹 컴포넌트에 공통 의존성 주입
-        InjectGimmickDependencies();
+        sourceId = Object.Id;
 
         if (HasStateAuthority)
         {
-            NetState = SubCreatureState.Idle;
+            NetState = SubCreatureState.Inactive;
             stateTimer = 0f;
         }
     }
 
-    // 기믹 종류에 따라 필요한 참조 주입
-    // 새 기믹 추가 시 case 추가
-    private void InjectGimmickDependencies()
-    {
-        switch (gimmick)
-        {
-            case SlowAndCallGimmick slow:
-                slow.Setup(sensor, this);
-                break;
+    #endregion
 
-            case NoiseEnhancerGimmick noise:
-                noise.Setup(sensor, this);
-                break;
-        }
+    #region 외부 API (Spawner 전용)
+
+    // Spawner가 호출. Inactive → Active 전환
+    public void Activate()
+    {
+        if (!HasStateAuthority) return;
+        if (NetState != SubCreatureState.Inactive) return;
+
+        NetState = SubCreatureState.Active;
+        stateTimer = 0f;
+        callTimer = 0f;
+        callStopped = false;
+
+        Debug.Log($"[SubCreatureController] {myZone} → Active");
+    }
+
+    // Spawner가 강제 비활성화 시 호출
+    public void Deactivate()
+    {
+        if (!HasStateAuthority) return;
+
+        ClearGimmick();
+        NetState = SubCreatureState.Inactive;
+        stateTimer = 0f;
     }
 
     #endregion
@@ -80,9 +102,8 @@ public class SubCreatureController : NetworkBehaviour
 
         switch (NetState)
         {
-            case SubCreatureState.Idle: UpdateIdle(); break;
             case SubCreatureState.Active: UpdateActive(); break;
-            case SubCreatureState.Relocating: UpdateRelocating(); break;
+            case SubCreatureState.Triggered: UpdateTriggered(); break;
         }
     }
 
@@ -90,158 +111,158 @@ public class SubCreatureController : NetworkBehaviour
 
     #region FSM 상태별 처리
 
-    private void UpdateIdle()
+    private void UpdateActive()
     {
-        // 머물러 있는 시간 초과 -> 이동
-        if (stateTimer >= maxIdleTime)
+        // 플레이어 감지 시 Triggered 전환
+        if (sensor.HasPlayerInRange())
         {
-            EnterRelocating();
+            EnterTriggered();
             return;
         }
 
-        // 감지 범위 안에 플레이어 진입 -> Active 전환
-        if (sensor.HasPlayerInRange())
-            EnterActive();
-    }
-
-    private void UpdateActive()
-    {
-        bool hasPlayer = sensor.HasPlayerInRange();
-
-        // 플레이어 감지 상태 변화 시에만 기믹 활성/비활성 전환
-        if (hasPlayer && !isGimmickActive)
-        {
-            gimmick?.OnActivate();
-            isGimmickActive = true;
-        }
-        else if (!hasPlayer && isGimmickActive)
-        {
-            gimmick?.OnDeactivate();
-            isGimmickActive = false;
-        }
-
-        // 기믹 활성 중일 때만 Tick
-        if (isGimmickActive)
-            gimmick?.OnTick(Runner.DeltaTime);
-
-        // 지속 시간 초과 -> Relocating (타이머는 항상 흐름)
+        // activeDuration 초과 → 비활성화
         if (stateTimer >= activeDuration)
         {
-            if (isGimmickActive)
-            {
-                gimmick?.OnDeactivate();
-                isGimmickActive = false;
-            }
-            EnterRelocating();
+            NetState = SubCreatureState.Inactive;
+            stateTimer = 0f;
+            SecurityCameraCreatureManager.Instance?.OnCameraDeactivated(this);
+            Debug.Log($"[SubCreatureController] {myZone} → Inactive (시간 초과)");
         }
     }
 
-    private void UpdateRelocating()
+    private void UpdateTriggered()
     {
-        // 텔레포트는 EnterRelocating에서, 다음 프레임에서 Idle 복귀
-        NetState = SubCreatureState.Idle;
-        stateTimer = 0f;
-    }
+        UpdateCreatureDetect();
+        UpdateSlowRange();
+        UpdateCallSound(Runner.DeltaTime);
 
-    #endregion
-
-    #region 상태 전환
-
-    private void EnterActive()
-    {
-        NetState = SubCreatureState.Active;
-        stateTimer = 0f;
-        isGimmickActive = true;
-
-        gimmick?.OnActivate();
-
-        Debug.Log($"[SubCreatureController] {myZone} → Active");
-    }
-
-    private void EnterRelocating()
-    {
-        NetState = SubCreatureState.Relocating;
-        stateTimer = 0f;
-
-        TeleportToNextPoint();
-
-        Debug.Log($"[SubCreatureController] {myZone} → Relocating");
-    }
-
-    #endregion
-
-    #region 내부 유틸
-
-    private void TeleportToNextPoint()
-    {
-        if (relocatePoints == null || relocatePoints.Length == 0) return;
-
-        SubCreatureSpawner spawner = SubCreatureSpawner.Instance;
-
-        int chosen;
-        if (spawner != null)
+        // triggerDuration 초과 → 비활성화
+        if (stateTimer >= triggerDuration)
         {
-            // 현재 점유 해제
-            if (currentRelocateIndex >= 0)
-                spawner.ReleasePoint(myZone, currentRelocateIndex);
-
-            // 다른 크리처가 점유하지 않은 포인트 요청
-            chosen = spawner.GetAvailablePointIndex(myZone, currentRelocateIndex, this);
-
-            // 빈 포인트가 없으면 이동 포기 (드문 케이스)
-            if (chosen < 0)
-            {
-                Debug.LogWarning($"[SubCreatureController] {myZone} 사용 가능한 포인트 없음. 이동 취소.");
-                if (currentRelocateIndex >= 0)
-                    spawner.OccupyPoint(myZone, currentRelocateIndex, this);
-                return;
-            }
-
-            // 새 포인트 점유 등록
-            spawner.OccupyPoint(myZone, chosen, this);
+            ClearGimmick();
+            NetState = SubCreatureState.Inactive;
+            stateTimer = 0f;
+            SecurityCameraCreatureManager.Instance?.OnCameraDeactivated(this);
+            Debug.Log($"[SubCreatureController] {myZone} → Inactive (트리거 종료)");
         }
-        else
-        {
-            // Spawner 없을 때 폴백: 기존 랜덤 방식
-            List<int> candidates = new();
-            for (int i = 0; i < relocatePoints.Length; i++)
-            {
-                if (i != currentRelocateIndex) candidates.Add(i);
-            }
-            if (candidates.Count == 0) return;
-            chosen = candidates[Random.Range(0, candidates.Count)];
-        }
-
-        currentRelocateIndex = chosen;
-
-        Transform dest = relocatePoints[chosen];
-        transform.SetPositionAndRotation(dest.position, dest.rotation);
-
-        // 물리 엔진에 콜라이더 위치 즉시 반영
-        Physics.SyncTransforms();
-
-        sensor.ClearPlayers();
-
-        // 클라이언트 위치 동기화
-        RPC_SyncTeleport(dest.position, dest.rotation);
     }
 
-    #endregion
-
-    #region RPC
-
-    // 텔레포트 위치 동기화
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void RPC_SyncTeleport(Vector3 position, Quaternion rotation)
+    private void EnterTriggered()
     {
-        transform.SetPositionAndRotation(position, rotation);
+        NetState = SubCreatureState.Triggered;
+        stateTimer = 0f;
+        callTimer = 0f;
+        callStopped = false;
+
+        Debug.Log($"[SubCreatureController] {myZone} → Triggered");
     }
 
     #endregion
+
+    #region 기믹 처리
+
+    private void UpdateSlowRange()
+    {
+        List<PlayerController> inRange = sensor.GetPlayersInRange();
+
+        foreach (PlayerController pc in inRange)
+        {
+            PlayerDebuffHandler debuff = pc.GetComponent<PlayerDebuffHandler>();
+            if (debuff == null) continue;
+
+            debuff.ApplySlowDebuff(sourceId);
+
+            if (!slowedPlayers.Contains(debuff))
+                slowedPlayers.Add(debuff);
+        }
+
+        for (int i = slowedPlayers.Count - 1; i >= 0; i--)
+        {
+            if (slowedPlayers[i] == null) { slowedPlayers.RemoveAt(i); continue; }
+
+            PlayerController pc = slowedPlayers[i].GetComponent<PlayerController>();
+            if (!sensor.IsPlayerInRange(pc))
+            {
+                slowedPlayers[i].RemoveSlowDebuffBySource(sourceId);
+                slowedPlayers.RemoveAt(i);
+            }
+        }
+    }
+
+    private void UpdateCreatureDetect()
+    {
+        if (callStopped) return;
+
+        Collider[] hits = Physics.OverlapSphere(
+            transform.position,
+            creatureDetectRange,
+            creatureLayerMask,
+            QueryTriggerInteraction.Ignore);
+
+        foreach (Collider col in hits)
+        {
+            CreatureAI ai = col.GetComponent<CreatureAI>();
+            if (ai == null) continue;
+            if (ai.myZone != myZone) continue;
+
+            Vector3 dir = ai.transform.position - transform.position;
+            float dist = dir.magnitude;
+            if (wallLayerMask.value != 0 &&
+                Physics.Raycast(transform.position, dir.normalized, dist, wallLayerMask, QueryTriggerInteraction.Ignore))
+                continue;
+
+            callStopped = true;
+            Debug.Log($"[SubCreatureController] 메인 크리처 감지 → 호출음 중단 ({myZone})");
+            break;
+        }
+    }
+
+    private void UpdateCallSound(float deltaTime)
+    {
+        if (callStopped) return;
+
+        callTimer += deltaTime;
+        if (callTimer < callSoundInterval) return;
+
+        callTimer = 0f;
+
+        SoundEmitter.EmitToEventBus(
+            SoundChannel.Natural,
+            callSoundDb,
+            transform.position,
+            0f,
+            myZone);
+    }
+
+    private void ClearGimmick()
+    {
+        foreach (PlayerDebuffHandler debuff in slowedPlayers)
+        {
+            if (debuff != null)
+                debuff.RemoveSlowDebuffBySource(sourceId);
+        }
+        slowedPlayers.Clear();
+    }
+
+    #endregion
+
+    #region OnChangedRender
 
     private void OnStateChanged()
     {
-        // 향후 애니메이션 트리거 연결 가능
+        // TODO: 카메라 활성/비활성 시각 피드백 (표시등 색상 등) 연결 가능
         Debug.Log($"[SubCreatureController] 상태 → {NetState}");
     }
+
+    #endregion
+
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
+    {
+        UnityEditor.Handles.color = new UnityEngine.Color(1f, 0.5f, 0f, 0.15f);
+        UnityEditor.Handles.DrawSolidDisc(transform.position, Vector3.up, creatureDetectRange);
+        UnityEditor.Handles.color = new UnityEngine.Color(1f, 0.5f, 0f, 1f);
+        UnityEditor.Handles.DrawWireDisc(transform.position, Vector3.up, creatureDetectRange);
+    }
+#endif
 }

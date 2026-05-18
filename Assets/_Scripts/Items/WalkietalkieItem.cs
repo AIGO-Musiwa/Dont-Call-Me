@@ -27,13 +27,7 @@ public class WalkieTalkieItem : ItemObject
     // 송신자 구역 플레이어 WalkieTalkieNoiseFilter 캐시
     private readonly List<WalkieTalkieNoiseFilter> senderZoneNoiseFilters = new();
 
-    // 송신자 구역 플레이어 VoiceModulator 캐시
-    private readonly List<VoiceModulator> senderZoneVoiceModulators = new();
-
     private Transform soundOrigin;
-
-    // 서브 크리처 NoiseEnhancer 기믹용 dB 배율
-    private float voicedBMultiplier = 1f;
 
     // ─── 초기화 ──────────────────────────────────────
     protected override void Awake()
@@ -98,10 +92,6 @@ public class WalkieTalkieItem : ItemObject
             WalkieTalkieNoiseFilter noiseFilter = pc.GetComponent<WalkieTalkieNoiseFilter>();
             if (noiseFilter != null)
                 senderZoneNoiseFilters.Add(noiseFilter);
-
-            VoiceModulator modulator = pc.GetComponent<VoiceModulator>();
-            if (modulator != null)
-                senderZoneVoiceModulators.Add(modulator);
         }
     }
 
@@ -312,22 +302,6 @@ public class WalkieTalkieItem : ItemObject
 
     // ─── 🛠️ [개조] 통신 보안 락 해제 및 소지자 검증 ────────────────
 
-    // NoiseEnhancer 기믹용 dB 배율 설정
-    public void SetVoicedBMultiplier(float multiplier)
-    {
-        voicedBMultiplier = Mathf.Max(1f, multiplier);
-    }
-
-    // 송신자 구역 플레이어들의 VoiceModulator에 피치 변조를 적용/해제한다.
-    public void SetSenderVoiceModulation(bool enhanced)
-    {
-        foreach (var modulator in senderZoneVoiceModulators)
-        {
-            if (modulator != null)
-                modulator.SetEnhanced(enhanced);
-        }
-    }
-
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_EmitWalkieSound(float voicedB)
     {
@@ -338,8 +312,6 @@ public class WalkieTalkieItem : ItemObject
         WalkieTalkieItem receiverWalkie = WalkieTalkieManager.Instance?.GetWalkieTalkieByZone(receiverZone);
         if (receiverWalkie == null) return;
 
-        float finaldB = voicedB * receiverWalkie.voicedBMultiplier;
-
-        SoundEmitter.EmitToEventBus(SoundChannel.Walkie, finaldB, receiverWalkie.transform.position, 0f, receiverZone);
+        SoundEmitter.EmitToEventBus(SoundChannel.Walkie, voicedB, receiverWalkie.transform.position, 0f, receiverZone);
     }
 }
