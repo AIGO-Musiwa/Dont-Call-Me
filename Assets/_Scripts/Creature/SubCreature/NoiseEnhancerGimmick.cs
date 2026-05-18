@@ -4,11 +4,6 @@ using UnityEngine;
 
 public class NoiseEnhancerGimmick : MonoBehaviour, ISubCreatureGimmick
 {
-    [Header("노이즈 강화 설정")]
-    [Tooltip("노이즈 강화 강도 0 ~ 1")]
-    [Range(0f, 1f)]
-    public float noiseIntensity = 0.9f;
-
     [Header("dB 배율 설정")]
     [Tooltip("무전 발행 dB 배율. 1 = 정상, 2 = 크리처가 2배 예민하게 반응")]
     public float voicedBMultiplier = 1.2f;
@@ -34,10 +29,8 @@ public class NoiseEnhancerGimmick : MonoBehaviour, ISubCreatureGimmick
 
     public void OnActivate()
     {
-        Debug.Log($"[NoiseEnhancer] OnActivate 호출 ({controller.myZone})");
-
         // 수신 구역 무전기의 송신자 NoiseFilter 강화
-        ApplySenderNoiseEnhanced(true);
+        ApplySenderVoiceModulation(true);
 
         // 수신 구역 무전기 dB 배율 적용
         ApplyVoicedBMultiplier();
@@ -53,7 +46,7 @@ public class NoiseEnhancerGimmick : MonoBehaviour, ISubCreatureGimmick
     public void OnDeactivate()
     {
         // 송신자 NoiseFilter 강화 해제
-        ApplySenderNoiseEnhanced(false);
+        ApplySenderVoiceModulation(false);
 
         // 무전기 dB 배율 복구
         RestoreVoicedBMultiplier();
@@ -68,17 +61,11 @@ public class NoiseEnhancerGimmick : MonoBehaviour, ISubCreatureGimmick
 
     #region 노이즈 필터 처리
 
-    private void ApplySenderNoiseEnhanced(bool enhanced)
+    private void ApplySenderVoiceModulation(bool enhanced)
     {
         WalkieTalkieItem walkie = WalkieTalkieManager.Instance?.GetWalkieTalkieByZone(controller.myZone);
-        if (walkie == null)
-        {
-            Debug.LogWarning($"[NoiseEnhancerGimmick] {controller.myZone} 무전기를 찾을 수 없음");
-            return;
-        }
-
-        walkie.SetSenderNoiseEnhanced(enhanced, enhanced ? noiseIntensity : 0f);
-        Debug.Log($"[NoiseEnhancerGimmick] SetSenderNoiseEnhanced({enhanced}) → {controller.myZone}");
+        if (walkie == null) return;
+        walkie.SetSenderVoiceModulation(enhanced);
     }
 
     #endregion

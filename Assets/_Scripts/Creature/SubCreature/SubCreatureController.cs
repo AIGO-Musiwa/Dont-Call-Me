@@ -32,6 +32,9 @@ public class SubCreatureController : NetworkBehaviour
     private float stateTimer = 0f;
     public int currentRelocateIndex = -1;
 
+    // 기믹 활성 상태 추적 (Active 중 플레이어 감지 여부에 따라 변경)
+    private bool isGimmickActive = false;
+
     #region 초기화
 
     public override void Spawned()
@@ -103,13 +106,32 @@ public class SubCreatureController : NetworkBehaviour
 
     private void UpdateActive()
     {
-        // 기믹 매 프레임 갱신
-        gimmick?.OnTick(Runner.DeltaTime);
+        bool hasPlayer = sensor.HasPlayerInRange();
 
-        // 지속 시간 초과 -> Relocating
-        if (stateTimer >= activeDuration)
+        // 플레이어 감지 상태 변화 시에만 기믹 활성/비활성 전환
+        if (hasPlayer && !isGimmickActive)
+        {
+            gimmick?.OnActivate();
+            isGimmickActive = true;
+        }
+        else if (!hasPlayer && isGimmickActive)
         {
             gimmick?.OnDeactivate();
+            isGimmickActive = false;
+        }
+
+        // 기믹 활성 중일 때만 Tick
+        if (isGimmickActive)
+            gimmick?.OnTick(Runner.DeltaTime);
+
+        // 지속 시간 초과 -> Relocating (타이머는 항상 흐름)
+        if (stateTimer >= activeDuration)
+        {
+            if (isGimmickActive)
+            {
+                gimmick?.OnDeactivate();
+                isGimmickActive = false;
+            }
             EnterRelocating();
         }
     }
@@ -129,6 +151,7 @@ public class SubCreatureController : NetworkBehaviour
     {
         NetState = SubCreatureState.Active;
         stateTimer = 0f;
+        isGimmickActive = true;
 
         gimmick?.OnActivate();
 
