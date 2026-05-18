@@ -27,6 +27,9 @@ public class WalkieTalkieItem : ItemObject
     // 송신자 구역 플레이어 WalkieTalkieNoiseFilter 캐시
     private readonly List<WalkieTalkieNoiseFilter> senderZoneNoiseFilters = new();
 
+    // 송신자 구역 플레이어 VoiceModulator 캐시
+    private readonly List<VoiceModulator> senderZoneVoiceModulators = new();
+
     private Transform soundOrigin;
 
     // 서브 크리처 NoiseEnhancer 기믹용 dB 배율
@@ -95,6 +98,10 @@ public class WalkieTalkieItem : ItemObject
             WalkieTalkieNoiseFilter noiseFilter = pc.GetComponent<WalkieTalkieNoiseFilter>();
             if (noiseFilter != null)
                 senderZoneNoiseFilters.Add(noiseFilter);
+
+            VoiceModulator modulator = pc.GetComponent<VoiceModulator>();
+            if (modulator != null)
+                senderZoneVoiceModulators.Add(modulator);
         }
     }
 
@@ -311,13 +318,13 @@ public class WalkieTalkieItem : ItemObject
         voicedBMultiplier = Mathf.Max(1f, multiplier);
     }
 
-    // 송신자 구역 플레이어들의 NoiseFilter에 강화/해제를 적용.
-    public void SetSenderNoiseEnhanced(bool enhanced, float intensity)
+    // 송신자 구역 플레이어들의 VoiceModulator에 피치 변조를 적용/해제한다.
+    public void SetSenderVoiceModulation(bool enhanced)
     {
-        foreach (var filter in senderZoneNoiseFilters)
+        foreach (var modulator in senderZoneVoiceModulators)
         {
-            if (filter != null)
-                filter.SetEnhancedNoise(enhanced, intensity);
+            if (modulator != null)
+                modulator.SetEnhanced(enhanced);
         }
     }
 

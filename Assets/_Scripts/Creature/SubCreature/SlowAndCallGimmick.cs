@@ -18,6 +18,10 @@ public class SlowAndCallGimmick : MonoBehaviour, ISubCreatureGimmick
     [Tooltip("메인 크리처 감지용 레이어 마스크")]
     public LayerMask creatureLayerMask;
 
+    [Header("층간 차단 설정")]
+    [Tooltip("벽/바닥 레이어 마스크")]
+    public LayerMask wallLayerMask;
+
     private SubCreatureSensor sensor;
     private SubCreatureController controller;
     private NetworkId sourceId;
@@ -93,7 +97,14 @@ public class SlowAndCallGimmick : MonoBehaviour, ISubCreatureGimmick
             // 같은 구역 메인 크리처만 감지
             if (ai.myZone != controller.myZone) continue;
 
-            creatureFound = true;
+            // 크리처와 서브 크리처 사이에 벽/바닥이 있으면 다른 층으로 간주
+            Vector3 dir = ai.transform.position - transform.position;
+            float dist = dir.magnitude;
+            if (Physics.Raycast(transform.position, dir.normalized, dist, wallLayerMask, QueryTriggerInteraction.Ignore))
+                continue;
+
+            callStopped = true;
+            Debug.Log($"[SlowAndCallGimmick] 메인 크리처 감지 → 호출음 영구 중단 ({controller.myZone})");
             break;
         }
 
