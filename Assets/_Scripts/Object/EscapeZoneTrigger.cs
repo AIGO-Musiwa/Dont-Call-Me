@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
+using Unity.VisualScripting;
 
 [RequireComponent(typeof(BoxCollider))]
 public class EscapeZoneTrigger : MonoBehaviour
@@ -108,14 +110,28 @@ public class EscapeZoneTrigger : MonoBehaviour
 
     private IEnumerator PlayerBoardingRoutine(PlayerController player)
     {
-        //플레이어 강제 걷기 연출
+        Transform boardingPoint = null;
+        float moveDuration = 2.0f;
+
+        //조건에 맞는 탑승 지점 세팅
         if (escapeRoute == EscapeRoute.Rooftop && heliBoardingPoint != null)
         {
-            yield return StartCoroutine(MovePlayerGradually(player, heliBoardingPoint.position, 2.0f));
+            boardingPoint = heliBoardingPoint;
+            moveDuration = 2.0f;
         }
         else if (escapeRoute == EscapeRoute.FrontDoor && carBoardingPoint != null)
         {
-            yield return StartCoroutine(MovePlayerGradually(player, carBoardingPoint.position, 2.5f));
+            boardingPoint = carBoardingPoint;
+            moveDuration = 2.5f;
+        }
+
+        if (boardingPoint != null)
+        {
+            //플레이어 강제 걷기 연출
+            yield return StartCoroutine(MovePlayerGradually(player, boardingPoint, moveDuration));
+
+            //도착 후 헬기/자동차에 위치 고정 (페이드 아웃 대기 시간 동안 안 떨어지게 찰싹 붙임)
+            StartCoroutine(LockPlayerToVehicle(player, boardingPoint));
         }
 
         //공동 탈출 연출 (화면 페이드 아웃)
@@ -151,20 +167,54 @@ public class EscapeZoneTrigger : MonoBehaviour
         }
     }
 
-    private IEnumerator MovePlayerGradually(PlayerController player, Vector3 targetPos, float duration)
+    private IEnumerator MovePlayerGradually(PlayerController player, Transform targetTransform, float duration)
     {
         Vector3 startPos = player.transform.position;
+        Quaternion startRot = player.transform.rotation;
+
+        //탑승 지점과 플레이어 사이의 수평 방향 계산 및 고정
+        Vector3 direction = (targetTransform.position - startPos).normalized;
+        direction.y = 0; //수평 방향으로만 이동하도록 Y축 성분 제거
+        Quaternion lookAtTargetRot = direction != Vector3.zero ? Quaternion.LookRotation(direction) : startRot;
+
         float elapsed = 0;
 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
 
-            //KCC나 물리 엔진 간섭을 피하기 위해 직접 좌표 보간
-            player.transform.position = Vector3.Lerp(startPos, targetPos, elapsed / duration);
+            //차량이 움직일 수 있으므로 매 프레임 목표 위치 갱신
+            Vector3 currentTargetPos = targetTransform.position;            
+
+            Vector3 currentPos = Vector3.Lerp(startPos, currentTargetPos, t);
+            Quaternion currentRot = Quaternion.Slerp(startRot, lookAtTargetRot, t);
+
+            //KCC 물리 엔진 간섭을 피해 위치와 시야 회전을 동시에 보간 적용
+            if (player.KCCMotor != null)
+            {
+                player.KCCMotor.WarpToPose(currentPos, currentRot);
+            }
+            else
+            {
+                player.transform.position = currentPos;
+                player.transform.rotation = currentRot;
+            }
+
             yield return null;
         }
+    }
 
-        player.transform.position = targetPos;
+    //도착 후 플레이어를 차량에 완전히 고정시키는 코루틴
+    private IEnumerator LockPlayerToVehicle(PlayerController player, Transform targetTransform)
+    {
+        //플레이어가 살아있고 아직 탈출(Escaped) 처리가 안 끝났다면 계속 차량에 붙여둠
+        while (player != null && player.Object != null && player.Object.IsValid && player.NetPlayerState != PlayerState.Escaped)
+        {
+            //위치는 차량에 고정, 회전은 탑승 완료 시점의 방향(차량을 바라보는 방향)을 그대로 유지
+            if (player.KCCMotor != null) player.KCCMotor.WarpToPose(targetTransform.position, targetTransform.rotation);
+            else player.transform.position = targetTransform.position;                
+            yield return null;
+        }
     }
 }

@@ -95,10 +95,11 @@ public class CreatureSensor : MonoBehaviour
                 //크리처 눈 위치 설정
                 Vector3 eyePosition = transform.position + Vector3.up * eyeHeight;
 
-                //플레이어 머리와 허리 지점 설정
+                //플레이어 머리와 허리, 다리 지점 설정
                 Vector3[] targetPoints = {
-                    target.position + Vector3.up * 1.6f,
-                    target.position + Vector3.up * 0.8f
+                    target.position + Vector3.up * 1.6f, //머리
+                    target.position + Vector3.up * 0.8f, //허리
+                    target.position + Vector3.up * 0.2f  //다리
                 };
 
                 //각 지점을 향해 레이캐스트 발사
