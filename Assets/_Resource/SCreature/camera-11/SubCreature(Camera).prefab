@@ -13,6 +13,9 @@ GameObject:
   - component: {fileID: -2049005524453158234}
   - component: {fileID: -6014910689094079983}
   - component: {fileID: -2700224487487911444}
+  - component: {fileID: 5026615836040539481}
+  - component: {fileID: 685385873834244985}
+  - component: {fileID: 3411448954801074205}
   m_Layer: 0
   m_Name: SubCreature(Camera)
   m_TagString: Untagged
@@ -120,6 +123,145 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: -6014910689094079983}
   ForceRemoteRenderTimeframe: 0
+--- !u!114 &5026615836040539481
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 646787235879881843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca56179dd2373d64f8eb58e20e7997db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SecurityCameraVisual
+  controller: {fileID: -6014910689094079983}
+  sensor: {fileID: -2049005524453158234}
+  horizontalAxis: {fileID: 4772930650563639768}
+  verticalAxis: {fileID: 6670898630009940361}
+  trackingSpeed: 4
+  minTilt: -30
+  maxTilt: 60
+  cameraRenderer: {fileID: 8241337075759430942}
+  lensMaterialIndex: 1
+  offMaterial: {fileID: 2100000, guid: 7706c5ed6a320b5499670c842cc8adc9, type: 2}
+  onMaterial: {fileID: 2100000, guid: 60e99d67846526043b3ce82f81b3c1af, type: 2}
+  audioTrigger: {fileID: 3411448954801074205}
+  trackingSoundType: 0
+--- !u!82 &685385873834244985
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 646787235879881843}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &3411448954801074205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 646787235879881843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e57a42340b87584885328f0269e014a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MultiAudioTrigger
+  soundMappings:
+  - soundType: 0
+    audioEvent: {fileID: 11400000, guid: a9057d436ece65a4096efce346b8a9e0, type: 2}
+  minDistance: 1
+  maxDistance: 5
 --- !u!1 &819437944152085398
 GameObject:
   m_ObjectHideFlags: 0
@@ -242,7 +384,7 @@ SkinnedMeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 783dc9f458a96e24a90aa2834380a2c7, type: 2}
-  - {fileID: 2100000, guid: a0dd1eca7fc704b4d8e2df0d7cf2bdc2, type: 2}
+  - {fileID: 2100000, guid: 7706c5ed6a320b5499670c842cc8adc9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
