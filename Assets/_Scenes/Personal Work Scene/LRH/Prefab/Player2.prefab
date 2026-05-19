@@ -59,7 +59,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 1.135, z: 0}
-  m_LocalScale: {x: 0.6896551, y: 0.6666667, z: 0.6896551}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1101863805230548405}
@@ -74,9 +74,9 @@ Light:
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 2
-  m_Color: {r: 0.5849056, g: 0.5849056, b: 0.5849056, a: 1}
-  m_Intensity: 0.3
-  m_Range: 3
+  m_Color: {r: 0.42352942, g: 0.42352942, b: 0.42352942, a: 1}
+  m_Intensity: 5
+  m_Range: 12
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -398,8 +398,7 @@ MonoBehaviour:
   eyeOffset: 0.3
   lockCursorForLocalPlayer: 1
   capturedEyeHeight: 0.45
-  flashlightHeightOffset: 2
-  flashlightForwardOffset: 0.2
+  flashlightLocalOffset: {x: 0, y: -0.05, z: 0.1}
   heightSmoothTime: 0.05
 --- !u!114 &2312676653009107545
 MonoBehaviour:
@@ -1189,8 +1188,8 @@ Light:
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 20
-  m_Range: 30
+  m_Intensity: 150
+  m_Range: 50
   m_SpotAngle: 65
   m_InnerSpotAngle: 0
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -1198,10 +1197,10 @@ Light:
     m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
-    m_Strength: 1
+    m_Strength: 0.72
     m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
+    m_NormalBias: 0.1
+    m_NearPlane: 0.1
     m_CullingMatrixOverride:
       e00: 1
       e01: 0
@@ -1220,7 +1219,7 @@ Light:
       e32: 0
       e33: 1
     m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
+  m_Cookie: {fileID: 2800000, guid: 9fa29a92a46b23c478d0b352ccece360, type: 3}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
   m_RenderMode: 0
@@ -1231,7 +1230,7 @@ Light:
   m_Lightmapping: 1
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
+  m_BounceIntensity: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
