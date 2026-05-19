@@ -69,9 +69,9 @@ public class CreatureMotor : MonoBehaviour
     }
 
     public void UpdatePatrolLogic(float deltaTime)
-    {        
-        //에이전트가 null이거나, 정지 상태이거나, 웨이포인트가 부족하면 실행 안 함
-        if (agent == null || !agent.isOnNavMesh || agent.isStopped || allWaypoints.Count <= 1)
+    {
+        //에이전트가 null이거나, NaveMesh 위에 있지 않거나, 웨이포인트가 부족하면 실행 안 함
+        if (agent == null || !agent.isOnNavMesh || allWaypoints.Count <= 1)
         {
             patrolStuckTimer = 0f;
             return;
@@ -87,7 +87,8 @@ public class CreatureMotor : MonoBehaviour
         //경로가 없거나 목적지에 거의 도착했을 경우, 또는 막혀서 2.0초가 지났을 때 새로운 목적지 설정
         if (!agent.hasPath || agent.remainingDistance < 0.5f || patrolStuckTimer > 2.0f)
         {
-            currentWaypointIndex = (currentWaypointIndex + Random.Range(1, allWaypoints.Count)) % allWaypoints.Count;            
+            currentWaypointIndex = (currentWaypointIndex + Random.Range(1, allWaypoints.Count)) % allWaypoints.Count;
+            agent.isStopped = false;
             agent.SetDestination(allWaypoints[currentWaypointIndex].position);
 
             //목적지를 바꿨으니 타이머를 즉시 0으로 초기화해 중복 호출 방지
