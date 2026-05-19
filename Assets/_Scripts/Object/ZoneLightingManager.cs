@@ -1,6 +1,7 @@
 using Fusion;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class ZoneLightingManager : NetworkBehaviour
 {
@@ -23,6 +24,9 @@ public class ZoneLightingManager : NetworkBehaviour
     public float sirenBlinkSpeed = 5.5f;
     [Tooltip("사이렌 깜빡임의 최소 밝기")]
     public float sirenMinIntensity = 0f;
+
+    [Header("3막 진입 시 사이렌 Local Volume 오브젝트")]
+    public Volume act3SirenVolume;
 
     //수집된 조명들의 원본 데이터를 기억할 구조체
     private class LightData
@@ -60,9 +64,11 @@ public class ZoneLightingManager : NetworkBehaviour
                     originalIntensity = l.intensity,
                     originalColor = l.color
                 });
-            }
-            Debug.Log($"[{myZone}] 조명 관리자: {managedLights.Count}개의 조명을 자동 수집했습니다.");
+            }            
         }
+
+        //볼륨 가중치를 0으로 꺼둠
+        if (act3SirenVolume != null) act3SirenVolume.weight = 0f;
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState)
@@ -87,6 +93,9 @@ public class ZoneLightingManager : NetworkBehaviour
             if (IsCaptureDarkout)
             {
                 data.light.intensity = Mathf.Lerp(data.light.intensity, 0f, Time.deltaTime * 5f);
+
+                //포획 암전 시 사이렌 볼륨도 깥이 꺼줌
+                if (act3SirenVolume != null) act3SirenVolume.weight = Mathf.Lerp(act3SirenVolume.weight, 0f, Time.deltaTime * 5f);
             }
 
             //3막 상태일 경우 모든 조명을 설정된 색상과 밝기로 변경
@@ -98,9 +107,11 @@ public class ZoneLightingManager : NetworkBehaviour
                 //최소 밝기와 최대 밝기 사이를 펄스 값에 따라 변화
                 float currentTargetIntensity = Mathf.Lerp(sirenMinIntensity, act3LightIntensity, pulse);
 
-                data.light.color = Color.Lerp(data.light.color, act3LightColor, Time.deltaTime * 5f);
-                //data.light.intensity = Mathf.Lerp(data.light.intensity, currentTargetIntensity, Time.deltaTime * 2f);
+                data.light.color = Color.Lerp(data.light.color, act3LightColor, Time.deltaTime * 5f);                
                 data.light.intensity = currentTargetIntensity;
+
+                //조멱이 깜빡이는 리듬에 맞춰 카메라 렌즈의 빨간 필터 농도도 함께 변화
+                if (act3SirenVolume != null) act3SirenVolume.weight = pulse;
             }
 
             //평상시 원래 설정된 색상과 밝기로 복구
@@ -108,6 +119,9 @@ public class ZoneLightingManager : NetworkBehaviour
             {
                 data.light.color = Color.Lerp(data.light.color, data.originalColor, Time.deltaTime * 2f);
                 data.light.intensity = Mathf.Lerp(data.light.intensity, data.originalIntensity, Time.deltaTime * 2f);
+
+                //평상시 볼륨 끄기
+                if (act3SirenVolume != null) act3SirenVolume.weight = 0f;
             }
         }
     }
