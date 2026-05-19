@@ -87,15 +87,7 @@ public class CreatureMotor : MonoBehaviour
         //경로가 없거나 목적지에 거의 도착했을 경우, 또는 막혀서 2.0초가 지났을 때 새로운 목적지 설정
         if (!agent.hasPath || agent.remainingDistance < 0.5f || patrolStuckTimer > 2.0f)
         {
-            int nextIndex = currentWaypointIndex;
-
-            //현재 위치와 다른 새로운 목적지를 랜덤으로 설정
-            while (nextIndex == currentWaypointIndex)
-            {
-                nextIndex = Random.Range(0, allWaypoints.Count);
-            }
-
-            currentWaypointIndex = nextIndex;
+            currentWaypointIndex = (currentWaypointIndex + Random.Range(1, allWaypoints.Count)) % allWaypoints.Count;            
             agent.SetDestination(allWaypoints[currentWaypointIndex].position);
 
             //목적지를 바꿨으니 타이머를 즉시 0으로 초기화해 중복 호출 방지

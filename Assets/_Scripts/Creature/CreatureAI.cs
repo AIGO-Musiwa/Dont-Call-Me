@@ -562,7 +562,7 @@ public class CreatureAI : NetworkBehaviour
         bool reachedNormally = motor.HasReachedDestination(1.0f);
 
         //NavMesh 경로 연산 중이 아닌데 속도가 0에 가깝다면 막힌 것으로 판단하여 타이머 증가
-        bool isNotMoving = agent.velocity.sqrMagnitude < 0.1f && !agent.pathPending;
+        bool isNotMoving = agent.velocity.sqrMagnitude < 0.01f && !agent.pathPending;
         if (isNotMoving) stuckTimer += Runner.DeltaTime;
         else stuckTimer = 0f;
 
@@ -660,7 +660,7 @@ public class CreatureAI : NetworkBehaviour
             bool reachedNormally = motor.HasReachedDestination(1.0f);
 
             //NavMesh 경로 연산 중이 아닌데 속도가 0에 가깝다면 막힌 것으로 판단하여 타이머 증가
-            bool isNotMoving = agent.velocity.sqrMagnitude < 0.1f && !agent.pathPending;
+            bool isNotMoving = agent.velocity.sqrMagnitude < 0.01f && !agent.pathPending;
             if (isNotMoving) stuckTimer += Runner.DeltaTime;
             else stuckTimer = 0f;
 
