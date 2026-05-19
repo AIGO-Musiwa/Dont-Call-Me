@@ -21,8 +21,9 @@ public class SubCreatureSensor : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log($"[Sensor] {gameObject.name} TriggerEnter: {other.name}, layer={other.gameObject.layer}, maskValue={playerLayerMask.value}");
         // 레이어 필터
-        if((playerLayerMask.value & (1 << other.gameObject.layer)) == 0) return;
+        if ((playerLayerMask.value & (1 << other.gameObject.layer)) == 0) return;
 
         PlayerController pc = other.GetComponent<PlayerController>();
         if (pc == null) return;
@@ -84,7 +85,10 @@ public class SubCreatureSensor : MonoBehaviour
     {
         if (wallLayerMask.value == 0) return false;
 
-        Vector3 dir = targetPos - transform.position;
+        Vector3 adjustedTarget = targetPos + Vector3.up * 1f;
+        Vector3 origin = transform.position + transform.forward * 0.3f;
+
+        Vector3 dir = adjustedTarget - origin;
         float dist = dir.magnitude;
 
         return Physics.Raycast(
