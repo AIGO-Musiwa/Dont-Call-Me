@@ -69,15 +69,19 @@ public class CreatureMotor : MonoBehaviour
     }
 
     public void UpdatePatrolLogic(float deltaTime)
-    {
-        //에이전트가 null이거나 네브메시 위에 없거나 웨이포인트가 부족하면 실행 안 함
-        if (agent == null || !agent.isOnNavMesh || allWaypoints.Count <= 1) return;
+    {        
+        //에이전트가 null이거나, 정지 상태이거나, 웨이포인트가 부족하면 실행 안 함
+        if (agent == null || !agent.isOnNavMesh || agent.isStopped || allWaypoints.Count <= 1)
+        {
+            patrolStuckTimer = 0f;
+            return;
+        }
 
         //순찰 중 경로가 막혀 2초 이상 제자리 걸음인지 체크
         bool isNotMoving = agent.desiredVelocity.sqrMagnitude < 0.1f && !agent.pathPending;
 
         //의도적으로 멈춘 상태(!agent.isStopped)가 아닐 때만 막힘 타이머 작동
-        if (isNotMoving && !agent.isStopped) patrolStuckTimer += deltaTime;
+        if (isNotMoving) patrolStuckTimer += deltaTime;
         else patrolStuckTimer = 0f;
 
         //경로가 없거나 목적지에 거의 도착했을 경우, 또는 막혀서 2.0초가 지났을 때 새로운 목적지 설정
