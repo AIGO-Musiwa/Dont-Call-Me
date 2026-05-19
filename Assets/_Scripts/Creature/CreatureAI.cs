@@ -152,6 +152,9 @@ public class CreatureAI : NetworkBehaviour
             case CreatureState.Search: UpdateSearchState(); break;
             case CreatureState.Chaser: UpdateChaseState(); break;
         }
+
+        //포획 연출 중이 아닐 때, 네브메시의 계산대로 크리처를 네트워크 상에서 직접 전진
+        motor.TickMovement(Runner.DeltaTime);
     }
     #endregion
 
@@ -547,7 +550,7 @@ public class CreatureAI : NetworkBehaviour
         motor.SetSpeed(patrolSpeed);
 
         //모터의 순찰 로직 실행
-        motor.UpdatePatrolLogic();
+        motor.UpdatePatrolLogic(Runner.DeltaTime);
     }
 
     private void UpdateAlertMoveState()

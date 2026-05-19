@@ -22,6 +22,10 @@ public class CreatureMotor : MonoBehaviour
         //네브메시 에이전트 초기화
         agent = GetComponent<NavMeshAgent>();
 
+        //퓨전(FixedUpdateNetwork)과 네브메시의 충돌을 막기 위해 자동 이동 및 회전을 강제로 끄고, 수동으로 제어
+        agent.updatePosition = false;
+        agent.updateRotation = false;
+
         //모든 층의 웨이포인트를 하나의 리스트로 통합
         allWaypoints.Clear();
         if (waypoints1F != null) allWaypoints.AddRange(waypoints1F);
@@ -70,7 +74,7 @@ public class CreatureMotor : MonoBehaviour
         if (!agent.isOnNavMesh || allWaypoints.Count <= 1) return;
 
         //순찰 중 경로가 막혀 2초 이상 제자리 걸음인지 체크
-        bool isNotMoving = agent.velocity.sqrMagnitude < 0.1f && !agent.pathPending;
+        bool isNotMoving = agent.desiredVelocity.sqrMagnitude < 0.1f && !agent.pathPending;
         if (isNotMoving) patrolStuckTimer += Time.deltaTime;
         else patrolStuckTimer = 0f;
 
@@ -88,6 +92,33 @@ public class CreatureMotor : MonoBehaviour
         }
     }
 
+    public void TickMovement(float deltaTime)
+    {
+        if (agent == null || !agent.isOnNavMesh) return;
+
+        //네브메시 에이전트의 내부 가상 위치를 현재 실제 트랜스포 ㅁ위치로 매 프레임 강제 동기화
+        agent.nextPosition = transform.position;
+
+        //에이전트가 계산한 목적지 방향 백터(desiredVelocity)가 유효한 경우에만 이동
+        if (agent.desiredVelocity.sqrMagnitude > 0.01f)
+        {
+            //트랜스폼 위치 이동 적용
+            transform.position += agent.desiredVelocity * deltaTime;
+
+            //회전 적용 (이동 방향을 자연스럽게 바라보도록 보간 회전)
+            Vector3 lookDir = agent.desiredVelocity;
+            
+            //계단이나 경사로에서 크리처의 몸통이 엉뚱하게 위아래로 기울어지는 것을 방지하기 위해 y축은 0으로 고전
+            lookDir.y = 0f;
+
+            if (lookDir != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(lookDir.normalized);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, deltaTime * 10);
+            }
+        }
+    }
+
     public bool HasReachedDestination(float threshold = 0.5f)
     {
         //경로를 계산 중이면 도착하지 않은 것으로 간주
@@ -102,7 +133,11 @@ public class CreatureMotor : MonoBehaviour
         //이동을 멈추고 지정된 위치로 즉시 텔레포트
         StopMoving();
         agent.Warp(position);
+        transform.position = position;
         transform.rotation = rotation;
+
+        //내부 가상 에이전트 위치도 원점 동기화
+        agent.nextPosition = position;
         ResumeMoving();
     }
 
