@@ -11,6 +11,9 @@ public class RescueZoneExitTrigger : MonoBehaviour
     //다중 콜라이더 오작동 방지용 체류 인원 추적 딕셔너리
     private Dictionary<PlayerController, int> playerColliders = new Dictionary<PlayerController, int>();
 
+    //다중 콜라이더 및 비활성화 오브젝트로 인한 오작동 방지용
+    private HashSet<Collider> activeColliders = new HashSet<Collider>();
+
     private void OnTriggerEnter(Collider other)
     {
         //방을 빠져나간 오브젝트가 플레이어인지 확인
@@ -18,14 +21,18 @@ public class RescueZoneExitTrigger : MonoBehaviour
 
         if (player != null)
         {
+            //콜라이더 정리
+            CleanUpColliders();
+
+            bool wasEmpty = activeColliders.Count == 0;
+
             //신규 진입 플레이어 딕셔너리 등록
             if (!playerColliders.ContainsKey(player)) playerColliders[player] = 0;
 
-            //진입한 콜라더 개수 누적
-            playerColliders[player]++;
+            activeColliders.Add(other);
 
             //최초 진입 시 크리처 보호 시스템 가동
-            if (playerColliders.Count == 1 && playerColliders[player] == 1) SetCreatureProtection(true);
+            if (wasEmpty && activeColliders.Count > 0) SetCreatureProtection(true);
         }
     }
 
@@ -35,27 +42,26 @@ public class RescueZoneExitTrigger : MonoBehaviour
 
         if (player != null)
         {
-            if (playerColliders.ContainsKey(player))
+            activeColliders.Remove(other);
+
+            //콜라이더 정리
+            CleanUpColliders();
+
+            //안전 구역 내 체류 인원이 완전히 없을 경우 보호 해제 및 문 닫기
+            if (activeColliders.Count == 0)
             {
-                //이탈한 콜라이더 개수 차감
-                playerColliders[player]--;
+                SetCreatureProtection(false);
 
-                //해당 플레이어의 모든 콜라이더 이탈 시 딕셔너리에서 제거
-                if (playerColliders[player] <= 0)
-                {
-                    playerColliders.Remove(player);
-                }
-
-                //안전 구역 내 체류 인원이 없을 경우 보호 해제
-                if (playerColliders.Count == 0)
-                {
-                    SetCreatureProtection(false);
-
-                    //인원이 0명이 되면 구출 구역 문을 무조건 닫음
-                    RescueZoneDoor.CloseAllDoorsInZone(myZone);
-                }
+                //인원이 0명이 되면 구출 구역 문을 닫고 퍼즐 리셋
+                RescueZoneDoor.CloseAllDoorsInZone(myZone);
             }
         }
+    }
+
+    //유니티 물리 엔진 버그(트리거 안에서 콜라이더가 꺼질 때 OnTriggerExit가 호출되지 않는 현상)를 해결
+    private void CleanUpColliders()
+    {
+        activeColliders.RemoveWhere(c => c == null || !c.gameObject.activeInHierarchy || !c.enabled);
     }
 
     private void SetCreatureProtection(bool isProtected)
@@ -70,17 +76,7 @@ public class RescueZoneExitTrigger : MonoBehaviour
             }
         }
 
-        if (isProtected) Debug.Log($"[RescueZone] 플레이어 진입! {myZone} 크리처의 시야 및 소리가 완벽히 차단됩니다.");
-        else Debug.Log($"[RescueZone] 모든 플레이어 이탈. {myZone} 크리처의 보호가 해제됩니다!");
-    }
-
-    //인스펙터에서 우클릭하여 수동으로 10초 타이머를 발동시키는 테스트용 함수
-    [ContextMenu("Debug/Activate Rescue Protection (10s)")]
-    private void DebugActivateProtection()
-    {
-        if (!Application.isPlaying) return;
-
-        SetCreatureProtection(true);
-        Debug.Log($"[Debug] {myZone} 구역의 크리처 보호 시스템(10초)을 강제로 가동했습니다!");
+        //if (isProtected) Debug.Log($"[RescueZone] 플레이어 진입! {myZone} 크리처의 시야 및 소리가 완벽히 차단됩니다.");
+        //else Debug.Log($"[RescueZone] 모든 플레이어 이탈. {myZone} 크리처의 보호가 해제됩니다!");
     }
 }
