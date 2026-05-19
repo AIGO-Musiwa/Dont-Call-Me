@@ -2,7 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 서브 크리처(감시 카메라)의 클라이언트 측 시각 연출(회전 한계치 적용, 멈춤, 불빛, 사운드) 전담 부품.
+/// 서브 크리처(감시 카메라)의 클라이언트 측 시각 연출 전담 부품.
+/// (상하좌우 통합 단일 모터 적용, Z축 위(Up) 모델 완벽 교정)
 /// </summary>
 public class SecurityCameraVisual : MonoBehaviour
 {
@@ -10,18 +11,17 @@ public class SecurityCameraVisual : MonoBehaviour
     [SerializeField] private SubCreatureController controller;
     [SerializeField] private SubCreatureSensor sensor;
 
-    [Header("카메라 관절 모터")]
-    [Tooltip("좌우 회전(Pan)을 담당하는 부모 뼈대")]
-    [SerializeField] private Transform horizontalAxis;
-    [Tooltip("상하 회전(Tilt)을 담당하는 자식 뼈대")]
-    [SerializeField] private Transform verticalAxis;
+    [Header("카메라 통합 모터 (단일 관절)")]
+    [Tooltip("상하좌우 모두 회전할 단일 뼈대 (def_horizontal_axis를 여기에 넣으세요)")]
+    [SerializeField] private Transform cameraPivot;
     [SerializeField] private float trackingSpeed = 4f;
 
-    [Header("상하 회전 한계치 (수직축)")]
-    [Tooltip("최대 올려다보는 각도 (마이너스 값)")]
-    [SerializeField] private float minTilt = -30f;
-    [Tooltip("최대 내려다보는 각도 (플러스 값)")]
-    [SerializeField] private float maxTilt = 60f;
+    [Header("조준선 영점 및 축 보정")]
+    [Tooltip("플레이어의 발(Root)에서 이 수치만큼 위(Up)를 조준합니다.")]
+    [SerializeField] private float targetHeightOffset = 1.5f;
+
+    [Tooltip("3D 모델의 꼬인 축을 풀어주는 보정 나사. (Z가 위, Y가 앞이라면 보통 X축 90 또는 -90을 넣으면 렌즈가 정면을 봅니다)")]
+    [SerializeField] private Vector3 modelAxisOffset = new Vector3(90f, 0f, 0f);
 
     [Header("시각 연출 (불빛)")]
     [SerializeField] private Renderer cameraRenderer;
@@ -29,18 +29,16 @@ public class SecurityCameraVisual : MonoBehaviour
     [SerializeField] private Material offMaterial;
     [SerializeField] private Material onMaterial;
 
-    [Header("청각 연출 (오디오)")]
-    [Tooltip("기공사가 만든 다중 채널 스피커 장치 연결")]
+    [Header("청각 연출")]
     [SerializeField] private MultiAudioTrigger audioTrigger;
-    [Tooltip("재생할 신호 타입 (예: SoundType.CameraTracking 등)")]
     [SerializeField] private SoundType trackingSoundType;
 
-    // ─── 내부 기억 장치 ───
     private bool isLensOn = false;
-    private bool isTrackingPlayer = false; // 현재 플레이어를 노려보며 소리를 내고 있는지 여부
+    private bool isTrackingPlayer = false;
 
     private void Start()
     {
+        // 부품 자동 연결망
         if (controller == null) controller = GetComponentInParent<SubCreatureController>();
         if (sensor == null) sensor = GetComponentInParent<SubCreatureSensor>();
         if (audioTrigger == null) audioTrigger = GetComponentInChildren<MultiAudioTrigger>();
@@ -50,22 +48,17 @@ public class SecurityCameraVisual : MonoBehaviour
 
     private void Update()
     {
-        if (controller == null) return;
+        if (controller == null || controller.Object == null || !controller.Object.IsValid) return;
 
-        if (controller.Object == null || !controller.Object.IsValid) return;
-
-        // 1. 상태에 따른 렌즈 불빛 제어
         bool isActive = (controller.NetState != SubCreatureState.Inactive);
         SetLensMaterial(isActive);
 
-        // 2. 비활성화 상태면 모터 전원 차단 (보던 방향 그대로 굳어버림!)
         if (!isActive)
         {
             StopTrackingSound();
             return;
         }
 
-        // 3. 활성화 상태면 센서 범위 내 플레이어 추적 시도
         TrackPlayer();
     }
 
@@ -84,57 +77,50 @@ public class SecurityCameraVisual : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 단일 관절(볼 조인트) 추적 구동 엔진
+    /// </summary>
     private void TrackPlayer()
     {
-        if (horizontalAxis == null || verticalAxis == null || sensor == null) return;
+        if (cameraPivot == null || sensor == null) return;
 
         List<PlayerController> targets = sensor.GetPlayersInRange();
 
-        // 범위 내에 플레이어가 없으면 추적 중지 (방향은 유지)
+        // 1. 센서 밖으로 나가면 얼음(동결)
         if (targets.Count == 0)
         {
             StopTrackingSound();
             return;
         }
 
-        // 가장 첫 번째로 감지된 플레이어를 타겟으로 삼음
         Transform target = targets[0].transform;
-        PlayTrackingSound(); // 추적 시작 (소리 재생)
+        PlayTrackingSound();
 
-        // =========================================================
-        // [1단계: 좌우 회전 (Horizontal)] - 무제한 회전
-        // =========================================================
-        Vector3 dirToTarget = target.position - horizontalAxis.position;
-        dirToTarget.y = 0f;
+        // 2. 가슴 높이 조준선 (절대 좌표)
+        Vector3 adjustedTarget = target.position + Vector3.up * targetHeightOffset;
+
+        // 🚨 디버그 레이저 (Scene 뷰에서 확인)
+        Debug.DrawLine(cameraPivot.position, adjustedTarget, Color.red);
+
+        // 3. 카메라 관절에서 타겟을 향하는 방향 벡터
+        Vector3 dirToTarget = adjustedTarget - cameraPivot.position;
+
         if (dirToTarget.sqrMagnitude > 0.001f)
         {
-            Quaternion targetPan = Quaternion.LookRotation(dirToTarget);
-            horizontalAxis.rotation = Quaternion.Slerp(horizontalAxis.rotation, targetPan, Time.deltaTime * trackingSpeed);
+            // [1단계] 타겟을 정직하게 바라보는 '표준 유니티 각도'를 구함
+            Quaternion standardLookRot = Quaternion.LookRotation(dirToTarget);
+
+            // [2단계] 기공사가 알려준 꼬인 뼈대(Z가 위)를 교정하기 위해 오프셋 보정치를 곱해줌
+            Quaternion correctedRot = standardLookRot * Quaternion.Euler(modelAxisOffset);
+
+            // [3단계] 스무스하게 모터 구동!
+            cameraPivot.rotation = Quaternion.Slerp(cameraPivot.rotation, correctedRot, Time.deltaTime * trackingSpeed);
         }
-
-        // =========================================================
-        // [2단계: 상하 회전 (Vertical) + 한계치 클램프 적용]
-        // =========================================================
-        // 타겟의 위치를 부모(Horizontal) 기준의 '로컬 좌표계'로 변환
-        Vector3 localTargetPos = horizontalAxis.InverseTransformPoint(target.position);
-
-        // 로컬 좌표계에서 Y(높이)와 Z(거리)를 이용해 상하 기울기(Pitch) 각도를 수학적으로 계산
-        float targetPitch = -Mathf.Atan2(localTargetPos.y, localTargetPos.z) * Mathf.Rad2Deg;
-
-        // 기공사가 설정한 각도(-30 ~ 60) 안으로 강제 고정!
-        float clampedPitch = Mathf.Clamp(targetPitch, minTilt, maxTilt);
-
-        // 클램핑된 각도로 로컬 회전 목표치 생성 (X축만 회전)
-        Quaternion targetLocalRot = Quaternion.Euler(clampedPitch, 0f, 0f);
-
-        // 부드럽게 Slerp 적용
-        verticalAxis.localRotation = Quaternion.Slerp(verticalAxis.localRotation, targetLocalRot, Time.deltaTime * trackingSpeed);
     }
 
-    // ─── 오디오 제어 모듈 ───
     private void PlayTrackingSound()
     {
-        if (isTrackingPlayer) return; // 이미 소리를 내고 있다면 무시
+        if (isTrackingPlayer) return;
 
         isTrackingPlayer = true;
         if (audioTrigger != null)
@@ -143,7 +129,7 @@ public class SecurityCameraVisual : MonoBehaviour
 
     private void StopTrackingSound()
     {
-        if (!isTrackingPlayer) return; // 이미 꺼져 있다면 무시
+        if (!isTrackingPlayer) return;
 
         isTrackingPlayer = false;
         if (audioTrigger != null)
