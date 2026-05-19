@@ -13,7 +13,7 @@ public class CreatureAI : NetworkBehaviour
     public Transform playerTarget;
 
     [Header("이동 속도 설정")]
-    public float moveSpeedBase = 4.0f;
+    public float moveSpeedBase = 6.0f;
     public float alertMoveMultiplier = 1.5f;
     public float searchMultiplier = 1.0f;
     public float chaseMultiplier = 1.75f;
