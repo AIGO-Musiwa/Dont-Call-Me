@@ -76830,7 +76830,7 @@ MonoBehaviour:
   zoneASpawnPoint: {fileID: 267973382}
   zoneBSpawnPoint: {fileID: 2122723606}
   roundSeedManager: {fileID: 940602868}
-  requiredPlayers: 4
+  requiredPlayers: 1
   distributeDelaySeconds: 8
   enableDebugLog: 1
 --- !u!4 &526154921
@@ -91360,7 +91360,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1f967ff4d0d12444ac86f0722335bd1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SubCreatureSpawner
-  activateCountPerZone: 2
+  activateCountPerZone: 20
 --- !u!4 &590806486
 Transform:
   m_ObjectHideFlags: 0
@@ -215183,6 +215183,7 @@ MonoBehaviour:
   act3LightIntensity: 25
   sirenBlinkSpeed: 5.5
   sirenMinIntensity: 0
+  act3SirenVolume: {fileID: 0}
   _IsCaptureDarkout:
     _value: 0
   _IsAct3Active:
@@ -258077,6 +258078,7 @@ MonoBehaviour:
   act3LightIntensity: 25
   sirenBlinkSpeed: 5.5
   sirenMinIntensity: 0
+  act3SirenVolume: {fileID: 0}
   _IsCaptureDarkout:
     _value: 0
   _IsAct3Active:

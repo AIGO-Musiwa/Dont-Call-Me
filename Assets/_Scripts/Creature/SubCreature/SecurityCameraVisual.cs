@@ -52,6 +52,8 @@ public class SecurityCameraVisual : MonoBehaviour
     {
         if (controller == null) return;
 
+        if (controller.Object == null || !controller.Object.IsValid) return;
+
         // 1. 상태에 따른 렌즈 불빛 제어
         bool isActive = (controller.NetState != SubCreatureState.Inactive);
         SetLensMaterial(isActive);
