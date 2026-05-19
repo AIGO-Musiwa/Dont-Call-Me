@@ -14,21 +14,20 @@ public class PlayerLookView : MonoBehaviour
     [SerializeField] private Transform cameraLightRoot;      // 손전등 SpotLight가 붙어서 따라갈 기준 루트
 
     [Header("View")]
-    [SerializeField] private float eyeOffset = 0.1f;              // KCC 높이에서 눈 위치를 살짝 낮추는 값
+    [SerializeField] private float eyeOffset = 0.1f;               // KCC 높이에서 눈 위치를 살짝 낮추는 값
     [SerializeField] private bool lockCursorForLocalPlayer = true; // 로컬 플레이어 커서 잠금 여부
-    [SerializeField] private float capturedEyeHeight = 0.45f;     // 포획 활성 상태에서 CameraHolder가 내려갈 높이
+    [SerializeField] private float capturedEyeHeight = 0.45f;      // 포획 활성 상태에서 CameraHolder가 내려갈 높이
 
     [Header("손전등 라이트 위치")]
-    [SerializeField] private float flashlightHeightOffset = 2f;   // 플레이어 발 위치 기준 손전등 라이트 높이
-    [SerializeField] private float flashlightForwardOffset = 0.5f; // 플레이어 몸 기준 손전등 라이트 앞쪽 거리
+    [SerializeField] private Vector3 flashlightLocalOffset = new Vector3(0f, -0.35f, 0.2f); // 현재 시야 기준 로컬 위치 보정값
 
     [Header("카메라 스무딩")]
-    [SerializeField] private float heightSmoothTime = 0.2f;       // CameraHolder 높이 전환 시간
+    [SerializeField] private float heightSmoothTime = 0.2f; // CameraHolder 높이 전환 시간
 
-    private float _heightVelocity;                                // SmoothDamp 내부 속도값
+    private float _heightVelocity;        // SmoothDamp 내부 속도값
 
-    private PlayerController _controller;                         // 소유 플레이어 컨트롤러
-    private PlayerKCCMotor _motor;                                 // 플레이어 이동/시야 모터
+    private PlayerController _controller; // 소유 플레이어 컨트롤러
+    private PlayerKCCMotor _motor;        // 플레이어 이동/시야 모터
 
     public Transform NormalCameraTarget => normalCameraTarget != null ? normalCameraTarget : cameraHolder;
     public Transform CapturedCameraTarget => capturedCameraTarget != null ? capturedCameraTarget : NormalCameraTarget;
@@ -149,7 +148,9 @@ public class PlayerLookView : MonoBehaviour
 
     /// <summary>
     /// 손전등 SpotLight가 따라갈 기준 위치와 회전을 갱신한다.
-    /// 위치는 플레이어 몸 기준 offset을 사용하고, 회전은 현재 시야 기준 Transform을 사용한다.
+    /// 위치와 회전은 현재 시야 기준 Transform을 따른다.
+    /// flashlightLocalOffset은 시야 기준 로컬 좌표 보정값이며,
+    /// y를 음수로 주면 눈보다 아래쪽, z를 양수로 주면 앞쪽에서 빛이 나가는 느낌을 만든다.
     /// </summary>
     private void ApplyCameraLightRootPose()
     {
@@ -160,12 +161,7 @@ public class PlayerLookView : MonoBehaviour
         if (origin == null)
             return;
 
-        Vector3 targetPosition =
-            transform.position +
-            Vector3.up * flashlightHeightOffset +
-            transform.forward * flashlightForwardOffset;
-
-        cameraLightRoot.position = targetPosition;
+        cameraLightRoot.position = origin.TransformPoint(flashlightLocalOffset);
         cameraLightRoot.rotation = origin.rotation;
     }
 
