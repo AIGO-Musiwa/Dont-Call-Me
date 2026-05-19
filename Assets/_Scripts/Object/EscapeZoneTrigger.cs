@@ -1,8 +1,6 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
-using Unity.VisualScripting;
 
 [RequireComponent(typeof(BoxCollider))]
 public class EscapeZoneTrigger : MonoBehaviour
