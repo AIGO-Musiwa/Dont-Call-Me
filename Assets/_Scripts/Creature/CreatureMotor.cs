@@ -88,13 +88,18 @@ public class CreatureMotor : MonoBehaviour
         if (!agent.hasPath || agent.remainingDistance < 0.5f || patrolStuckTimer > 2.0f)
         {
             int nextIndex = currentWaypointIndex;
+
             //현재 위치와 다른 새로운 목적지를 랜덤으로 설정
             while (nextIndex == currentWaypointIndex)
             {
                 nextIndex = Random.Range(0, allWaypoints.Count);
             }
+
             currentWaypointIndex = nextIndex;
             agent.SetDestination(allWaypoints[currentWaypointIndex].position);
+
+            //목적지를 바꿨으니 타이머를 즉시 0으로 초기화해 중복 호출 방지
+            patrolStuckTimer = 0f;
         }
     }
 
