@@ -68,27 +68,31 @@ public class CreatureMotor : MonoBehaviour
         if (agent != null && agent.isOnNavMesh) agent.SetDestination(destination);        
     }
 
-    public void UpdatePatrolLogic()
+    public void UpdatePatrolLogic(float deltaTime)
     {
-        //네브메시 위에 없거나 웨이포인트가 부족하면 실행 안 함
-        if (!agent.isOnNavMesh || allWaypoints.Count <= 1) return;
+        //에이전트가 null이거나, NaveMesh 위에 있지 않거나, 웨이포인트가 부족하면 실행 안 함
+        if (agent == null || !agent.isOnNavMesh || allWaypoints.Count <= 1)
+        {
+            patrolStuckTimer = 0f;
+            return;
+        }
 
         //순찰 중 경로가 막혀 2초 이상 제자리 걸음인지 체크
-        bool isNotMoving = agent.desiredVelocity.sqrMagnitude < 0.1f && !agent.pathPending;
-        if (isNotMoving) patrolStuckTimer += Time.deltaTime;
+        bool isNotMoving = !agent.isStopped && agent.velocity.sqrMagnitude < 0.01f && !agent.pathPending;
+
+        //의도적으로 멈춘 상태(!agent.isStopped)가 아닐 때만 막힘 타이머 작동
+        if (isNotMoving) patrolStuckTimer += deltaTime;
         else patrolStuckTimer = 0f;
 
         //경로가 없거나 목적지에 거의 도착했을 경우, 또는 막혀서 2.0초가 지났을 때 새로운 목적지 설정
         if (!agent.hasPath || agent.remainingDistance < 0.5f || patrolStuckTimer > 2.0f)
         {
-            int nextIndex = currentWaypointIndex;
-            //현재 위치와 다른 새로운 목적지를 랜덤으로 설정
-            while (nextIndex == currentWaypointIndex)
-            {
-                nextIndex = Random.Range(0, allWaypoints.Count);
-            }
-            currentWaypointIndex = nextIndex;
+            currentWaypointIndex = (currentWaypointIndex + Random.Range(1, allWaypoints.Count)) % allWaypoints.Count;
+            agent.isStopped = false;
             agent.SetDestination(allWaypoints[currentWaypointIndex].position);
+
+            //목적지를 바꿨으니 타이머를 즉시 0으로 초기화해 중복 호출 방지
+            patrolStuckTimer = 0f;
         }
     }
 
