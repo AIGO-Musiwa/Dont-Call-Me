@@ -78,7 +78,7 @@ public class CreatureMotor : MonoBehaviour
         }
 
         //순찰 중 경로가 막혀 2초 이상 제자리 걸음인지 체크
-        bool isNotMoving = agent.desiredVelocity.sqrMagnitude < 0.1f && !agent.pathPending;
+        bool isNotMoving = agent.velocity.sqrMagnitude < 0.1f && !agent.pathPending;
 
         //의도적으로 멈춘 상태(!agent.isStopped)가 아닐 때만 막힘 타이머 작동
         if (isNotMoving) patrolStuckTimer += deltaTime;
