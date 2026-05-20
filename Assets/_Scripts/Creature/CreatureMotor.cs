@@ -98,7 +98,21 @@ public class CreatureMotor : MonoBehaviour
 
     public void TickMovement(float deltaTime)
     {
-        if (agent == null || !agent.isOnNavMesh) return;      
+        if (agent == null) return;
+
+        //NavMesh 이탈 시 영구 정지 방지 및 자동 복구
+        if (!agent.isOnNavMesh)
+        {
+            //현재 위치에서 가장 가까운 네브메시 위치로 순간 이동하여 복구 시도
+            if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
+            {
+                agent.Warp(hit.position);
+                transform.position = hit.position;
+            }
+
+            //복구 시도 후에도 여전히 네브메시 위에 있지 않다면 이동을 멈추고 대기
+            else return;
+        }
 
         //에이전트가 계산한 목적지 방향 백터(desiredVelocity)가 유효한 경우에만 이동
         if (agent.desiredVelocity.sqrMagnitude > 0.01f)
@@ -107,7 +121,7 @@ public class CreatureMotor : MonoBehaviour
             Vector3 nextPos = transform.position + (agent.desiredVelocity * deltaTime);
 
             //계산된 위치에서 수직으로 가장 가까운 바닥 위치를 찾아서 높이 보정
-            if (NavMesh.SamplePosition(nextPos, out NavMeshHit hit, 2.0f, NavMesh.AllAreas))
+            if (NavMesh.SamplePosition(nextPos, out NavMeshHit hit, 0.5f, NavMesh.AllAreas))
             {
                 nextPos.y = hit.position.y;
             }            
