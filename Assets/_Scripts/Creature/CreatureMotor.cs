@@ -98,16 +98,36 @@ public class CreatureMotor : MonoBehaviour
 
     public void TickMovement(float deltaTime)
     {
-        if (agent == null || !agent.isOnNavMesh) return;
+        if (agent == null) return;
 
-        //네브메시 에이전트의 내부 가상 위치를 현재 실제 트랜스포 ㅁ위치로 매 프레임 강제 동기화
-        agent.nextPosition = transform.position;
+        //NavMesh 이탈 시 영구 정지 방지 및 자동 복구
+        if (!agent.isOnNavMesh)
+        {
+            //현재 위치에서 가장 가까운 네브메시 위치로 순간 이동하여 복구 시도
+            if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
+            {
+                agent.Warp(hit.position);
+                transform.position = hit.position;
+            }
+
+            //복구 시도 후에도 여전히 네브메시 위에 있지 않다면 이동을 멈추고 대기
+            else return;
+        }
 
         //에이전트가 계산한 목적지 방향 백터(desiredVelocity)가 유효한 경우에만 이동
         if (agent.desiredVelocity.sqrMagnitude > 0.01f)
         {
+            //다음 이동할 목표 위치를 먼저 계산 (현재 위치 + 이동 방향 * 시간)
+            Vector3 nextPos = transform.position + (agent.desiredVelocity * deltaTime);
+
+            //계산된 위치에서 수직으로 가장 가까운 바닥 위치를 찾아서 높이 보정
+            if (NavMesh.SamplePosition(nextPos, out NavMeshHit hit, 0.5f, NavMesh.AllAreas))
+            {
+                nextPos.y = hit.position.y;
+            }            
+
             //트랜스폼 위치 이동 적용
-            transform.position += agent.desiredVelocity * deltaTime;
+            transform.position = nextPos;
 
             //회전 적용 (이동 방향을 자연스럽게 바라보도록 보간 회전)
             Vector3 lookDir = agent.desiredVelocity;
@@ -121,6 +141,9 @@ public class CreatureMotor : MonoBehaviour
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, deltaTime * 10);
             }
         }
+
+        //이동을 마친 후, 네브메시 에이전트의 내부 가상 위치를 바닥에 붙은 실제 위치로 마지막에 동기화
+        agent.nextPosition = transform.position;
     }
 
     public bool HasReachedDestination(float threshold = 0.5f)
