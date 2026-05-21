@@ -752,9 +752,9 @@ public class CreatureAI : NetworkBehaviour
         Transform lookTarget = currentCapturedPlayer != null ? currentCapturedPlayer.transform : playerTarget;
 
         //포획 대상 바라보기
-        if (playerTarget != null)
+        if (lookTarget != null)
         {
-            Vector3 direction = (playerTarget.position - transform.position).normalized;
+            Vector3 direction = (lookTarget.position - transform.position).normalized;
             direction.y = 0f;
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), Runner.DeltaTime * 5f);
         }
@@ -770,6 +770,9 @@ public class CreatureAI : NetworkBehaviour
         if (stateTimer >= 2.0f && isCapturing)
         {
             isCapturing = false;
+
+            if (currentCapturedPlayer != null) currentCapturedPlayer.ServerBeginCapturedActive();            
+
             currentCapturedPlayer = null;
 
             //모터를 통해 현재 층수 확인
@@ -787,7 +790,7 @@ public class CreatureAI : NetworkBehaviour
             //상태 복구 및 타겟 초기화
             currentState = CreatureState.Patrol;
             playerTarget = null;
-            
+
             //조명 관리자에게 암전 해제 명령 전달
             ZoneLightingManager myZoneLightManager = ZoneLightingManager.GetManager(myZone);
             if (myZoneLightManager != null) myZoneLightManager.SetCaptureDarkout(false);

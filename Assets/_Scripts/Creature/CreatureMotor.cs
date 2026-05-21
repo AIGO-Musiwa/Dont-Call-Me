@@ -104,7 +104,7 @@ public class CreatureMotor : MonoBehaviour
         if (!agent.isOnNavMesh)
         {
             //현재 위치에서 가장 가까운 네브메시 위치로 순간 이동하여 복구 시도
-            if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
+            if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 0.5f, NavMesh.AllAreas))
             {
                 agent.Warp(hit.position);
                 transform.position = hit.position;

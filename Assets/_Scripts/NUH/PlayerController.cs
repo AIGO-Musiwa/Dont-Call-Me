@@ -864,6 +864,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
         NetCaptureAnchorRotation = captureAnchorRotation;                 // 포획 이동 회전 저장
         NetCaptureTransitionTimer = TickTimer.CreateFromSeconds(Runner, captureTransitionSeconds); // 전환 타이머 시작
         NetCaptureExpireTimer = TickTimer.None;                           // 사망 타이머 초기화
+        RPC_PlayCaptureFadeOut(captureTransitionSeconds);                 // 포획 시 화면 암전 RPC 호출
 
         SetInputLock(true, true);                                         // 포획 상태에서는 일반 이동과 일반 시야 회전을 모두 잠근다
 
@@ -893,8 +894,8 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
         if (NetCapturePhase == CapturePhase.Transition)
         {
-            if (NetCaptureTransitionTimer.Expired(Runner))
-                ServerBeginCapturedActive();                              // 전환 시간 끝나면 Active 페이즈 시작
+            //if (NetCaptureTransitionTimer.Expired(Runner))
+            //    ServerBeginCapturedActive();                              // 전환 시간 끝나면 Active 페이즈 시작
             return;
         }
 
@@ -942,6 +943,14 @@ public class PlayerController : NetworkBehaviour, IInteractable
     {
         if (ScreenFader.Instance != null)
             ScreenFader.Instance.FadeInCinematic(wakeUpFadeDuration);
+    }
+
+    //포획 시 화면 암전 
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    public void RPC_PlayCaptureFadeOut(float duration)
+    {
+        if (ScreenFader.Instance != null)
+            ScreenFader.Instance.FadeOut(duration);
     }
 
     public bool ServerExitCapturedToNormal()

@@ -113,6 +113,13 @@ public class ScreenFader : MonoBehaviour
     {
         if (fadeImage == null) return;
 
+        if (!fadeImage.gameObject.activeSelf)
+        {
+            Color c = fadeImage.color;
+            c.a = 0f;
+            fadeImage.color = c;
+        }
+
         //페이드 아웃 시작 시 이미지 활성화
         fadeImage.gameObject.SetActive(true);
 
