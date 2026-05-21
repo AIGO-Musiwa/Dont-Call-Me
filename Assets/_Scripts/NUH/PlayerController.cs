@@ -37,7 +37,7 @@ public class PlayerController : NetworkBehaviour, IInteractable
 
     [Header("포획")]
     [SerializeField] private GameObject capturedRescueHitbox;            // 포획 상태에서 구출 판정을 위한 히트박스
-    [SerializeField] private float captureTransitionSeconds = 1.0f;      // 포획 전환 연출 시간
+    [SerializeField] private float captureTransitionSeconds = 2.0f;      // 포획 전환 연출 시간
     [SerializeField] private float traumaPenaltyCapture1 = 10f;          // 첫 포획 후유증 증가량
     [SerializeField] private float traumaPenaltyCapture2 = 20f;          // 두 번째 포획 후유증 증가량
     [SerializeField] private float traumaPenaltyCapture3Plus = 30f;      // 세 번째 이상 포획 후유증 증가량

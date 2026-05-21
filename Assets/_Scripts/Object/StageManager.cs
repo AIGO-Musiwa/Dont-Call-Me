@@ -259,8 +259,8 @@ public class StageManager : NetworkBehaviour
 
         if (!_teleportedPlayers.Contains(playerId) && !_deadTeleportTimers.ContainsKey(playerId))
         {
-            _deadTeleportTimers[playerId] = TickTimer.CreateFromSeconds(Runner, 1.0f);
-            Log($"[{player.gameObject.name}] 사망/탈출 이벤트 수신. 1초 후 DeadRoom으로 이동합니다.");
+            ScreenFader.Instance.FadeInCinematic(1.0f);
+            _deadTeleportTimers[playerId] = TickTimer.CreateFromSeconds(Runner, 1.0f);            
         }
     }
 

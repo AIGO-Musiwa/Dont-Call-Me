@@ -756,7 +756,9 @@ public class CreatureAI : NetworkBehaviour
         {
             Vector3 direction = (lookTarget.position - transform.position).normalized;
             direction.y = 0f;
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), Runner.DeltaTime * 5f);
+
+            //거리가 0이 되어 유니티 전체가 뻗어버리는 현상 강제 차단
+            if (direction.sqrMagnitude > 0.001f) transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), Runner.DeltaTime * 5f);
         }
 
         //플레이어가 크리처를 바라보게 강제 회전
@@ -811,15 +813,16 @@ public class CreatureAI : NetworkBehaviour
         //수평만 바라보고 상하 회전 방지
         directionToCreature.y = 0f;
 
-        Quaternion targetRotation = Quaternion.LookRotation(directionToCreature);
+        if (directionToCreature.sqrMagnitude > 0.001f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(directionToCreature);
 
-        //강제 회전
-        if (targetPlayer.KCCMotor != null) targetPlayer.KCCMotor.WarpToPose(targetPlayer.transform.position, targetRotation);
-        
-        //KCC가 없을 경우
-        else targetPlayer.transform.rotation = targetRotation;        
+            //강제 회전
+            if (targetPlayer.KCCMotor != null) targetPlayer.KCCMotor.WarpToPose(targetPlayer.transform.position, targetRotation);
 
-        Debug.Log("강제 돌리기");
+            //KCC가 없을 경우
+            else targetPlayer.transform.rotation = targetRotation;
+        }
     }
 
     //구출 구역 성공 시 호출
