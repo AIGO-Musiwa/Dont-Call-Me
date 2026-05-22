@@ -10,7 +10,7 @@ public class WalkieTalkieItem : ItemObject
     [SerializeField] private AudioSource whiteNoiseSource;
 
     [Header("무전 음성 감쇠 설정")]
-    [SerializeField] private float walkieVoiceMinDistance = 2f;
+    [SerializeField] private float walkieVoiceMinDistance = 6f;
 
     [Header("무전 음성 방향성 설정")]
     [SerializeField, Range(0f, 1f)] private float walkiePanRange = 0.8f;

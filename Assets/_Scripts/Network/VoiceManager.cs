@@ -310,7 +310,7 @@ public class VoiceManager : MonoBehaviour
 
     #region 사운드 설정 API
 
-    // 마이크 게인 설정 (0 ~ 2) - 1이 원본, 1 초과 시 증폭
+    // 마이크 게인 설정 (0 ~ 3) - 1이 원본, 1 초과 시 증폭
     public void SetMicGain(float gain)
     {
         MicAudioProcessor.Instance?.SetMicGain(gain);

@@ -25,7 +25,7 @@ public static class Constants
     public const byte GROUP_SPECTATOR = 4;
 
     // ── 무전기 ────────────────────────────────────────────
-    public const float WALKIE_RANGE = 8f;       // 무전기 소리 범위
+    public const float WALKIE_RANGE = 12f;       // 무전기 소리 범위
 
 
     // ── Setting 키워드 ────────────────────────────────────

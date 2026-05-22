@@ -106,7 +106,7 @@ public class MicCalibrationUI : MonoBehaviour
 
         float saved = PlayerPrefs.GetFloat(Constants.KEY_MIC_GAIN, 1f);
         micGainSlider.minValue = 0f;
-        micGainSlider.maxValue = 2f;
+        micGainSlider.maxValue = 3f;
         micGainSlider.value = saved;
 
         UpdateGainLabel(saved);
@@ -192,7 +192,7 @@ public class MicCalibrationUI : MonoBehaviour
         yield return new WaitForSeconds(readTime);
 
         // 원본 신호 기준으로 측정 시작
-        ApplyGain(1f);
+        ApplyGain(1.5f);
 
         float elapsed = 0f;
         float sum = 0f;
@@ -224,7 +224,7 @@ public class MicCalibrationUI : MonoBehaviour
         {
             float avgdBFS = sum / count;
             float gainDelta = Mathf.Pow(10f, (calibTargetdBFS / avgdBFS) / 20f);
-            float newGain = Mathf.Clamp(gainDelta, 0f, 2f);
+            float newGain = Mathf.Clamp(gainDelta, 0f, 3f);
 
             ApplyGain(newGain);
             micGainSlider.value = newGain;
