@@ -325,7 +325,7 @@ public class VoiceManager : MonoBehaviour
         foreach (var controller in allControllers)
         {
             if (!controller.HasInputAuthority) continue;
-            controller.SetGlobalVolume(volume);
+            controller.SetGlobalVolume(volume * 3f);
             hasRemoteController = true;
         }
 
@@ -337,7 +337,7 @@ public class VoiceManager : MonoBehaviour
             {
                 var audioSource = speaker.GetComponent<AudioSource>();
                 if (audioSource != null)
-                    audioSource.volume = volume;
+                    audioSource.volume = volume * 1.5f;
             }
         }
     }
