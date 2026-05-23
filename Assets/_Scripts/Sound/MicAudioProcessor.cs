@@ -23,8 +23,8 @@ public class MicAudioProcessor : MonoBehaviour
         Instance = this;
 
         // 기본 게인 1f
-        float savedGain = PlayerPrefs.GetFloat(Constants.KEY_MIC_GAIN, 1f);
-        amplifier = new MicAmplifierShort(Mathf.Clamp(savedGain, 0f, 2f));
+        float savedGain = PlayerPrefs.GetFloat(Constants.KEY_MIC_GAIN, 1.5f);
+        amplifier = new MicAmplifierShort(Mathf.Clamp(savedGain, 0f, 3f));
     }
 
     private void OnDestroy()
@@ -61,7 +61,7 @@ public class MicAudioProcessor : MonoBehaviour
     public void SetMicGain(float gain)
     {
         if (amplifier == null) return;
-        amplifier.AmplificationFactor = Mathf.Clamp(gain, 0f, 2f);
+        amplifier.AmplificationFactor = Mathf.Clamp(gain, 0f, 3f);
     }
 
     #endregion

@@ -142,7 +142,7 @@ public class PlayerVoiceController : NetworkBehaviour
     // 전체 수신 볼륨 설정
     public void SetGlobalVolume(float volume)
     {
-        globalVolume = Mathf.Clamp01(volume);
+        globalVolume = Mathf.Clamp(volume, 0f, 3f);
     }
 
     // PlayerController.OnPlayerStateChanged에서 호출

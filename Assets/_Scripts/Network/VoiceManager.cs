@@ -310,7 +310,7 @@ public class VoiceManager : MonoBehaviour
 
     #region 사운드 설정 API
 
-    // 마이크 게인 설정 (0 ~ 2) - 1이 원본, 1 초과 시 증폭
+    // 마이크 게인 설정 (0 ~ 3) - 1이 원본, 1 초과 시 증폭
     public void SetMicGain(float gain)
     {
         MicAudioProcessor.Instance?.SetMicGain(gain);
@@ -325,7 +325,7 @@ public class VoiceManager : MonoBehaviour
         foreach (var controller in allControllers)
         {
             if (!controller.HasInputAuthority) continue;
-            controller.SetGlobalVolume(volume);
+            controller.SetGlobalVolume(volume * 3f);
             hasRemoteController = true;
         }
 
@@ -337,7 +337,7 @@ public class VoiceManager : MonoBehaviour
             {
                 var audioSource = speaker.GetComponent<AudioSource>();
                 if (audioSource != null)
-                    audioSource.volume = volume;
+                    audioSource.volume = volume * 1.5f;
             }
         }
     }
