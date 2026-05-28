@@ -155,5 +155,5 @@
 
 ## 참고 영상
 
-- 플레이 영상:
+- 플레이 영상: youtube.com/watch?si=3aabnC0QMJgPXg75&v=pKS-LkK6Edw&feature=youtu.be
 
