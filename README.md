@@ -1,4 +1,4 @@
-# Don't Call Me
+<img width="1362" height="800" alt="image" src="https://github.com/user-attachments/assets/a3b62f1e-e8a3-44f2-b502-46607be1f482" /># Don't Call Me
 
 > 무전을 통해 퍼즐을 풀고 탈출하는 4인 협동 공포 게임
 
@@ -27,7 +27,18 @@
 
 ## 스크린샷
 
-(추가 예정)
+- 타이틀
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ad34a6be-c8f6-403f-afbd-db20e0de5dfe" />
+
+- 대기실
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/1e8f6ca8-4778-493b-9cd3-a626e8c49762" />
+
+- 인게임
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9e9c18e1-5655-430d-b925-cce6363dd6bf" />
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/4d2176bb-dad7-4b0f-b53f-0c489c1c7e32" />
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/08c2ba6d-ebe6-4fec-a04c-6c4240161ae6" />
 
 ---
 
@@ -96,13 +107,24 @@
 
 ## 담당 파트
 
-### (이유정) — 게임 기획
+### (이유정) — 게임 시스템 기획
 
 ### (안시우) — 크리처 / 맵
 
+- 퍼즐 배치 및 진행도 동기화
+- 크리처 FSM 및 동적 감각 시스템
+- 플레이어 탈출 조건 및 판정
+- 맵 제작과 오브젝트 배치 및 최적화
+- 탈출 연출 및 트랜지션 
+
 ### (남의현) — 플레이어 / 퍼즐
 
-### (이래호) — 네트워크 / 오디오 시스템
+- 이동, 상호작용 등 전반적인 플레이어 시스템
+- 퍼즐 시스템 기획 및 개발
+- Seed 기반 퍼즐 랜덤 배치
+- 관전 카메라 등 전반적인 카메라 관리
+
+### (이래호) — 네트워크 / 오디오 시스템 / 깃허브 관리
 
 - Photon Fusion 2 세션 연결 및 대기실 관리
 - Photon Voice 2 Interest Group 기반 공간 분리 소통 구조 설계
@@ -110,7 +132,13 @@
 - 게임 세션 종료 및 씬 간 결과 데이터 보존
 - 화면 밝기 / 마이크 설정 시스템
 
-### (김현수) — 사운드 / 모델링
+### (김현수) — 사운드 / 모델링 / 아이템
+
+- 플레이어, 크리처 모델링 및 애니메이션
+- 아이템 멀티플레이 상태 동기화 및 시각 분리
+- 미니게임 시스템
+- 데이터 주도형 사운드 및 볼륨 제어
+- 상호작용 외곽선 셰이더 렌더링
 
 ---
 
