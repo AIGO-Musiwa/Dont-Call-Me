@@ -39,6 +39,16 @@
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/08c2ba6d-ebe6-4fec-a04c-6c4240161ae6" />
 
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6051f82b-6e2e-41d0-a8a4-2bdecc4da6b3" />
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/82d0d883-034d-49b0-882d-1dbec5102c5a" />
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/76379b0b-1540-4526-9120-5b358efd7d84" />
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f2026d6a-228a-4f78-bebc-c78e50d0db71" />
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9e120bc6-0f37-446f-a5ea-f6e3b662419e" />
+
 ---
 
 ## 조작법
