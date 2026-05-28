@@ -1,6 +1,6 @@
 # Don't Call Me
 
-<img width="1362" height="800" alt="image" src="https://github.com/user-attachments/assets/a3b62f1e-e8a3-44f2-b502-46607be1f482" /># Don't Call Me
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/7bdd4b7c-9d79-4a2a-85b4-a84914941ce2" />
 
 > 무전을 통해 퍼즐을 풀고 탈출하는 4인 협동 공포 게임
 
