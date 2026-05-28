@@ -47,6 +47,7 @@
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f2026d6a-228a-4f78-bebc-c78e50d0db71" />
 
+－ 결과화면
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9e120bc6-0f37-446f-a5ea-f6e3b662419e" />
 
 ---
